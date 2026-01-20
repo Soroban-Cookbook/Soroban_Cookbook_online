@@ -1,0 +1,144 @@
+---
+sidebar_position: 2
+title: Environment Setup
+description: Install Rust, Soroban CLI, and set up your development environment
+---
+
+# Environment Setup
+
+<div className="badge-beginner">Beginner</div>
+<div className="text-sm text-gray-600 dark:text-gray-400 mt-2">⏱️ 5-10 min setup</div>
+
+Set up everything you need to build Soroban smart contracts.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+- A computer running macOS, Linux, or Windows (WSL2)
+- Command line/terminal access
+- An internet connection
+
+## Step 1: Install Rust
+
+Soroban contracts are written in Rust, so you'll need the Rust toolchain.
+
+```bash
+# Install Rust via rustup
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Follow the on-screen instructions, then restart your terminal
+
+# Verify installation
+rustc --version
+cargo --version
+```
+
+You should see output like:
+```
+rustc 1.75.0 (82e1608df 2024-12-21)
+cargo 1.75.0 (1d8b05cdd 2024-11-20)
+```
+
+## Step 2: Add WebAssembly Target
+
+Soroban contracts compile to WebAssembly (WASM):
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+## Step 3: Install Soroban CLI
+
+The Soroban CLI handles building, testing, and deploying contracts:
+
+```bash
+cargo install --locked soroban-cli --features opt
+```
+
+This may take 5-10 minutes. Verify installation:
+
+```bash
+soroban --version
+```
+
+## Step 4: Configure Testnet Network
+
+Add testnet configuration for easy deployment:
+
+```bash
+soroban network add \
+  --global testnet \
+  --rpc-url https://soroban-testnet.stellar.org:443 \
+  --network-passphrase "Test SDF Network ; September 2015"
+```
+
+## Step 5: (Optional) Get Testnet Tokens
+
+For deploying contracts, you'll need testnet XLM:
+
+```bash
+# Generate a new identity
+soroban keys generate --global alice --network testnet
+
+# Get the address
+soroban keys address alice
+
+# Fund via friendbot (copy the address from above)
+curl "https://friendbot.stellar.org?addr=YOUR_ADDRESS"
+```
+
+## Recommended Tools
+
+### Code Editor
+
+**Visual Studio Code** with these extensions:
+- [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) - Rust language support
+- [Better TOML](https://marketplace.visualstudio.com/items?itemName=bungcip.better-toml) - TOML syntax highlighting
+- [Error Lens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) - Inline error highlights
+
+### Alternative Editors
+- **IntelliJ IDEA** with Rust plugin
+- **Vim/Neovim** with rust.vim
+- **Sublime Text** with Rust Enhanced
+
+## Verify Your Setup
+
+Create a test project to ensure everything works:
+
+```bash
+# Create new contract
+soroban contract init test-contract
+cd test-contract
+
+# Build
+soroban contract build
+
+# Run tests
+cargo test
+```
+
+If all commands succeed, you're ready to build! 🎉
+
+## Troubleshooting
+
+### "rustc: command not found"
+- Restart your terminal after installing Rust
+- Ensure `~/.cargo/bin` is in your PATH
+
+### "failed to compile soroban-cli"
+- Update Rust: `rustup update`
+- Ensure you have a stable internet connection
+
+### Permission denied errors (Linux/macOS)
+- Don't use `sudo` with cargo install
+- Check file permissions in `~/.cargo`
+
+## Next Steps
+
+Now that your environment is ready:
+1. **[Your First Contract](/getting-started/first-contract)** - Build Hello World
+2. **[Core Concepts](/concepts/authentication)** - Learn Soroban fundamentals
+
+---
+
+**Having issues?** Ask in [Stellar Discord #soroban](https://discord.gg/stellardev) or check the [official setup docs](https://developers.stellar.org/docs/smart-contracts/getting-started/setup).
