@@ -5,7 +5,9 @@ Thank you for your interest in contributing to the Soroban Cookbook! This projec
 ## 🌟 Ways to Contribute
 
 ### 1. Add New Contract Examples
+
 Share your Soroban contract patterns with the community:
+
 - Token standards
 - DeFi protocols
 - NFT implementations
@@ -13,18 +15,21 @@ Share your Soroban contract patterns with the community:
 - Any innovative use cases
 
 ### 2. Improve Documentation
+
 - Fix typos or clarify explanations
 - Add diagrams or visualizations
 - Translate content to other languages
 - Write tutorials or guides
 
 ### 3. Enhance the Website
+
 - Improve UI/UX components
 - Add interactive features
 - Optimize performance
 - Fix bugs
 
 ### 4. Review & Discuss
+
 - Review pull requests
 - Answer questions in discussions
 - Share feedback on patterns
@@ -70,7 +75,7 @@ title: [Pattern Name]
 description: [Brief description]
 ---
 
-import PatternCard from '@site/src/components/PatternCard';
+import PatternCard from "@site/src/components/PatternCard";
 
 <PatternCard metadata={{
   title: "[Pattern Name]",
@@ -83,24 +88,31 @@ import PatternCard from '@site/src/components/PatternCard';
 }}>
 
 ## Overview
+
 [What this pattern does and why it's useful]
 
 ## Use Cases
+
 [When to use this pattern]
 
 ## Implementation
+
 [Full code example with explanations]
 
 ## Testing
+
 [Test cases demonstrating usage]
 
 ## Deployment
+
 [How to deploy and interact with the contract]
 
 ## Security Considerations
+
 [Important security notes]
 
 ## Related Patterns
+
 [Links to similar patterns]
 
 </PatternCard>
@@ -120,6 +132,7 @@ All contract examples must:
 ### Code Style
 
 **Rust Code:**
+
 ```bash
 # Format code
 cargo fmt
@@ -132,6 +145,7 @@ cargo test
 ```
 
 **TypeScript/React:**
+
 ```bash
 # Format code
 npm run format
@@ -155,6 +169,7 @@ Types: feat, fix, docs, style, refactor, test, chore
 ```
 
 Examples:
+
 ```
 feat(patterns): Add atomic swap contract example
 fix(docs): Correct deployment instructions for testnet
@@ -164,6 +179,7 @@ docs(getting-started): Clarify environment setup for Windows
 ## 📝 Pull Request Process
 
 1. **Fork the repository** and create a new branch from `main`
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -171,10 +187,11 @@ docs(getting-started): Clarify environment setup for Windows
 2. **Make your changes** following the guidelines above
 
 3. **Test thoroughly**
+
    ```bash
    # For contract changes
    cargo test
-   
+
    # For website changes
    cd website && npm run build
    ```
@@ -182,6 +199,7 @@ docs(getting-started): Clarify environment setup for Windows
 4. **Commit your changes** with clear messages
 
 5. **Push to your fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -248,6 +266,7 @@ We use labels to organize issues:
 ## 🎉 Recognition
 
 Contributors will be:
+
 - Listed in our README
 - Mentioned in release notes
 - Invited to community calls
