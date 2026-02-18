@@ -1,5 +1,5 @@
 {
-  "name": "website",
+  "name": "documentation",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -12,23 +12,16 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc",
-    "sync-content": "node scripts/sync-content.js",
-    "dev": "npm run sync-content && npm start"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",
     "@docusaurus/preset-classic": "3.9.2",
     "@mdx-js/react": "^3.0.0",
-    "@monaco-editor/react": "^4.7.0",
-    "autoprefixer": "^10.4.23",
-    "clsx": "^2.1.1",
-    "framer-motion": "^12.27.2",
-    "postcss": "^8.5.6",
+    "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwindcss": "^4.1.18"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.9.2",
