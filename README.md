@@ -8,19 +8,23 @@ A user-friendly documentation website for the [Soroban Cookbook](https://github.
 
 ## 🌟 Features
 
-- ✨ **Interactive Code Examples** - Live code playgrounds with Rust syntax highlighting
 - 📚 **Progressive Learning Paths** - Beginner to Advanced tutorials
 - 🎨 **Beautiful UI** - Modern design with dark mode support
-- 🔍 **Smart Search** - Fast documentation search (Algolia integration ready)
 - 📱 **Fully Responsive** - Works perfectly on all devices
 - ⚡ **Fast Performance** - Built with Docusaurus for optimal speed
-- 🎯 **Difficulty Badges** - Clear indicators for skill level
+
+## 🎯 Planned Features
+
+- ✨ Interactive Code Playgrounds
+- 🔍 Smart Search (Algolia integration)
+- 🎯 Difficulty Badges
+- 💻 Live Rust code examples
 
 ## 🚀 Quick Start
 
 ```bash
-# Navigate to website directory
-cd website
+# Navigate to documentation directory
+cd documentation
 
 # Install dependencies
 npm install
@@ -35,16 +39,12 @@ Visit `http://localhost:3000` to view the site.
 
 ```
 Soroban_Cookbook_online/
-├── website/                 # Main documentation site
+├── documentation/           # Main documentation site
 │   ├── docs/               # MDX documentation files
-│   │   ├── getting-started/
-│   │   ├── concepts/
-│   │   └── patterns/
 │   ├── src/
 │   │   ├── components/    # React components
 │   │   ├── css/          # Styling
 │   │   └── pages/        # Static pages
-│   ├── scripts/          # Utility scripts
 │   └── package.json
 ├── .github/workflows/     # CI/CD pipelines
 └── README.md             # This file
@@ -53,10 +53,9 @@ Soroban_Cookbook_online/
 ## 🛠️ Tech Stack
 
 - **Framework**: [Docusaurus 3](https://docusaurus.io/) with TypeScript
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Language**: TypeScript + React
+- **Language**: TypeScript + React 19
 - **Deployment**: Vercel / GitHub Pages
-- **Search**: Algolia DocSearch (coming soon)
+- **Search**: Algolia DocSearch (planned)
 
 ## 📝 Development
 
@@ -72,10 +71,9 @@ npm run typecheck  # Run TypeScript checks
 
 ### Adding Content
 
-1. Create a new `.mdx` file in `docs/`
+1. Create a new `.mdx` or `.md` file in `documentation/docs/`
 2. Add frontmatter with metadata
-3. Update `sidebars.ts` for navigation
-4. Use `PatternCard` component for patterns
+3. Update `documentation/sidebars.ts` for navigation
 
 Example:
 
@@ -85,17 +83,9 @@ sidebar_position: 1
 title: My Pattern
 ---
 
-import PatternCard from '@site/src/components/PatternCard';
-
-<PatternCard metadata={{
-  title: "My Pattern",
-  difficulty: "intermediate",
-  estimatedTime: "20 min"
-}}>
+## Overview
 
 Content here...
-
-</PatternCard>
 ```
 
 ## 🚢 Deployment
@@ -126,40 +116,40 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## 🎨 Design System
 
-### Colors
+### Colors (Planned)
 
 - **Primary**: #0091FF (Stellar Blue)
 - **Success**: #00D084
 - **Warning**: #FFB84D
 - **Error**: #FF5656
 
-### Difficulty Badges
-
-- 🟢 **Beginner** - `.badge-beginner`
-- 🟡 **Intermediate** - `.badge-intermediate`
-- 🔴 **Advanced** - `.badge-advanced`
-
 ## 📊 Roadmap
 
-### Phase 1: MVP ✅
+### Phase 1: Setup ✅
+
 - [x] Base Docusaurus setup
 - [x] Core documentation structure
-- [x] Custom React components
-- [x] Tailwind CSS integration
-- [x] Sample patterns and tutorials
 - [x] Deployment configuration
+- [x] TypeScript support
 
-### Phase 2: Interactivity (In Progress)
+### Phase 2: Content Development (Current)
+
+- [ ] Getting started guides
+- [ ] Smart contract patterns
+- [ ] Code examples with tests
+- [ ] Best practices documentation
+
+### Phase 3: Interactivity
+
 - [ ] Monaco Editor integration
 - [ ] Live code playground
-- [ ] Gitpod one-click environments
 - [ ] Algolia DocSearch
-- [ ] Progress tracking
+- [ ] Custom React components
 
-### Phase 3: Advanced Features
+### Phase 4: Advanced Features
+
 - [ ] Server-side compilation API
-- [ ] Real testnet deployment from playground
-- [ ] Advanced search filters
+- [ ] Real testnet deployment
 - [ ] Video tutorials
 - [ ] Community contributions
 
@@ -174,19 +164,22 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ## 🐛 Troubleshooting
 
 ### Build fails
+
 ```bash
-cd website
+cd documentation
 npm run clear
 npm install
 npm run build
 ```
 
 ### Port 3000 in use
+
 ```bash
 npm start -- --port 3001
 ```
 
 ### TypeScript errors
+
 ```bash
 npm run typecheck
 ```

@@ -50,8 +50,8 @@ Share your Soroban contract patterns with the community:
 git clone https://github.com/Soroban-Cookbook/Soroban-Cookbook-.git
 cd Soroban-Cookbook-
 
-# Install website dependencies
-cd website
+# Install dependencies
+cd documentation
 npm install
 
 # Start development server
@@ -63,29 +63,17 @@ npm start
 Each pattern should follow this structure:
 
 ```
-docs/patterns/[category]/[pattern-name].mdx
+documentation/docs/[category]/[pattern-name].mdx
 ```
 
 Use this template:
 
-```mdx
+````mdx
 ---
 sidebar_position: [number]
 title: [Pattern Name]
 description: [Brief description]
 ---
-
-import PatternCard from "@site/src/components/PatternCard";
-
-<PatternCard metadata={{
-  title: "[Pattern Name]",
-  description: "[Detailed description]",
-  difficulty: "beginner|intermediate|advanced",
-  estimatedTime: "[X] min",
-  prerequisites: ["Prerequisite 1", "Prerequisite 2"],
-  solidityEquivalent: "[Optional: ERC20, etc.]",
-  tags: ["tag1", "tag2"]
-}}>
 
 ## Overview
 
@@ -97,7 +85,10 @@ import PatternCard from "@site/src/components/PatternCard";
 
 ## Implementation
 
-[Full code example with explanations]
+```rust
+// Your Soroban contract code here
+```
+````
 
 ## Testing
 
@@ -111,12 +102,7 @@ import PatternCard from "@site/src/components/PatternCard";
 
 [Important security notes]
 
-## Related Patterns
-
-[Links to similar patterns]
-
-</PatternCard>
-```
+````
 
 ### Code Quality Standards
 
@@ -142,7 +128,7 @@ cargo clippy -- -D warnings
 
 # Run tests
 cargo test
-```
+````
 
 **TypeScript/React:**
 
@@ -193,7 +179,7 @@ docs(getting-started): Clarify environment setup for Windows
    cargo test
 
    # For website changes
-   cd website && npm run build
+   cd documentation && npm run build
    ```
 
 4. **Commit your changes** with clear messages
