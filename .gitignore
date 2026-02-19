@@ -51,6 +51,16 @@ tmp/
 temp/
 *.tmp
 
+# Project planning (internal only)
+PROJECT_PHASES.md
+PHASE_1_ISSUES.md
+PHASE_2_ISSUES.md
+PHASE_3_ISSUES.md
+PHASE_4_ISSUES.md
+PHASE_5_ISSUES.md
+PHASE_6_ISSUES.md
+PHASE_7_ISSUES.md
+
 # OS files
 Thumbs.db
 .Spotlight-V100
