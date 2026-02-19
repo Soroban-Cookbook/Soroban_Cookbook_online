@@ -9,3 +9,75 @@
   height: 200px;
   width: 200px;
 }
+
+.homepageFeatures {
+  padding-bottom: 80px;
+}
+
+/* ── Section spacing ─────────────────────────────────────────────────────── */
+
+.section {
+  padding: 64px 0 0;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.sectionLabel {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: var(--ifm-heading-color);
+}
+
+.sectionDescription {
+  font-size: 15px;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0 auto;
+  max-width: 480px;
+  line-height: 1.65;
+}
+
+/* ── Grid layouts ─────────────────────────────────────────────────────────── */
+
+.gridFour {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.gridThree {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* Tablet */
+@media (max-width: 996px) {
+  .gridFour {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gridThree {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+
+  .gridFour,
+  .gridThree {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding-top: 48px;
+  }
+
+  .sectionLabel {
+    font-size: 22px;
+  }
+}
