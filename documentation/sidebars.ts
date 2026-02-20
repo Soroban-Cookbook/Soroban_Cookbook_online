@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
       label: 'Components',
       items: [
         'components/buttons',
+        'components/testimonials',
       ],
     },
     {
