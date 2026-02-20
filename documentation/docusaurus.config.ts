@@ -24,6 +24,25 @@ const config: Config = {
     locales: ['en'],
   },
 
+  // Theme initialization script to prevent flash of incorrect theme
+  scripts: [
+    {
+      src: '/js/themeInit.js',
+      async: false,
+    },
+  ],
+
+  // Meta tags for theme color
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'theme-color',
+        content: '#1e1e2e',
+      },
+    },
+  ],
+
   presets: [
     [
       'classic',
