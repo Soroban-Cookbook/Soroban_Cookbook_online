@@ -4,8 +4,10 @@
  * work well for content-centric websites.
  */
 
-/* You can override the default Infima variables here. */
+/* ── Light Mode (Default) ───────────────────────────────────────────────────── */
+
 :root {
+  /* Primary Colors */
   --ifm-color-primary: #2e8555;
   --ifm-color-primary-dark: #29784c;
   --ifm-color-primary-darker: #277148;
@@ -13,12 +15,95 @@
   --ifm-color-primary-light: #33925d;
   --ifm-color-primary-lighter: #359962;
   --ifm-color-primary-lightest: #3cad6e;
+  
+  /* Code Font */
   --ifm-code-font-size: 95%;
+  
+  /* Highlighted Code Line */
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  
+  /* Background Colors */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8f9fa;
+  
+  /* Text Colors */
+  --ifm-heading-color: #1a1a1a;
+  --ifm-font-color-base: #374151;
+  --ifm-color-emphasis-100: #f3f4f6;
+  --ifm-color-emphasis-200: #e5e7eb;
+  --ifm-color-emphasis-300: #d1d5db;
+  --ifm-color-emphasis-400: #9ca3af;
+  --ifm-color-emphasis-500: #6b7280;
+  --ifm-color-emphasis-600: #4b5563;
+  --ifm-color-emphasis-700: #374151;
+  --ifm-color-emphasis-800: #1f2937;
+  --ifm-color-emphasis-900: #111827;
+  
+  /* Card Colors */
+  --ifm-card-background-color: #ffffff;
+  --ifm-border-color: #e5e7eb;
+  
+  /* Navbar */
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-navbar-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  
+  /* Sidebar */
+  --ifm-menu-color: #374151;
+  --ifm-menu-color-active: #2e8555;
+  --ifm-menu-color-background-hover: rgba(46, 133, 85, 0.08);
+  
+  /* Footer */
+  --ifm-footer-background-color: #1f2937;
+  --ifm-footer-color: #e5e7eb;
+  --ifm-footer-link-color: #9ca3af;
+  --ifm-footer-link-hover-color: #ffffff;
+  
+  /* Table */
+  --ifm-table-border-color: #e5e7eb;
+  --ifm-table-head-background: #f9fafb;
+  --ifm-table-stripe-background: #f9fafb;
+  
+  /* Input */
+  --ifm-input-background-color: #ffffff;
+  --ifm-input-border-color: #d1d5db;
+  --ifm-input-color: #374151;
+  
+  /* Alert Colors */
+  --ifm-alert-background-color: #f8f9fa;
+  --ifm-alert-border-color: #e5e7eb;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+  
+  /* Z-Index Scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* ── Dark Mode ──────────────────────────────────────────────────────────────── */
+
 [data-theme='dark'] {
+  /* Primary Colors - Lighter for dark mode readability */
   --ifm-color-primary: #25c2a0;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
@@ -26,5 +111,198 @@
   --ifm-color-primary-light: #29d5b0;
   --ifm-color-primary-lighter: #32d8b4;
   --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  
+  /* Highlighted Code Line */
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+  
+  /* Background Colors */
+  --ifm-background-color: #0f172a;
+  --ifm-background-surface-color: #1e293b;
+  
+  /* Text Colors */
+  --ifm-heading-color: #f1f5f9;
+  --ifm-font-color-base: #cbd5e1;
+  --ifm-color-emphasis-100: #1e293b;
+  --ifm-color-emphasis-200: #334155;
+  --ifm-color-emphasis-300: #475569;
+  --ifm-color-emphasis-400: #64748b;
+  --ifm-color-emphasis-500: #94a3b8;
+  --ifm-color-emphasis-600: #cbd5e1;
+  --ifm-color-emphasis-700: #e2e8f0;
+  --ifm-color-emphasis-800: #f1f5f9;
+  --ifm-color-emphasis-900: #f8fafc;
+  
+  /* Card Colors */
+  --ifm-card-background-color: #1e293b;
+  --ifm-border-color: #334155;
+  
+  /* Navbar */
+  --ifm-navbar-background-color: #0f172a;
+  --ifm-navbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  
+  /* Sidebar */
+  --ifm-menu-color: #cbd5e1;
+  --ifm-menu-color-active: #25c2a0;
+  --ifm-menu-color-background-hover: rgba(37, 194, 160, 0.1);
+  
+  /* Footer */
+  --ifm-footer-background-color: #020617;
+  --ifm-footer-color: #cbd5e1;
+  --ifm-footer-link-color: #94a3b8;
+  --ifm-footer-link-hover-color: #25c2a0;
+  
+  /* Table */
+  --ifm-table-border-color: #334155;
+  --ifm-table-head-background: #1e293b;
+  --ifm-table-stripe-background: #1e293b;
+  
+  /* Input */
+  --ifm-input-background-color: #1e293b;
+  --ifm-input-border-color: #475569;
+  --ifm-input-color: #f1f5f9;
+  
+  /* Alert Colors */
+  --ifm-alert-background-color: #1e293b;
+  --ifm-alert-border-color: #334155;
+  
+  /* Shadows - Darker for dark mode */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Global Styles ──────────────────────────────────────────────────────────── */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Remove focus outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Selection color */
+::selection {
+  background-color: var(--ifm-color-primary);
+  color: white;
+}
+
+/* ── Dark Mode Specific Adjustments ─────────────────────────────────────────── */
+
+[data-theme='dark'] {
+  /* Reduce text shadow for better readability */
+  --ifm-heading-text-shadow: none;
+}
+
+/* Code blocks dark mode */
+[data-theme='dark'] pre {
+  background-color: #1e1e2e !important;
+  border: 1px solid #334155;
+}
+
+[data-theme='dark'] code {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Inline code dark mode */
+[data-theme='dark'] :not(pre) > code {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Links dark mode */
+[data-theme='dark'] a {
+  color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] a:hover {
+  color: var(--ifm-color-primary-light);
+}
+
+/* Blockquotes dark mode */
+[data-theme='dark'] blockquote {
+  border-left-color: var(--ifm-color-primary);
+  background-color: rgba(37, 194, 160, 0.05);
+}
+
+/* Horizontal rule dark mode */
+[data-theme='dark'] hr {
+  border-color: var(--ifm-border-color);
+}
+
+/* ── Accessibility ──────────────────────────────────────────────────────────── */
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --ifm-color-primary: #0066cc;
+  }
+  
+  [data-theme='dark'] {
+    --ifm-color-primary: #00ffcc;
+  }
+  
+  a,
+  button {
+    text-decoration: underline;
+  }
+}
+
+/* ── Skip Link ──────────────────────────────────────────────────────────────── */
+
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ifm-color-primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  z-index: var(--z-tooltip);
+  transition: top var(--transition-fast);
+}
+
+.skip-to-content:focus {
+  top: 16px;
+}
+
+/* ── Print Styles ───────────────────────────────────────────────────────────── */
+
+@media print {
+  [data-theme='dark'] {
+    --ifm-background-color: #ffffff !important;
+    --ifm-font-color-base: #000000 !important;
+  }
+  
+  .theme-toggle,
+  nav,
+  footer {
+    display: none !important;
+  }
 }
