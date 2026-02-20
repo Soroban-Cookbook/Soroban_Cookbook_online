@@ -12,6 +12,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/setup',
         'getting-started/first-contract',
+        'getting-started/deploy-testnet',
       ],
     },
     {
@@ -19,6 +20,9 @@ const sidebars: SidebarsConfig = {
       label: 'Core Concepts',
       items: [
         'concepts/overview',
+        'concepts/storage',
+        'concepts/authorization',
+        'concepts/events',
       ],
     },
     {
@@ -26,6 +30,13 @@ const sidebars: SidebarsConfig = {
       label: 'Patterns',
       items: [
         'patterns/overview',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Components',
+      items: [
+        'components/buttons',
       ],
     },
   ],
