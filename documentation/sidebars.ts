@@ -39,6 +39,13 @@ const sidebars: SidebarsConfig = {
         'components/buttons',
       ],
     },
+    {
+      type: 'category',
+      label: 'Responsive',
+      items: [
+        'responsive/breakpoints',
+      ],
+    },
   ],
 };
 
