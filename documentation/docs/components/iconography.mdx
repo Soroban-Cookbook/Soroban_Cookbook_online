@@ -1,0 +1,340 @@
+---
+title: Iconography
+description: Guide for using icons in the Soroban Cookbook documentation
+---
+
+import { Icon } from "@site/src/components/UI/Icon";
+import {
+  BookOpen,
+  Code,
+  Zap,
+  Settings,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  XCircle,
+  ArrowRight,
+  Download,
+  ExternalLink,
+  Search,
+  Menu,
+  Sun,
+  Moon,
+  Github,
+  Terminal,
+} from "lucide-react";
+
+# Iconography
+
+This guide covers the icon system used in the Soroban Cookbook documentation. We use [Lucide](https://lucide.dev/) as our icon library, chosen for its clean design, consistency, and excellent accessibility support.
+
+## Installation
+
+The icon library is already installed as a dependency:
+
+```bash
+npm install lucide-react
+```
+
+## Using the Icon Component
+
+Import the Icon component and any icons you need from `lucide-react`:
+
+```tsx
+import { Icon } from "@site/src/components/UI/Icon";
+import { Settings } from "lucide-react";
+
+<Icon icon={Settings} size="md" />;
+```
+
+## Sizing System
+
+Icons support five predefined sizes:
+
+| Size | Value | Usage                     |
+| ---- | ----- | ------------------------- |
+| `xs` | 12px  | Tight spaces, badges      |
+| `sm` | 16px  | Inline with text, buttons |
+| `md` | 20px  | Default, content areas    |
+| `lg` | 24px  | Feature sections, heroes  |
+| `xl` | 32px  | Large displays, emphasis  |
+
+<IconShowcase />
+
+## Accessibility
+
+Icons are handled in two ways depending on their purpose:
+
+### Decorative Icons
+
+Use `decorative={true}` when the icon is purely decorative and doesn't add meaning:
+
+```tsx
+<Icon icon={BookOpen} size="md" decorative />
+```
+
+This hides the icon from screen readers.
+
+### Interactive Icons
+
+Provide an `ariaLabel` when the icon conveys meaning:
+
+```tsx
+<Icon icon={Download} size="sm" ariaLabel="Download PDF" />
+```
+
+## Examples
+
+### In Buttons
+
+```tsx
+import { ArrowRight } from "lucide-react";
+
+<button className="sb-btn sb-btn-primary">
+  Get Started
+  <Icon icon={ArrowRight} size="sm" className="icon--right" />
+</button>;
+```
+
+<button
+  className="sb-btn sb-btn-primary"
+  style={{
+    marginTop: "1rem",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.5rem",
+  }}
+>
+  Get Started
+  <Icon icon={ArrowRight} size="sm" className="icon--right" />
+</button>
+
+### Status Icons
+
+```tsx
+<Icon icon={CheckCircle} size="md" className="icon--primary" ariaLabel="Success" />
+<Icon icon={AlertCircle} size="md" className="icon--muted" ariaLabel="Warning" />
+<Icon icon={XCircle} size="md" className="icon--muted" ariaLabel="Error" />
+```
+
+<div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+  <Icon
+    icon={CheckCircle}
+    size="md"
+    className="icon--primary"
+    ariaLabel="Success"
+  />
+  <Icon
+    icon={AlertCircle}
+    size="md"
+    className="icon--muted"
+    ariaLabel="Warning"
+  />
+  <Icon icon={XCircle} size="md" className="icon--muted" ariaLabel="Error" />
+</div>
+
+### With Text
+
+```tsx
+<div>
+  <Icon icon={Info} size="sm" className="icon--left" ariaLabel="Info" />
+  <span>Important information here</span>
+</div>
+```
+
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    marginTop: "1rem",
+  }}
+>
+  <Icon icon={Info} size="sm" className="icon--left" ariaLabel="Info" />
+  <span>Important information here</span>
+</div>
+
+## Common Icons
+
+Here are commonly used icons in the documentation:
+
+### Navigation
+
+<IconGrid
+  icons={[
+    { icon: Menu, label: "Menu" },
+    { icon: Search, label: "Search" },
+    { icon: ArrowRight, label: "Arrow Right" },
+    { icon: ExternalLink, label: "External Link" },
+  ]}
+/>
+
+### Actions
+
+<IconGrid
+  icons={[
+    { icon: Download, label: "Download" },
+    { icon: Settings, label: "Settings" },
+    { icon: Github, label: "GitHub" },
+    { icon: Terminal, label: "Terminal" },
+  ]}
+/>
+
+### Status
+
+<IconGrid
+  icons={[
+    { icon: CheckCircle, label: "Success" },
+    { icon: AlertCircle, label: "Warning" },
+    { icon: XCircle, label: "Error" },
+    { icon: Info, label: "Info" },
+  ]}
+/>
+
+### Content
+
+<IconGrid
+  icons={[
+    { icon: BookOpen, label: "Documentation" },
+    { icon: Code, label: "Code" },
+    { icon: Zap, label: "Quick/Fast" },
+  ]}
+/>
+
+## Custom Props
+
+The Icon component accepts all Lucide props:
+
+```tsx
+<Icon
+  icon={Settings}
+  size="lg"
+  color="#ff0000"
+  strokeWidth={2}
+  className="my-custom-class"
+/>
+```
+
+## Best Practices
+
+1. **Use consistent sizing** - Stick to the predefined sizes
+2. **Provide labels for meaningful icons** - Always add `ariaLabel` or `decorative`
+3. **Use icons purposefully** - Don't over-decorate; icons should add value
+4. **Pair with text when possible** - Icons alone can be ambiguous
+5. **Use the same icon family** - Don't mix icon libraries
+
+## Finding More Icons
+
+Visit [Lucide Icons](https://lucide.dev/icons/) to browse all available icons. Simply import them by name:
+
+```tsx
+import { IconName } from "lucide-react";
+```
+
+Replace `IconName` with the actual icon name (e.g., `Box`, `Rocket`, `Star`).
+
+---
+
+export const IconShowcase = () => (
+  <div
+    style={{
+      display: "flex",
+      gap: "1.5rem",
+      alignItems: "flex-end",
+      marginTop: "1rem",
+      padding: "1rem",
+      background: "var(--ifm-color-emphasis-100)",
+      borderRadius: "8px",
+    }}
+  >
+    <div style={{ textAlign: "center" }}>
+      <Icon icon={Zap} size="xs" ariaLabel="Extra small" />
+      <div
+        style={{
+          fontSize: "0.75rem",
+          marginTop: "0.5rem",
+          color: "var(--ifm-color-emphasis-600)",
+        }}
+      >
+        xs
+      </div>
+    </div>
+    <div style={{ textAlign: "center" }}>
+      <Icon icon={Zap} size="sm" ariaLabel="Small" />
+      <div
+        style={{
+          fontSize: "0.75rem",
+          marginTop: "0.5rem",
+          color: "var(--ifm-color-emphasis-600)",
+        }}
+      >
+        sm
+      </div>
+    </div>
+    <div style={{ textAlign: "center" }}>
+      <Icon icon={Zap} size="md" ariaLabel="Medium" />
+      <div
+        style={{
+          fontSize: "0.75rem",
+          marginTop: "0.5rem",
+          color: "var(--ifm-color-emphasis-600)",
+        }}
+      >
+        md
+      </div>
+    </div>
+    <div style={{ textAlign: "center" }}>
+      <Icon icon={Zap} size="lg" ariaLabel="Large" />
+      <div
+        style={{
+          fontSize: "0.75rem",
+          marginTop: "0.5rem",
+          color: "var(--ifm-color-emphasis-600)",
+        }}
+      >
+        lg
+      </div>
+    </div>
+    <div style={{ textAlign: "center" }}>
+      <Icon icon={Zap} size="xl" ariaLabel="Extra large" />
+      <div
+        style={{
+          fontSize: "0.75rem",
+          marginTop: "0.5rem",
+          color: "var(--ifm-color-emphasis-600)",
+        }}
+      >
+        xl
+      </div>
+    </div>
+  </div>
+);
+
+export const IconGrid = ({ icons }) => (
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+      gap: "1rem",
+      marginTop: "1rem",
+      padding: "1rem",
+      background: "var(--ifm-color-emphasis-100)",
+      borderRadius: "8px",
+    }}
+  >
+    {icons.map(({ icon: IconComponent, label }) => (
+      <div key={label} style={{ textAlign: "center", padding: "0.5rem" }}>
+        <Icon icon={IconComponent} size="lg" ariaLabel={label} />
+        <div
+          style={{
+            fontSize: "0.75rem",
+            marginTop: "0.5rem",
+            color: "var(--ifm-color-emphasis-600)",
+          }}
+        >
+          {label}
+        </div>
+      </div>
+    ))}
+  </div>
+);

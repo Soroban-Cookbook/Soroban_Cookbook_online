@@ -49,6 +49,16 @@
   --sb-btn-tertiary-hover: #e2e8f0;
   --sb-btn-tertiary-active: #cbd5e1;
 
+  /* Icon tokens */
+  --sb-icon-xs: 0.75rem;
+  --sb-icon-sm: 1rem;
+  --sb-icon-md: 1.25rem;
+  --sb-icon-lg: 1.5rem;
+  --sb-icon-xl: 2rem;
+  --sb-icon-color: currentColor;
+  --sb-icon-transition: transform var(--sb-motion-duration-fast)
+    var(--sb-motion-ease-standard);
+
   --sb-btn-ghost-bg: transparent;
   --sb-btn-ghost-text: #0f172a;
   --sb-btn-ghost-border: transparent;
@@ -63,7 +73,7 @@
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --ifm-color-primary: #25c2a0;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
@@ -145,7 +155,8 @@
   user-select: none;
   cursor: pointer;
   text-decoration: none;
-  transition-property: background-color, border-color, color, transform, box-shadow, opacity;
+  transition-property:
+    background-color, border-color, color, transform, box-shadow, opacity;
   transition-duration: var(--sb-motion-duration-normal);
   transition-timing-function: var(--sb-motion-ease-standard);
 }
@@ -166,7 +177,7 @@
 }
 
 .sb-btn:disabled,
-.sb-btn[aria-disabled='true'] {
+.sb-btn[aria-disabled="true"] {
   opacity: 0.56;
   cursor: not-allowed;
 }
@@ -330,4 +341,62 @@
 .sb-btn-group--vertical .sb-btn + .sb-btn {
   margin-left: 0;
   margin-top: -1px;
+}
+
+/* Icon System */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  color: var(--sb-icon-color);
+  transition: var(--sb-icon-transition);
+}
+
+/* Icon sizes */
+.icon--xs {
+  width: var(--sb-icon-xs);
+  height: var(--sb-icon-xs);
+}
+
+.icon--sm {
+  width: var(--sb-icon-sm);
+  height: var(--sb-icon-sm);
+}
+
+.icon--md {
+  width: var(--sb-icon-md);
+  height: var(--sb-icon-md);
+}
+
+.icon--lg {
+  width: var(--sb-icon-lg);
+  height: var(--sb-icon-lg);
+}
+
+.icon--xl {
+  width: var(--sb-icon-xl);
+  height: var(--sb-icon-xl);
+}
+
+/* Icon color variants */
+.icon--primary {
+  color: var(--ifm-color-primary);
+}
+
+.icon--secondary {
+  color: var(--ifm-color-secondary);
+}
+
+.icon--muted {
+  color: var(--ifm-color-emphasis-400);
+}
+
+/* Icon with text spacing */
+.icon--left {
+  margin-right: 0.5rem;
+}
+
+.icon--right {
+  margin-left: 0.5rem;
 }

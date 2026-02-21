@@ -1,17 +1,18 @@
-import type { ReactNode } from 'react';
-import clsx from 'clsx';
-import BaseCard from './BaseCard';
-import styles from './cards.module.css';
+import type { ReactNode } from "react";
+import clsx from "clsx";
+import BaseCard from "./BaseCard";
+import styles from "./cards.module.css";
 
-export type ActionCardVariant = 'default' | 'success' | 'warning' | 'danger';
+export type ActionCardVariant = "default" | "success" | "warning" | "danger";
 
 export interface ActionCardProps {
-    title: string;
-    description: ReactNode;
-    cta: string;
-    variant?: ActionCardVariant;
-    ctaHref?: string;
-    onCtaClick?: () => void;
+  title: string;
+  description: ReactNode;
+  cta: string;
+  variant?: ActionCardVariant;
+  ctaHref?: string;
+  onCtaClick?: () => void;
+  icon?: ReactNode;
 }
 
 /**
@@ -33,33 +34,43 @@ export interface ActionCardProps {
  *   />
  */
 export default function ActionCard({
-    title,
-    description,
-    cta,
-    variant = 'default',
-    ctaHref,
-    onCtaClick,
+  title,
+  description,
+  cta,
+  variant = "default",
+  ctaHref,
+  onCtaClick,
+  icon,
 }: ActionCardProps) {
-    return (
-        <BaseCard className={clsx(styles.actionCard, styles[`actionCard--${variant}`])}>
-            <h3 className={styles.actionTitle}>{title}</h3>
-            <p className={styles.actionDescription}>{description}</p>
+  return (
+    <BaseCard
+      className={clsx(styles.actionCard, styles[`actionCard--${variant}`])}
+    >
+      {icon && <div className={styles.actionIcon}>{icon}</div>}
+      <h3 className={styles.actionTitle}>{title}</h3>
+      <p className={styles.actionDescription}>{description}</p>
 
-            {ctaHref ? (
-                <a
-                    href={ctaHref}
-                    className={clsx(styles.actionButton, styles[`actionButton--${variant}`])}
-                >
-                    {cta} →
-                </a>
-            ) : (
-                <button
-                    onClick={onCtaClick}
-                    className={clsx(styles.actionButton, styles[`actionButton--${variant}`])}
-                >
-                    {cta} →
-                </button>
-            )}
-        </BaseCard>
-    );
+      {ctaHref ? (
+        <a
+          href={ctaHref}
+          className={clsx(
+            styles.actionButton,
+            styles[`actionButton--${variant}`],
+          )}
+        >
+          {cta} →
+        </a>
+      ) : (
+        <button
+          onClick={onCtaClick}
+          className={clsx(
+            styles.actionButton,
+            styles[`actionButton--${variant}`],
+          )}
+        >
+          {cta} →
+        </button>
+      )}
+    </BaseCard>
+  );
 }
