@@ -1,0 +1,94 @@
+---
+title: Testimonials
+description: Community testimonials section component with responsive cards and social channels.
+---
+
+import React from 'react';
+import Testimonials from '@site/src/components/UI/Testimonials';
+
+# Testimonials Component
+
+The `Testimonials` component renders a responsive community section for the homepage with:
+
+- Developer testimonial cards
+- Avatar image with initials fallback
+- Optional social handle links per testimonial
+- Community channel links (Discord, GitHub, Twitter/X, Telegram)
+
+## Basic Usage
+
+```tsx
+import Testimonials from '@site/src/components/UI/Testimonials';
+
+export default function HomeCommunitySection() {
+  return <Testimonials />;
+}
+```
+
+## Example (Default Data)
+
+<Testimonials />
+
+## Custom Data
+
+```tsx
+import type {ReactNode} from 'react';
+import Testimonials from '@site/src/components/UI/Testimonials';
+
+const testimonials = [
+  {
+    name: 'Jane Doe',
+    role: 'Protocol Engineer',
+    quote: 'Excellent docs for shipping production-ready Soroban contracts.',
+    avatarUrl: 'https://example.com/jane.png',
+    socialHandle: '@janedoe',
+    socialUrl: 'https://x.com/janedoe',
+  },
+];
+
+const communityLinks: Array<{label: string; url: string; icon: ReactNode; description: string}> = [
+  {
+    label: 'Discord',
+    url: 'https://discord.gg/stellardev',
+    icon: <span>💬</span>,
+    description: 'Join developer discussions',
+  },
+];
+
+export default function CustomTestimonials() {
+  return <Testimonials testimonials={testimonials} communityLinks={communityLinks} />;
+}
+```
+
+## Props
+
+```ts
+type Testimonial = {
+  name: string;
+  role: string;
+  quote: string;
+  avatarUrl?: string;
+  socialHandle?: string;
+  socialUrl?: string;
+};
+
+type CommunityLink = {
+  label: string;
+  url: string;
+  icon: ReactNode;
+  description: string;
+};
+
+type TestimonialsProps = {
+  testimonials?: Testimonial[];
+  communityLinks?: CommunityLink[];
+  className?: string;
+};
+```
+
+## Accessibility Notes
+
+- Avatar images include descriptive `alt` text.
+- External links use `target="_blank"` with `rel="noopener noreferrer"`.
+- Community links and profile links include explicit `aria-label` values.
+- Uses semantic `section`, `article`, `header`, and `blockquote` structure.

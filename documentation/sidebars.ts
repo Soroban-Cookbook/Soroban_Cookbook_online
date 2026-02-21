@@ -37,6 +37,14 @@ const sidebars: SidebarsConfig = {
       label: 'Components',
       items: [
         'components/buttons',
+        'components/testimonials',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Responsive',
+      items: [
+        'responsive/breakpoints',
       ],
     },
   ],

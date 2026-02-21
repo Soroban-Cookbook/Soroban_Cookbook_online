@@ -35,7 +35,7 @@ const config: Config = {
         },
         blog: false,
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: ['./src/css/custom.css', './src/css/breakpoints.css'],
         },
       } satisfies Preset.Options,
     ],

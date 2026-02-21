@@ -1,0 +1,441 @@
+/**
+ * Soroban Cookbook — Responsive Breakpoint System
+ * -----------------------------------------------
+ * Mobile-first approach. Extends Infima's existing breakpoint scale
+ * (xs, sm, md, lg, xl) with an additional 2xl for wide screens.
+ *
+ * Import this file in docusaurus.config.js or after custom.css:
+ *   stylesheets: ['./src/css/custom.css', './src/css/breakpoints.css']
+ *
+ * Breakpoint scale:
+ *   xs   — 0px       (mobile portrait, default)
+ *   sm   — 480px     (mobile landscape)
+ *   md   — 768px     (tablet)
+ *   lg   — 996px     (Infima default — small desktop/laptop)
+ *   xl   — 1280px    (desktop)
+ *   2xl  — 1536px    (wide/ultrawide screens)
+ */
+
+
+/* ============================================================
+   SECTION 1: BREAKPOINT TOKENS
+   CSS custom properties for reference in JS or other CSS.
+   Note: CSS cannot use custom properties inside @media queries
+   natively, so these are for documentation + JS consumption.
+   ============================================================ */
+
+:root {
+  --breakpoint-xs:   0px;
+  --breakpoint-sm:   480px;
+  --breakpoint-md:   768px;
+  --breakpoint-lg:   996px;   /* Matches Infima's --ifm-container-width-xl trigger */
+  --breakpoint-xl:   1280px;
+  --breakpoint-2xl:  1536px;
+}
+
+
+/* ============================================================
+   SECTION 2: CONTAINER SYSTEM
+   Responsive max-widths with consistent horizontal padding.
+   Mobile-first: full-width by default, constrained at each bp.
+   ============================================================ */
+
+:root {
+  /* Container horizontal padding at each breakpoint */
+  --container-px-xs:  1rem;     /* 16px */
+  --container-px-sm:  1.25rem;  /* 20px */
+  --container-px-md:  1.5rem;   /* 24px */
+  --container-px-lg:  2rem;     /* 32px */
+  --container-px-xl:  2.5rem;   /* 40px */
+  --container-px-2xl: 3rem;     /* 48px */
+
+  /* Container max-widths */
+  --container-max-sm:  540px;
+  --container-max-md:  720px;
+  --container-max-lg:  960px;
+  --container-max-xl:  1240px;
+  --container-max-2xl: 1500px;
+}
+
+/* Base container — mobile first, full width */
+.container,
+.container-fluid,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl,
+.container-2xl {
+  width:      100%;
+  margin-inline: auto;
+  padding-inline: var(--container-px-xs);
+  box-sizing: border-box;
+}
+
+/* Fluid container — never constrained, just padded */
+.container-fluid {
+  max-width: none;
+}
+
+/* Stepped containers — constrain at their named breakpoint and up */
+@media (min-width: 480px) {
+  .container,
+  .container-sm {
+    max-width: var(--container-max-sm);
+    padding-inline: var(--container-px-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  .container,
+  .container-sm,
+  .container-md {
+    max-width: var(--container-max-md);
+    padding-inline: var(--container-px-md);
+  }
+}
+
+@media (min-width: 996px) {
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg {
+    max-width: var(--container-max-lg);
+    padding-inline: var(--container-px-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl {
+    max-width: var(--container-max-xl);
+    padding-inline: var(--container-px-xl);
+  }
+}
+
+@media (min-width: 1536px) {
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-2xl {
+    max-width: var(--container-max-2xl);
+    padding-inline: var(--container-px-2xl);
+  }
+}
+
+
+/* ============================================================
+   SECTION 3: RESPONSIVE GRID UTILITIES
+   Simple column grid that adapts across breakpoints.
+   ============================================================ */
+
+:root {
+  --grid-columns:    12;
+  --grid-gap-xs:     1rem;
+  --grid-gap-sm:     1.25rem;
+  --grid-gap-md:     1.5rem;
+  --grid-gap-lg:     2rem;
+}
+
+.grid {
+  display: grid;
+  gap:     var(--grid-gap-xs);
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+}
+
+@media (min-width: 480px)  { .grid { gap: var(--grid-gap-sm); } }
+@media (min-width: 768px)  { .grid { gap: var(--grid-gap-md); } }
+@media (min-width: 996px)  { .grid { gap: var(--grid-gap-lg); } }
+
+/* Column span helpers (mobile-first — apply at all sizes) */
+.col-1  { grid-column: span 1; }
+.col-2  { grid-column: span 2; }
+.col-3  { grid-column: span 3; }
+.col-4  { grid-column: span 4; }
+.col-5  { grid-column: span 5; }
+.col-6  { grid-column: span 6; }
+.col-7  { grid-column: span 7; }
+.col-8  { grid-column: span 8; }
+.col-9  { grid-column: span 9; }
+.col-10 { grid-column: span 10; }
+.col-11 { grid-column: span 11; }
+.col-12 { grid-column: span 12; }
+
+/* Breakpoint-prefixed column spans */
+@media (min-width: 480px) {
+  .col-sm-1  { grid-column: span 1; }
+  .col-sm-2  { grid-column: span 2; }
+  .col-sm-3  { grid-column: span 3; }
+  .col-sm-4  { grid-column: span 4; }
+  .col-sm-6  { grid-column: span 6; }
+  .col-sm-8  { grid-column: span 8; }
+  .col-sm-12 { grid-column: span 12; }
+}
+
+@media (min-width: 768px) {
+  .col-md-1  { grid-column: span 1; }
+  .col-md-2  { grid-column: span 2; }
+  .col-md-3  { grid-column: span 3; }
+  .col-md-4  { grid-column: span 4; }
+  .col-md-6  { grid-column: span 6; }
+  .col-md-8  { grid-column: span 8; }
+  .col-md-12 { grid-column: span 12; }
+}
+
+@media (min-width: 996px) {
+  .col-lg-1  { grid-column: span 1; }
+  .col-lg-2  { grid-column: span 2; }
+  .col-lg-3  { grid-column: span 3; }
+  .col-lg-4  { grid-column: span 4; }
+  .col-lg-6  { grid-column: span 6; }
+  .col-lg-8  { grid-column: span 8; }
+  .col-lg-12 { grid-column: span 12; }
+}
+
+@media (min-width: 1280px) {
+  .col-xl-1  { grid-column: span 1; }
+  .col-xl-2  { grid-column: span 2; }
+  .col-xl-3  { grid-column: span 3; }
+  .col-xl-4  { grid-column: span 4; }
+  .col-xl-6  { grid-column: span 6; }
+  .col-xl-8  { grid-column: span 8; }
+  .col-xl-12 { grid-column: span 12; }
+}
+
+
+/* ============================================================
+   SECTION 4: RESPONSIVE VISIBILITY UTILITIES
+   Show/hide elements at specific breakpoints.
+   Naming: hide-{breakpoint}-down / hide-{breakpoint}-up
+   ============================================================ */
+
+/* --- Hide BELOW a breakpoint (i.e. mobile-only content hidden on desktop) --- */
+@media (max-width: 479px) {
+  .hide-xs-down { display: none !important; }
+}
+
+@media (max-width: 767px) {
+  .hide-sm-down { display: none !important; }
+}
+
+@media (max-width: 995px) {
+  .hide-md-down { display: none !important; }
+}
+
+@media (max-width: 1279px) {
+  .hide-lg-down { display: none !important; }
+}
+
+@media (max-width: 1535px) {
+  .hide-xl-down { display: none !important; }
+}
+
+/* --- Hide AT OR ABOVE a breakpoint (i.e. desktop-only content hidden on mobile) --- */
+@media (min-width: 480px) {
+  .hide-sm-up { display: none !important; }
+}
+
+@media (min-width: 768px) {
+  .hide-md-up { display: none !important; }
+}
+
+@media (min-width: 996px) {
+  .hide-lg-up { display: none !important; }
+}
+
+@media (min-width: 1280px) {
+  .hide-xl-up { display: none !important; }
+}
+
+@media (min-width: 1536px) {
+  .hide-2xl-up { display: none !important; }
+}
+
+/* --- Show ONLY at specific breakpoint --- */
+.show-xs-only  { display: none !important; }
+.show-sm-only  { display: none !important; }
+.show-md-only  { display: none !important; }
+.show-lg-only  { display: none !important; }
+.show-xl-only  { display: none !important; }
+.show-2xl-only { display: none !important; }
+
+@media (max-width: 479px)                      { .show-xs-only  { display: revert !important; } }
+@media (min-width: 480px) and (max-width: 767px)  { .show-sm-only  { display: revert !important; } }
+@media (min-width: 768px) and (max-width: 995px)  { .show-md-only  { display: revert !important; } }
+@media (min-width: 996px) and (max-width: 1279px) { .show-lg-only  { display: revert !important; } }
+@media (min-width: 1280px) and (max-width: 1535px){ .show-xl-only  { display: revert !important; } }
+@media (min-width: 1536px)                     { .show-2xl-only { display: revert !important; } }
+
+
+/* ============================================================
+   SECTION 5: RESPONSIVE SPACING UTILITIES
+   Padding and margin that scale with viewport.
+   Pattern: p-{size}, px-{size}, py-{size}, m-{size}, etc.
+   ============================================================ */
+
+:root {
+  --space-1:  0.25rem;   /*  4px */
+  --space-2:  0.5rem;    /*  8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+}
+
+/* Responsive section spacing — grows at wider breakpoints */
+.section-spacing {
+  padding-block: var(--space-8);
+}
+
+@media (min-width: 768px)  { .section-spacing { padding-block: var(--space-12); } }
+@media (min-width: 996px)  { .section-spacing { padding-block: var(--space-16); } }
+@media (min-width: 1280px) { .section-spacing { padding-block: var(--space-20); } }
+
+/* Responsive gap helpers for flex/grid contexts */
+.gap-responsive {
+  gap: var(--space-4);
+}
+@media (min-width: 768px)  { .gap-responsive { gap: var(--space-6); } }
+@media (min-width: 996px)  { .gap-responsive { gap: var(--space-8); } }
+
+
+/* ============================================================
+   SECTION 6: RESPONSIVE TYPOGRAPHY UTILITIES
+   Fluid type scale that adapts across breakpoints.
+   ============================================================ */
+
+:root {
+  /* Base type scale — mobile */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+  --text-5xl:  3rem;       /* 48px */
+}
+
+/* Responsive heading — scales up on wider viewports */
+.heading-responsive {
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+}
+
+@media (min-width: 768px)  { .heading-responsive { font-size: var(--text-3xl); } }
+@media (min-width: 996px)  { .heading-responsive { font-size: var(--text-4xl); } }
+@media (min-width: 1280px) { .heading-responsive { font-size: var(--text-5xl); } }
+
+/* Responsive body copy */
+.text-responsive {
+  font-size: var(--text-base);
+}
+
+@media (min-width: 996px) { .text-responsive { font-size: var(--text-lg); } }
+
+
+/* ============================================================
+   SECTION 7: RESPONSIVE FLEX UTILITIES
+   Direction and alignment helpers that change at breakpoints.
+   ============================================================ */
+
+/* Stack on mobile, row on tablet+ */
+.flex-col-md-row {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .flex-col-md-row {
+    flex-direction: row;
+    align-items:    center;
+  }
+}
+
+/* Stack on mobile, row on desktop+ */
+.flex-col-lg-row {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--space-4);
+}
+
+@media (min-width: 996px) {
+  .flex-col-lg-row {
+    flex-direction: row;
+    align-items:    center;
+  }
+}
+
+
+/* ============================================================
+   SECTION 8: CLS PREVENTION
+   Helps prevent Cumulative Layout Shift at breakpoint transitions.
+   ============================================================ */
+
+/* Reserve space for images before they load */
+.img-responsive {
+  width:          100%;
+  height:         auto;
+  display:        block;
+  aspect-ratio:   16 / 9; /* override per use case */
+}
+
+/* Prevent layout shift on font load */
+html {
+  font-display: optional; /* fallback: use system font until custom font is ready */
+}
+
+/* Smooth transitions between layout states — subtle, non-disruptive */
+.layout-transition {
+  transition:
+    max-width  var(--animation-duration-normal, 250ms) var(--animation-easing-ease-out, ease),
+    padding    var(--animation-duration-normal, 250ms) var(--animation-easing-ease-out, ease);
+}
+
+/* Respect reduced motion for layout transitions too */
+@media (prefers-reduced-motion: reduce) {
+  .layout-transition {
+    transition: none;
+  }
+}
+
+
+/* ============================================================
+   SECTION 9: PRINT BREAKPOINT
+   Ensure content is readable when printed.
+   ============================================================ */
+
+@media print {
+  .hide-print     { display: none !important; }
+  .container,
+  .container-fluid,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-2xl  {
+    max-width:      100% !important;
+    padding-inline: 0 !important;
+  }
+
+  .grid {
+    display: block;
+  }
+
+  .grid > * {
+    grid-column: span 12;
+    display:     block;
+  }
+}
