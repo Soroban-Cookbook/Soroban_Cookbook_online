@@ -32,9 +32,9 @@ Understanding deployment, upgrades, and contract lifecycle management.
 
 Start with:
 
-1. [Storage Patterns](./storage.md) - Learn data persistence
-2. [Authorization](./authorization.md) - Secure your contracts
-3. [Events](./events.md) - Monitor contract activity
+1. [Storage Patterns](./storage) - Learn data persistence
+2. [Authorization](./authorization) - Secure your contracts
+3. [Events](./events) - Monitor contract activity
 
 ## Resources
 

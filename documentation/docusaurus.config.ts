@@ -30,12 +30,12 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: '/',
+          routeBasePath: '/docs',
           editUrl: 'https://github.com/Soroban-Cookbook/Soroban-Cookbook-/tree/main/documentation/',
         },
         blog: false,
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: ['./src/css/custom.css', './src/css/breakpoints.css'],
         },
       } satisfies Preset.Options,
     ],

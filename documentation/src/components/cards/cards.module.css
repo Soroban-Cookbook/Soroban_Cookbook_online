@@ -1,0 +1,336 @@
+/* ── Base Card ────────────────────────────────────────────────────────────── */
+
+.baseCard {
+    display: block;
+    border-radius: 14px;
+    padding: 24px;
+    background: var(--card-bg, var(--ifm-card-background-color, #ffffff));
+    border: 1px solid var(--ifm-color-emphasis-200, #e8e8e8);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+}
+
+/* Lift on hover */
+.baseCard:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.07);
+    transform: translateY(-3px);
+}
+
+/* Focus ring for keyboard nav */
+.baseCard:focus-visible {
+    outline: 2px solid var(--ifm-color-primary, #6366f1);
+    outline-offset: 3px;
+}
+
+/* Interactive cards get pointer cursor */
+.interactive {
+    cursor: pointer;
+}
+
+/* Dark mode overrides — Docusaurus adds [data-theme="dark"] to <html> */
+[data-theme='dark'] .baseCard {
+    background: var(--ifm-background-surface-color, #1e1e2e);
+    border-color: var(--ifm-color-emphasis-200, #313244);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .baseCard:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+/* ── Feature Card ─────────────────────────────────────────────────────────── */
+
+.featureCard {
+    height: 100%;
+}
+
+.featureIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 16px;
+    /* Tinted background using the --accent CSS variable set inline */
+    background-color: color-mix(in srgb, var(--accent, #6366f1) 15%, transparent);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.featureCard:hover .featureIcon {
+    transform: rotate(8deg) scale(1.1);
+}
+
+.featureTitle {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--ifm-heading-color);
+}
+
+.featureDescription {
+    font-size: 14px;
+    line-height: 1.65;
+    margin: 0;
+    color: var(--ifm-color-emphasis-700, #555);
+}
+
+[data-theme='dark'] .featureDescription {
+    color: var(--ifm-color-emphasis-600, #a6adc8);
+}
+
+
+/* ── Gradient Card ────────────────────────────────────────────────────────── */
+
+.gradientCard {
+    display: block;
+    border-radius: 20px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    outline: none;
+}
+
+.gradientCard:hover,
+.gradientCard:focus-visible {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px) scale(1.02);
+}
+
+.gradientCard:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 3px;
+}
+
+/* White shimmer top-left */
+.gradientShimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, transparent 55%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.gradientContent {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.gradientIcon {
+    font-size: 30px;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.gradientStat {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.gradientLabel {
+    font-size: 12px;
+    opacity: 0.82;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.gradientTitle {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+
+/* ── Pattern Card ─────────────────────────────────────────────────────────── */
+
+.patternCard {
+    border-top: 3px solid #f59e0b !important;
+    background: var(--pattern-card-bg, #fffdf5) !important;
+}
+
+[data-theme='dark'] .patternCard {
+    --pattern-card-bg: #1e1b12;
+}
+
+.patternHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.patternBadge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #f59e0b;
+    font-family: var(--ifm-font-family-monospace);
+}
+
+.patternTag {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 99px;
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    font-weight: 600;
+    font-family: var(--ifm-font-family-monospace);
+}
+
+[data-theme='dark'] .patternTag {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.2);
+}
+
+.patternTitle {
+    font-family: var(--ifm-font-family-monospace);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--ifm-heading-color);
+}
+
+.patternTitle a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.patternTitle a:hover {
+    text-decoration: underline;
+}
+
+.patternDescription {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--ifm-color-emphasis-700);
+    margin: 0 0 14px;
+}
+
+.patternToggle {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--ifm-font-family-monospace);
+    color: #f59e0b;
+    transition: opacity 0.15s;
+}
+
+.patternToggle:hover {
+    opacity: 0.75;
+}
+
+.patternCode {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-size: 12px;
+    line-height: 1.65;
+    overflow-x: auto;
+    font-family: var(--ifm-font-family-monospace);
+    outline: none;
+}
+
+
+/* ── Action Card ──────────────────────────────────────────────────────────── */
+
+.actionCard {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Left border accent per variant */
+.actionCard--default {
+    border-left: 4px solid var(--ifm-color-emphasis-300) !important;
+}
+
+.actionCard--success {
+    border-left: 4px solid #10b981 !important;
+}
+
+.actionCard--warning {
+    border-left: 4px solid #f59e0b !important;
+}
+
+.actionCard--danger {
+    border-left: 4px solid #ef4444 !important;
+}
+
+.actionTitle {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--ifm-heading-color);
+}
+
+.actionDescription {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ifm-color-emphasis-700);
+    margin: 0 0 20px;
+    flex: 1;
+}
+
+.actionButton {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    align-self: flex-start;
+}
+
+.actionButton:hover {
+    opacity: 0.88;
+    transform: translateX(2px);
+}
+
+.actionButton--default {
+    background: #111;
+    color: #fff;
+}
+
+.actionButton--success {
+    background: #10b981;
+    color: #fff;
+}
+
+.actionButton--warning {
+    background: #f59e0b;
+    color: #111;
+}
+
+.actionButton--danger {
+    background: #ef4444;
+    color: #fff;
+}
+
+[data-theme='dark'] .actionButton--default {
+    background: #e8e8e8;
+    color: #111;
+}

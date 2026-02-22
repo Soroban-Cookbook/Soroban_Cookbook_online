@@ -1,0 +1,91 @@
+---
+title: Buttons
+description: Soroban Cookbook button system with variants, sizes, states, icon support, and accessibility guidance.
+---
+
+import React from 'react';
+import Button from '@site/src/components/UI/Button';
+import ButtonGroup from '@site/src/components/UI/Button/ButtonGroup';
+
+# Button Component
+
+This button system includes:
+
+- Variants: `primary`, `secondary`, `tertiary`, `ghost`, `link`
+- Sizes: `sm`, `md`, `lg`, `xl`
+- States: default, hover, active, focus, disabled, loading
+- Icon support: icon-only, left icon, right icon
+- Grouping: connected buttons for related actions
+- Accessibility: keyboard focus styles, proper disabled handling, loading semantics
+- Dark mode: color tokens adjusted for contrast in `[data-theme='dark']`
+
+## Basic Usage
+
+```tsx
+import Button from '@site/src/components/UI/Button';
+
+export default function Example() {
+  return <Button>Deploy Contract</Button>;
+}
+```
+
+## Variants
+
+<div style={{display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem'}}>
+  <Button variant="primary">Primary</Button>
+  <Button variant="secondary">Secondary</Button>
+  <Button variant="tertiary">Tertiary</Button>
+  <Button variant="ghost">Ghost</Button>
+  <Button variant="link">Link</Button>
+</div>
+
+## Sizes
+
+<div style={{display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem'}}>
+  <Button size="sm">Small</Button>
+  <Button size="md">Medium</Button>
+  <Button size="lg">Large</Button>
+  <Button size="xl">Extra Large</Button>
+</div>
+
+## States
+
+<div style={{display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem'}}>
+  <Button>Default</Button>
+  <Button disabled>Disabled</Button>
+  <Button loading>Loading</Button>
+</div>
+
+Use keyboard `Tab` navigation to verify visible focus states (`:focus-visible`).
+
+## Icons
+
+<div style={{display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem'}}>
+  <Button iconLeft={<span aria-hidden="true">+</span>}>Create</Button>
+  <Button iconRight={<span aria-hidden="true">→</span>}>Continue</Button>
+  <Button iconOnly aria-label="Settings" iconLeft={<span aria-hidden="true">⚙</span>} />
+</div>
+
+## Button Group
+
+<ButtonGroup ariaLabel="Contract actions">
+  <Button variant="secondary">Preview</Button>
+  <Button variant="secondary">Save Draft</Button>
+  <Button variant="primary">Publish</Button>
+</ButtonGroup>
+
+## Accessibility Guidelines
+
+- Provide an `aria-label` for icon-only buttons.
+- Keep button text action-oriented and specific.
+- Do not rely only on color to communicate state.
+- Use `disabled` for unavailable actions.
+- Loading buttons announce `aria-busy` and prevent duplicate clicks.
+
+## Animation and Transition Tokens
+
+Defined in `src/css/custom.css`:
+
+- Durations: `--sb-motion-duration-fast`, `--sb-motion-duration-normal`, `--sb-motion-duration-slow`
+- Easing: `--sb-motion-ease-standard`, `--sb-motion-ease-in`, `--sb-motion-ease-out`
+- Utilities: `.sb-transition-none`, `.sb-transition-fast`, `.sb-transition-normal`, `.sb-transition-slow`

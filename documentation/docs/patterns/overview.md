@@ -45,7 +45,7 @@ Each pattern includes:
 
 ## Contributing
 
-Have a pattern to share? See our [Contributing Guide](../../CONTRIBUTING.md).
+Have a pattern to share? See our [Contributing Guide](https://github.com/Soroban-Cookbook/Soroban-Cookbook-/blob/main/CONTRIBUTING.md).
 
 ## Getting Started
 

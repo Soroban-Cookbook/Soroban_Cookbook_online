@@ -76,8 +76,8 @@ cargo test
 
 ## Next Steps
 
-- [Deploy to testnet](./deploy-testnet.md)
-- [Learn about storage](../concepts/storage.md)
+- [Deploy to testnet](./deploy-testnet)
+- [Learn about storage](../concepts/storage)
 - [Explore patterns](../patterns/overview.md)
 
 ## Resources
