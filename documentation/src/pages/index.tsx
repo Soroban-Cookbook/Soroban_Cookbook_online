@@ -1,48 +1,46 @@
-import type { ReactNode } from "react";
-import clsx from "clsx";
-import Link from "@docusaurus/Link";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import React from "react";
 import Layout from "@theme/Layout";
-import HomepageFeatures from "@site/src/components/HomepageFeatures";
-import Testimonials from "@site/src/components/UI/Testimonials";
-import Heading from "@theme/Heading";
-
+import Link from "@docusaurus/Link";
 import styles from "./index.module.css";
 
-function HomepageHeader() {
-  const { siteConfig } = useDocusaurusContext();
-  return (
-    <header className={clsx("hero hero--primary", styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <a
-            className="button button--secondary button--lg"
-            href="/getting-started/setup"
-          >
-            Start Building with Soroban
-          </a>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-export default function Home(): ReactNode {
-  const { siteConfig } = useDocusaurusContext();
+export default function Home() {
   return (
     <Layout
-      title="Home"
-      description="A comprehensive guide to building smart contracts on Stellar with Soroban"
+      title="Soroban Cookbook"
+      description="Master Soroban smart contracts with practical patterns and production-ready guides."
     >
-      <HomepageHeader />
-      <main>
-        <HomepageFeatures />
-        <Testimonials />
-      </main>
+      <header className={styles.hero}>
+        <div className={styles.glowOne}></div>
+        <div className={styles.glowTwo}></div>
+
+        <div className={styles.container}>
+          <h1 className={styles.title}>
+            Build Smart Contracts 
+          </h1>
+
+          <p className={styles.subtitle}>
+            A modern, practical guide to building secure and optimized
+            Soroban applications on Stellar.
+          </p>
+
+          <div className={styles.buttons}>
+            <Link to="/docs" className={styles.primaryBtn}>
+              Get Started
+            </Link>
+
+            <Link to="/docs/category/patterns" className={styles.secondaryBtn}>
+              View Patterns
+            </Link>
+          </div>
+
+          <div className={styles.features}>
+            <div>⚡ Production-ready examples</div>
+            <div>🔐 Security-first patterns</div>
+            <div>📦 Reusable contract modules</div>
+            <div>🚀 Performance optimization tips</div>
+          </div>
+        </div>
+      </header>
     </Layout>
   );
 }

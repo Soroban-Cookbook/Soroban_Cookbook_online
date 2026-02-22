@@ -1,0 +1,479 @@
+/* ── Button System - Comprehensive Dark Mode Support ─────────────────────────── */
+
+/* CSS Custom Properties for Button System */
+:root {
+  /* Primary Button Colors */
+  --btn-primary-bg: #2e8555;
+  --btn-primary-bg-hover: #29784c;
+  --btn-primary-bg-active: #277148;
+  --btn-primary-text: #ffffff;
+  --btn-primary-border: transparent;
+  
+  /* Secondary Button Colors */
+  --btn-secondary-bg: transparent;
+  --btn-secondary-bg-hover: rgba(46, 133, 85, 0.1);
+  --btn-secondary-bg-active: rgba(46, 133, 85, 0.15);
+  --btn-secondary-text: #2e8555;
+  --btn-secondary-border: #2e8555;
+  
+  /* Tertiary Button Colors */
+  --btn-tertiary-bg: #f3f4f6;
+  --btn-tertiary-bg-hover: #e5e7eb;
+  --btn-tertiary-bg-active: #d1d5db;
+  --btn-tertiary-text: #374151;
+  --btn-tertiary-border: transparent;
+  
+  /* Ghost Button Colors */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.05);
+  --btn-ghost-bg-active: rgba(0, 0, 0, 0.08);
+  --btn-ghost-text: #374151;
+  --btn-ghost-border: transparent;
+  
+  /* Danger Button Colors */
+  --btn-danger-bg: #ef4444;
+  --btn-danger-bg-hover: #dc2626;
+  --btn-danger-bg-active: #b91c1c;
+  --btn-danger-text: #ffffff;
+  --btn-danger-border: transparent;
+  
+  /* Button Sizing */
+  --btn-height-sm: 32px;
+  --btn-height-md: 40px;
+  --btn-height-lg: 48px;
+  --btn-padding-sm: 8px 12px;
+  --btn-padding-md: 10px 18px;
+  --btn-padding-lg: 12px 24px;
+  --btn-font-sm: 13px;
+  --btn-font-md: 14px;
+  --btn-font-lg: 16px;
+  --btn-radius-sm: 6px;
+  --btn-radius-md: 8px;
+  --btn-radius-lg: 10px;
+  
+  /* Focus Ring */
+  --btn-focus-ring: 0 0 0 3px rgba(46, 133, 85, 0.4);
+  --btn-danger-focus-ring: 0 0 0 3px rgba(239, 68, 68, 0.4);
+  
+  /* Transitions */
+  --btn-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Disabled State */
+  --btn-disabled-opacity: 0.5;
+}
+
+/* Dark Mode Button Variables */
+[data-theme='dark'] {
+  /* Primary Button Colors - Dark Mode */
+  --btn-primary-bg: #25c2a0;
+  --btn-primary-bg-hover: #21af90;
+  --btn-primary-bg-active: #1fa588;
+  --btn-primary-text: #ffffff;
+  
+  /* Secondary Button Colors - Dark Mode */
+  --btn-secondary-bg: transparent;
+  --btn-secondary-bg-hover: rgba(37, 194, 160, 0.15);
+  --btn-secondary-bg-active: rgba(37, 194, 160, 0.25);
+  --btn-secondary-text: #25c2a0;
+  --btn-secondary-border: #25c2a0;
+  
+  /* Tertiary Button Colors - Dark Mode */
+  --btn-tertiary-bg: #374151;
+  --btn-tertiary-bg-hover: #4b5563;
+  --btn-tertiary-bg-active: #6b7280;
+  --btn-tertiary-text: #f3f4f6;
+  
+  /* Ghost Button Colors - Dark Mode */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.08);
+  --btn-ghost-bg-active: rgba(255, 255, 255, 0.12);
+  --btn-ghost-text: #d1d5db;
+  
+  /* Danger Button Colors - Dark Mode */
+  --btn-danger-bg: #f87171;
+  --btn-danger-bg-hover: #ef4444;
+  --btn-danger-bg-active: #dc2626;
+  --btn-danger-text: #1f2937;
+  
+  /* Focus Ring - Dark Mode */
+  --btn-focus-ring: 0 0 0 3px rgba(37, 194, 160, 0.4);
+  --btn-danger-focus-ring: 0 0 0 3px rgba(248, 113, 113, 0.4);
+}
+
+/* ── Base Button Styles ─────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--btn-transition);
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Remove default button styles */
+.btn::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* ── Button Variants ────────────────────────────────────────────────────────── */
+
+/* Primary Button */
+.btnPrimary {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-border);
+}
+
+.btnPrimary:hover:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-primary-bg-hover);
+}
+
+.btnPrimary:active:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-primary-bg-active);
+  transform: scale(0.98);
+}
+
+.btnPrimary:focus-visible {
+  box-shadow: var(--btn-focus-ring);
+  outline: none;
+}
+
+/* Secondary Button */
+.btnSecondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
+}
+
+.btnSecondary:hover:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-secondary-bg-hover);
+}
+
+.btnSecondary:active:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-secondary-bg-active);
+  transform: scale(0.98);
+}
+
+.btnSecondary:focus-visible {
+  box-shadow: var(--btn-focus-ring);
+  outline: none;
+}
+
+/* Tertiary Button */
+.btnTertiary {
+  background-color: var(--btn-tertiary-bg);
+  color: var(--btn-tertiary-text);
+  border-color: var(--btn-tertiary-border);
+}
+
+.btnTertiary:hover:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-tertiary-bg-hover);
+}
+
+.btnTertiary:active:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-tertiary-bg-active);
+  transform: scale(0.98);
+}
+
+.btnTertiary:focus-visible {
+  box-shadow: var(--btn-focus-ring);
+  outline: none;
+}
+
+/* Ghost Button */
+.btnGhost {
+  background-color: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
+  border-color: var(--btn-ghost-border);
+}
+
+.btnGhost:hover:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-ghost-bg-hover);
+}
+
+.btnGhost:active:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-ghost-bg-active);
+  transform: scale(0.98);
+}
+
+.btnGhost:focus-visible {
+  box-shadow: var(--btn-focus-ring);
+  outline: none;
+}
+
+/* Danger Button */
+.btnDanger {
+  background-color: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
+  border-color: var(--btn-danger-border);
+}
+
+.btnDanger:hover:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-danger-bg-hover);
+}
+
+.btnDanger:active:not(:disabled):not(.btnLoading) {
+  background-color: var(--btn-danger-bg-active);
+  transform: scale(0.98);
+}
+
+.btnDanger:focus-visible {
+  box-shadow: var(--btn-danger-focus-ring);
+  outline: none;
+}
+
+/* ── Button Sizes ───────────────────────────────────────────────────────────── */
+
+.btnSmall {
+  height: var(--btn-height-sm);
+  padding: var(--btn-padding-sm);
+  font-size: var(--btn-font-sm);
+  border-radius: var(--btn-radius-sm);
+}
+
+.btnMedium {
+  height: var(--btn-height-md);
+  padding: var(--btn-padding-md);
+  font-size: var(--btn-font-md);
+  border-radius: var(--btn-radius-md);
+}
+
+.btnLarge {
+  height: var(--btn-height-lg);
+  padding: var(--btn-padding-lg);
+  font-size: var(--btn-font-lg);
+  border-radius: var(--btn-radius-lg);
+}
+
+/* ── Button States ──────────────────────────────────────────────────────────── */
+
+/* Disabled State */
+.btn:disabled {
+  opacity: var(--btn-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Loading State */
+.btnLoading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  opacity: 0.7;
+}
+
+/* ── Icon Buttons ───────────────────────────────────────────────────────────── */
+
+.btnIcon {
+  padding: 0;
+  aspect-ratio: 1;
+}
+
+.btnIcon.btnSmall {
+  width: var(--btn-height-sm);
+}
+
+.btnIcon.btnMedium {
+  width: var(--btn-height-md);
+}
+
+.btnIcon.btnLarge {
+  width: var(--btn-height-lg);
+}
+
+.btnWithIcon {
+  /* Button with icon alongside text - uses default padding */
+}
+
+.btnIconOnly {
+  /* Ensure icon-only buttons have proper spacing */
+  padding: 0;
+}
+
+/* ── Button Groups ──────────────────────────────────────────────────────────── */
+
+.btnGroup {
+  display: inline-flex;
+  gap: 0;
+}
+
+.btnGroup .btn {
+  border-radius: 0;
+}
+
+.btnGroup .btn:first-child {
+  border-top-left-radius: var(--btn-radius-md);
+  border-bottom-left-radius: var(--btn-radius-md);
+}
+
+.btnGroup .btn:last-child {
+  border-top-right-radius: var(--btn-radius-md);
+  border-bottom-right-radius: var(--btn-radius-md);
+}
+
+.btnGroup .btn:not(:last-child) {
+  border-right-width: 1px;
+}
+
+.btnGroup .btn:not(:first-child) {
+  border-left-width: 1px;
+}
+
+/* Button group with connected styling */
+.btnGroupConnected {
+  gap: 0;
+}
+
+.btnGroupConnected .btn:not(:last-child) {
+  margin-right: -2px;
+}
+
+/* Segmented button group */
+.btnGroupSegmented {
+  background-color: var(--btn-tertiary-bg);
+  padding: 4px;
+  border-radius: calc(var(--btn-radius-md) + 4px);
+}
+
+.btnGroupSegmented .btn {
+  border-radius: var(--btn-radius-sm);
+  border: none;
+}
+
+.btnGroupSegmented .btn:not(:last-child) {
+  margin-right: 4px;
+}
+
+/* ── Full Width Button ──────────────────────────────────────────────────────── */
+
+.btnFullWidth {
+  width: 100%;
+}
+
+/* ── Accessibility Enhancements ─────────────────────────────────────────────── */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn {
+    border-width: 3px;
+  }
+  
+  .btnPrimary,
+  .btnDanger {
+    border-color: currentColor;
+  }
+  
+  .btnSecondary {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  
+  .btn:active:not(:disabled):not(.btnLoading) {
+    transform: none;
+  }
+  
+  .loadingSpinner {
+    animation: none;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.btn:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Skip to content link styling */
+.skipLink {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  padding: 8px 16px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skipLink:focus {
+  top: 0;
+}
+
+/* ── Dark Mode Specific Adjustments ─────────────────────────────────────────── */
+
+[data-theme='dark'] .btn {
+  /* Enhanced contrast for dark mode */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='dark'] .btnPrimary {
+  box-shadow: 0 2px 8px rgba(37, 194, 160, 0.25);
+}
+
+[data-theme='dark'] .btnPrimary:hover:not(:disabled):not(.btnLoading) {
+  box-shadow: 0 4px 12px rgba(37, 194, 160, 0.35);
+}
+
+[data-theme='dark'] .btnDanger {
+  box-shadow: 0 2px 8px rgba(248, 113, 113, 0.25);
+}
+
+[data-theme='dark'] .btnDanger:hover:not(:disabled):not(.btnLoading) {
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.35);
+}
+
+/* ── Ripple Effect (Optional Enhancement) ────────────────────────────────────── */
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+[data-theme='dark'] .ripple {
+  background-color: rgba(255, 255, 255, 0.2);
+}
