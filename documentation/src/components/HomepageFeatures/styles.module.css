@@ -1,23 +1,6 @@
 .features {
-  display: flex;
-  align-items: center;
-  padding: 2rem 0;
+  padding: 4rem 0;
   width: 100%;
-}
-
-.featureSvg {
-  height: 200px;
-  width: 200px;
-}
-
-.homepageFeatures {
-  padding-bottom: 80px;
-}
-
-/* ── Section spacing ─────────────────────────────────────────────────────── */
-
-.section {
-  padding: 64px 0 0;
 }
 
 .sectionHeader {
@@ -40,14 +23,6 @@
   line-height: 1.65;
 }
 
-/* ── Grid layouts ─────────────────────────────────────────────────────────── */
-
-.gridFour {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-}
-
 .gridThree {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -56,25 +31,23 @@
 
 /* Tablet */
 @media (max-width: 996px) {
-  .gridFour {
-    grid-template-columns: repeat(2, 1fr);
+  .features {
+    padding: 2rem 0;
   }
 
   .gridThree {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sectionHeader {
+    margin-bottom: 2rem;
   }
 }
 
 /* Mobile */
 @media (max-width: 600px) {
-
-  .gridFour,
   .gridThree {
     grid-template-columns: 1fr;
-  }
-
-  .section {
-    padding-top: 48px;
   }
 
   .sectionLabel {

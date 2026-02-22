@@ -1,0 +1,147 @@
+/* ── Theme Toggle Styles ────────────────────────────────────────────────────── */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.toggle:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Dark mode toggle colors */
+[data-theme='dark'] .toggle {
+  color: var(--ifm-color-emphasis-300);
+}
+
+[data-theme='dark'] .toggle:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+/* ── Sizes ──────────────────────────────────────────────────────────────────── */
+
+.small {
+  padding: 4px;
+}
+
+.small svg {
+  width: 16px;
+  height: 16px;
+}
+
+.medium {
+  padding: 8px;
+}
+
+.medium svg {
+  width: 20px;
+  height: 20px;
+}
+
+.large {
+  padding: 12px;
+}
+
+.large svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ── Icon Animation ─────────────────────────────────────────────────────────── */
+
+.sunIcon,
+.moonIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+/* Light mode: show sun, hide moon */
+[data-theme='light'] .sunIcon {
+  transform: rotate(0deg);
+  opacity: 1;
+}
+
+[data-theme='light'] .moonIcon {
+  transform: rotate(-90deg);
+  opacity: 0;
+  position: absolute;
+}
+
+/* Dark mode: show moon, hide sun */
+[data-theme='dark'] .sunIcon {
+  transform: rotate(90deg);
+  opacity: 0;
+  position: absolute;
+}
+
+[data-theme='dark'] .moonIcon {
+  transform: rotate(0deg);
+  opacity: 1;
+}
+
+/* ── Label ──────────────────────────────────────────────────────────────────── */
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Placeholder (prevents layout shift) ────────────────────────────────────── */
+
+.placeholder {
+  display: inline-block;
+  background: transparent;
+  border: none;
+}
+
+.placeholder.small {
+  width: 32px;
+  height: 32px;
+}
+
+.placeholder.medium {
+  width: 40px;
+  height: 40px;
+}
+
+.placeholder.large {
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Accessibility ──────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .sunIcon,
+  .moonIcon {
+    transition: none;
+  }
+  
+  .toggle {
+    transition: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .toggle {
+    border: 2px solid currentColor;
+  }
+}

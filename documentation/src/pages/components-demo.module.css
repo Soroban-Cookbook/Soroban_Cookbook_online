@@ -1,0 +1,112 @@
+/**
+ * Components Demo Page Styles
+ */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--ifm-heading-color);
+}
+
+.header p {
+  font-size: 1.1rem;
+  color: var(--ifm-color-emphasis-600);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: 48px;
+  padding: 24px;
+  background: var(--ifm-background-surface-color);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--ifm-border-color);
+}
+
+.section h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--ifm-heading-color);
+}
+
+.section p {
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 20px;
+}
+
+.demoRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.demoColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.featureList li {
+  padding: 8px 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.95rem;
+}
+
+.featureList li::before {
+  content: '';
+  margin-right: 8px;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .section {
+  background: var(--ifm-background-surface-color);
+  border-color: var(--ifm-border-color);
+}
+
+[data-theme='dark'] .header p {
+  color: var(--ifm-color-emphasis-500);
+}
+
+[data-theme='dark'] .featureList li {
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: 24px 16px;
+  }
+
+  .header h1 {
+    font-size: 1.75rem;
+  }
+
+  .section {
+    padding: 16px;
+  }
+
+  .demoRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
