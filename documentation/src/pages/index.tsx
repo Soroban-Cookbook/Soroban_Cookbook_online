@@ -1,6 +1,7 @@
 import React from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
+import Stats from "@site/src/components/Stats";
 import styles from "./index.module.css";
 
 export default function Home() {
@@ -41,6 +42,8 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      <Stats />
     </Layout>
   );
 }
