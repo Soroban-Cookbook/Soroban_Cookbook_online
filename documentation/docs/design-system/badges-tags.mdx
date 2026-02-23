@@ -1,0 +1,297 @@
+---
+title: Badges & Tags
+description: Difficulty badges, category tags, status indicators, size variants, and accessibility guidelines for the Soroban Cookbook.
+sidebar_label: Badges & Tags
+---
+
+# Badges & Tags
+
+Badges are small status indicators. Tags are categorical labels. Both are compact, color-coded, and accessible.
+
+---
+
+## Difficulty Badges
+
+Visual skill-level indicators for recipes and tutorials.
+
+| Badge | Color | Token | Use |
+|-------|-------|-------|-----|
+| **Beginner** | Green | `--sb-color-success` / `#22c55e` | First contract, basic storage, hello-world |
+| **Intermediate** | Amber | `--sb-color-warning` / `#f59e0b` | Cross-contract calls, custom types, auth |
+| **Advanced** | Red | `--sb-color-error` / `#ef4444` | Upgradeable contracts, flash loans, oracles |
+
+### Markup
+
+```html
+<span class="sb-badge sb-badge--beginner">Beginner</span>
+<span class="sb-badge sb-badge--intermediate">Intermediate</span>
+<span class="sb-badge sb-badge--advanced">Advanced</span>
+```
+
+### When to use
+
+- Place next to the recipe title or in the card header.
+- One difficulty badge per recipe — pick the highest skill required.
+- Don't stack multiple difficulty badges on the same item.
+
+---
+
+## Category Tags
+
+Flexible labels for pattern and topic categorization.
+
+| Tag | Background | Text |
+|-----|------------|------|
+| **Token** | `--sb-color-primary-100` | `--sb-color-primary-700` |
+| **DeFi** | `--sb-color-secondary-100` | `--sb-color-secondary-700` |
+| **NFT** | `--sb-color-info-subtle` | `--sb-color-info-dark` |
+| **Security** | `--sb-color-error-subtle` | `--sb-color-error-dark` |
+| **Storage** | `--sb-color-warning-subtle` | `--sb-color-warning-dark` |
+| **Auth** | `--sb-color-neutral-100` | `--sb-color-neutral-700` |
+
+### Markup
+
+```html
+<span class="sb-tag sb-tag--token">Token</span>
+<span class="sb-tag sb-tag--defi">DeFi</span>
+<span class="sb-tag sb-tag--nft">NFT</span>
+<span class="sb-tag sb-tag--security">Security</span>
+<span class="sb-tag sb-tag--storage">Storage</span>
+<span class="sb-tag sb-tag--auth">Auth</span>
+```
+
+### Adding new categories
+
+Follow the pattern: pick a semantic or palette color, use the `*-subtle` shade for background and the `*-dark` shade for text. This ensures WCAG AA contrast in both light and dark modes.
+
+---
+
+## Status Badges
+
+Indicators for content freshness and availability.
+
+| Status | Style | Use |
+|--------|-------|-----|
+| **New** | Solid green bg, white text | Content added in the last 30 days |
+| **Updated** | Solid blue bg, white text | Recently revised content |
+| **Coming Soon** | Outlined neutral, muted text | Placeholder for unreleased content |
+| **Deprecated** | Solid red bg, white text | Content that should no longer be used |
+
+### Markup
+
+```html
+<span class="sb-badge sb-badge--new">New</span>
+<span class="sb-badge sb-badge--updated">Updated</span>
+<span class="sb-badge sb-badge--coming-soon">Coming Soon</span>
+<span class="sb-badge sb-badge--deprecated">Deprecated</span>
+```
+
+### Token mapping
+
+| Status | Light bg | Light text | Dark bg | Dark text |
+|--------|----------|------------|---------|-----------|
+| New | `--sb-color-success` | `#fff` | `--sb-color-success` | `#fff` |
+| Updated | `--sb-color-info` | `#fff` | `--sb-color-info` | `#fff` |
+| Coming Soon | `transparent` | `--sb-color-neutral-500` | `transparent` | `--sb-color-neutral-500` |
+| Deprecated | `--sb-color-error` | `#fff` | `--sb-color-error` | `#fff` |
+
+---
+
+## Size Variants
+
+Three sizes for different contexts.
+
+| Size | Class | Height | Padding | Font | Use case |
+|------|-------|--------|---------|------|----------|
+| **small** | `sb-badge--sm` | 20px | 2px 6px | 11px | Inline with text, table cells |
+| **medium** | `sb-badge--md` | 24px | 3px 8px | 12px | Card headers, list items (default) |
+| **large** | `sb-badge--lg` | 28px | 4px 12px | 13px | Page headers, hero sections |
+
+```html
+<span class="sb-badge sb-badge--new sb-badge--sm">New</span>
+<span class="sb-badge sb-badge--new sb-badge--md">New</span>
+<span class="sb-badge sb-badge--new sb-badge--lg">New</span>
+```
+
+Same sizes apply to tags — use `sb-tag--sm`, `sb-tag--md`, `sb-tag--lg`.
+
+---
+
+## CSS Custom Properties
+
+All badge/tag tokens to add to your design tokens CSS file.
+
+```css
+:root {
+  /* Badge base */
+  --sb-badge-radius: 9999px;
+  --sb-badge-font-weight: 600;
+  --sb-badge-letter-spacing: 0.01em;
+
+  /* Badge sizes */
+  --sb-badge-height-sm: 20px;
+  --sb-badge-height-md: 24px;
+  --sb-badge-height-lg: 28px;
+  --sb-badge-px-sm: 6px;
+  --sb-badge-px-md: 8px;
+  --sb-badge-px-lg: 12px;
+  --sb-badge-font-sm: 11px;
+  --sb-badge-font-md: 12px;
+  --sb-badge-font-lg: 13px;
+
+  /* Difficulty badges */
+  --sb-badge-beginner-bg: var(--sb-color-success-subtle);
+  --sb-badge-beginner-text: var(--sb-color-success-dark);
+  --sb-badge-beginner-border: var(--sb-color-success);
+  --sb-badge-intermediate-bg: var(--sb-color-warning-subtle);
+  --sb-badge-intermediate-text: var(--sb-color-warning-dark);
+  --sb-badge-intermediate-border: var(--sb-color-warning);
+  --sb-badge-advanced-bg: var(--sb-color-error-subtle);
+  --sb-badge-advanced-text: var(--sb-color-error-dark);
+  --sb-badge-advanced-border: var(--sb-color-error);
+
+  /* Status badges */
+  --sb-badge-new-bg: var(--sb-color-success);
+  --sb-badge-new-text: #ffffff;
+  --sb-badge-updated-bg: var(--sb-color-info);
+  --sb-badge-updated-text: #ffffff;
+  --sb-badge-coming-soon-bg: transparent;
+  --sb-badge-coming-soon-text: var(--sb-color-neutral-500);
+  --sb-badge-coming-soon-border: var(--sb-color-neutral-300);
+  --sb-badge-deprecated-bg: var(--sb-color-error);
+  --sb-badge-deprecated-text: #ffffff;
+
+  /* Tag base */
+  --sb-tag-radius: 6px;
+  --sb-tag-font-weight: 500;
+}
+```
+
+---
+
+## Base CSS Classes
+
+```css
+/* Badge — pill shape, solid or outlined */
+.sb-badge {
+  display: inline-flex;
+  align-items: center;
+  height: var(--sb-badge-height-md);
+  padding-inline: var(--sb-badge-px-md);
+  font-size: var(--sb-badge-font-md);
+  font-weight: var(--sb-badge-font-weight);
+  letter-spacing: var(--sb-badge-letter-spacing);
+  line-height: 1;
+  border-radius: var(--sb-badge-radius);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  user-select: none;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+/* Tag — rounded rectangle, softer look */
+.sb-tag {
+  display: inline-flex;
+  align-items: center;
+  height: var(--sb-badge-height-md);
+  padding-inline: var(--sb-badge-px-md);
+  font-size: var(--sb-badge-font-md);
+  font-weight: var(--sb-tag-font-weight);
+  line-height: 1;
+  border-radius: var(--sb-tag-radius);
+  white-space: nowrap;
+  user-select: none;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+```
+
+---
+
+## Interactive States
+
+For clickable badges and tags (e.g. filter chips), add the `sb-badge--clickable` or `sb-tag--clickable` modifier.
+
+```css
+.sb-badge--clickable,
+.sb-tag--clickable {
+  cursor: pointer;
+}
+
+.sb-badge--clickable:hover,
+.sb-tag--clickable:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+.sb-badge--clickable:active,
+.sb-tag--clickable:active {
+  transform: translateY(0);
+  filter: brightness(0.9);
+}
+
+.sb-badge--clickable:focus-visible,
+.sb-tag--clickable:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+```
+
+Use `<button>` or `<a>` instead of `<span>` when the badge/tag is clickable:
+
+```html
+<!-- Filtering by tag -->
+<button class="sb-tag sb-tag--defi sb-tag--clickable">DeFi</button>
+
+<!-- Linking to filtered view -->
+<a href="/docs/patterns?tag=token" class="sb-tag sb-tag--token sb-tag--clickable">Token</a>
+```
+
+---
+
+## Accessibility
+
+### Contrast
+
+- Solid badges (New, Updated, Deprecated): white text on colored bg — passes AA at all sizes.
+- Subtle badges (Beginner, Intermediate, Advanced): dark text on tinted bg — minimum 4.5:1 ratio.
+- Coming Soon: muted text on transparent — border provides visual boundary.
+
+### Screen readers
+
+Badges are decorative when paired with visible text. Use `aria-hidden="true"` in those cases:
+
+```html
+<!-- Badge next to visible heading — redundant for SR -->
+<h3>Deploy to Testnet <span class="sb-badge sb-badge--beginner" aria-hidden="true">Beginner</span></h3>
+```
+
+When the badge is the **only** indicator, keep it accessible:
+
+```html
+<!-- Badge is the only difficulty signal in a card -->
+<span class="sb-badge sb-badge--advanced" role="status">Advanced</span>
+```
+
+### Clickable badges
+
+- Use `<button>` for actions (filter, toggle).
+- Use `<a>` for navigation.
+- Never put `onclick` on a `<span>` — it's not keyboard accessible.
+
+---
+
+## Usage Guidelines
+
+### Do
+
+- Use one difficulty badge per recipe
+- Place status badges near the title — top-right of cards or inline after headings
+- Use subtle/tinted backgrounds for category tags so they don't compete with CTAs
+- Group related tags together with `gap: 6px` (`--sb-space-1` + `--sb-space-half`)
+
+### Don't
+
+- Stack more than 4 tags on a single card — it becomes visual noise
+- Use badge colors that don't match the semantic meaning (e.g. green for "Deprecated")
+- Make every badge clickable — only add interaction when filtering/navigation exists
+- Mix badge sizes within the same row
