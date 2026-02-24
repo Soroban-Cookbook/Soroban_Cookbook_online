@@ -1,0 +1,209 @@
+---
+title: Typography System
+description: Font families, type scale, heading hierarchy, responsive sizing, and accessibility guidelines for Soroban Cookbook developers.
+sidebar_label: Typography
+---
+
+# Typography System
+
+A consistent type system for readable, accessible content across the Soroban Cookbook.
+
+---
+
+## Font Stack
+
+The project uses system font stacks — no external font downloads, zero layout shift.
+
+| Role | Token | Stack |
+|------|-------|-------|
+| **UI / Body** | `--ifm-font-family-base` | `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif` |
+| **Code** | `--ifm-font-family-monospace` | `SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace` |
+
+:::tip
+Stick with the system stack. If you need a custom font later, load it with `font-display: swap` and add a `size-adjust` to the fallback to prevent CLS.
+:::
+
+---
+
+## Type Scale
+
+Defined in `breakpoints.css` as `--text-*` tokens. Use these instead of raw `px` or `rem` values.
+
+| Token | Size | px equiv. | Typical use |
+|-------|------|-----------|-------------|
+| `--text-xs` | `0.75rem` | 12px | Badges, captions |
+| `--text-sm` | `0.875rem` | 14px | Helper text, labels |
+| `--text-base` | `1rem` | 16px | Body copy (default) |
+| `--text-lg` | `1.125rem` | 18px | Lead paragraphs |
+| `--text-xl` | `1.25rem` | 20px | Subheadings |
+| `--text-2xl` | `1.5rem` | 24px | Section headings |
+| `--text-3xl` | `1.875rem` | 30px | Page headings |
+| `--text-4xl` | `2.25rem` | 36px | Hero subheading |
+| `--text-5xl` | `3rem` | 48px | Hero heading |
+
+```css
+.my-label {
+  font-size: var(--text-sm);
+}
+
+.my-section-title {
+  font-size: var(--text-2xl);
+}
+```
+
+---
+
+## Heading Hierarchy
+
+Follow this hierarchy to maintain a clear visual structure on every page.
+
+| Level | Token | Weight | Line-height | Letter-spacing | Use case |
+|-------|-------|--------|-------------|----------------|----------|
+| `h1` | `--text-4xl` – `--text-5xl` | 700 | 1.1 | `-0.02em` | Page title (one per page) |
+| `h2` | `--text-2xl` – `--text-3xl` | 600 | 1.2 | `-0.01em` | Major sections |
+| `h3` | `--text-xl` – `--text-2xl` | 600 | 1.3 | `0` | Subsections |
+| `h4` | `--text-lg` | 600 | 1.4 | `0` | Card titles, group labels |
+| `h5` | `--text-base` | 600 | 1.5 | `0.01em` | Small group labels |
+| `h6` | `--text-sm` | 700 | 1.5 | `0.05em` | Overlines, all-caps labels |
+
+### Recommended heading CSS
+
+```css
+h1 {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.3;
+}
+```
+
+:::caution
+Never skip heading levels (e.g. `h1` → `h3`). Screen readers rely on the heading tree for navigation.
+:::
+
+---
+
+## Responsive Typography
+
+Two utility classes are available for text that scales across breakpoints:
+
+### `.heading-responsive`
+
+| Breakpoint | Size |
+|-----------|------|
+| Mobile (xs) | `1.5rem` (24px) |
+| Tablet (md) | `1.875rem` (30px) |
+| Desktop (lg) | `2.25rem` (36px) |
+| Wide (xl) | `3rem` (48px) |
+
+### `.text-responsive`
+
+| Breakpoint | Size |
+|-----------|------|
+| Mobile (xs) | `1rem` (16px) |
+| Desktop (lg) | `1.125rem` (18px) |
+
+```html
+<h1 class="heading-responsive">Scales from 24px to 48px</h1>
+<p class="text-responsive">Body text — 16px on mobile, 18px on desktop</p>
+```
+
+### Using `clamp()` for custom fluid sizing
+
+For elements that need smooth scaling between breakpoints rather than stepped jumps:
+
+```css
+.hero-title {
+  /* min 2rem (32px), preferred 5vw, max 3.5rem (56px) */
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+}
+```
+
+---
+
+## Body Text Guidelines
+
+| Property | Value | Why |
+|----------|-------|-----|
+| Base size | `16px` (`1rem`) | Minimum for WCAG readability |
+| Line-height | `1.5` – `1.75` | Comfortable reading for paragraphs |
+| Max line width | `65–75 characters` | Prevents eye fatigue |
+| Paragraph spacing | `var(--space-4)` (16px) | Clear separation between blocks |
+| Color (light) | `--ifm-font-color-base` (`#374151`) | Meets AA on white |
+| Color (dark) | `--ifm-font-color-base` (`#cbd5e1`) | Meets AA on `#0f172a` |
+
+```css
+.readable-content {
+  max-width: 70ch; /* limit line length */
+  line-height: 1.65;
+}
+```
+
+---
+
+## Code Typography
+
+| Property | Value |
+|----------|-------|
+| Font | `--ifm-font-family-monospace` |
+| Size | `--ifm-code-font-size` (95% of body) |
+| Line-height | `1.6` |
+| Tab size | `2` |
+
+Inline code uses a slightly smaller size and a subtle background to distinguish it from body text. Code blocks get syntax highlighting via Prism (configured for `rust`, `toml`, and `bash`).
+
+---
+
+## Dark Mode
+
+All text colors are already defined in `custom.css` for both light and dark themes. No extra work needed — just use the token names.
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `--ifm-heading-color` | `#1a1a1a` | `#f1f5f9` |
+| `--ifm-font-color-base` | `#374151` | `#cbd5e1` |
+| `--ifm-color-emphasis-500` | `#6b7280` | `#94a3b8` |
+
+---
+
+## Accessibility Checklist
+
+- [ ] Body text is at least `16px`
+- [ ] Line-height is at least `1.5` for paragraphs
+- [ ] Heading levels are sequential (`h1` → `h2` → `h3`)
+- [ ] Text meets WCAG AA contrast (4.5:1 for body, 3:1 for large text)
+- [ ] No text is conveyed only through color — use weight or icons too
+- [ ] `font-display: optional` or `swap` on any custom fonts to prevent FOIT
+- [ ] Tested with browser zoom at 200% — no text overflow or clipping
+
+---
+
+## Do's and Don'ts
+
+### Do
+
+- Use `--text-*` tokens for all font sizes
+- Set `line-height` relative to font size (unitless values like `1.5`)
+- Use `rem` for sizing so text respects user browser settings
+- Limit line length with `max-width: 70ch` on long-form content
+
+### Don't
+
+- Hard-code `px` font sizes — breaks user zoom preferences
+- Use `line-height` below `1.4` for multi-line body text
+- Set text color with raw hex — use the existing `--ifm-*` tokens so dark mode works
+- Use `font-weight: bold` on large blocks of text — reserve bold for emphasis
