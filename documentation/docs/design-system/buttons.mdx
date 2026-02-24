@@ -1,0 +1,267 @@
+---
+title: Button System
+description: Visual variants, sizes, states, icon integration, button groups, accessibility, and dark mode support for the Soroban Cookbook button system.
+sidebar_label: Buttons
+---
+
+# Button System
+
+The button component lives in `src/components/buttons/Button.tsx` with CSS module tokens in `buttons.module.css`.
+
+```tsx
+import { Button } from '@site/src/components/buttons';
+```
+
+---
+
+## Variants
+
+Five visual variants, each with a clear purpose.
+
+| Variant | Use case | Light bg | Dark bg |
+|---------|----------|----------|---------|
+| **primary** | Main CTA — deploy, submit, confirm | `#2e8555` | `#25c2a0` |
+| **secondary** | Secondary actions — cancel, back | Outlined `#2e8555` | Outlined `#25c2a0` |
+| **tertiary** | Low-emphasis actions — filters, toggles | `#f3f4f6` | `#374151` |
+| **ghost** | Minimal chrome — nav items, inline actions | Transparent | Transparent |
+| **danger** | Destructive — delete, revoke, reset | `#ef4444` | `#f87171` |
+
+```tsx
+<Button variant="primary">Deploy</Button>
+<Button variant="secondary">Cancel</Button>
+<Button variant="tertiary">Filter</Button>
+<Button variant="ghost">Skip</Button>
+<Button variant="danger">Delete</Button>
+```
+
+### Choosing a variant
+
+- One **primary** button per screen section. Multiple primaries compete for attention.
+- Pair **primary** with **secondary** for confirm/cancel flows.
+- Use **danger** only for irreversible or destructive actions. Pair with a confirmation dialog.
+- Use **ghost** inside toolbars, navbars, or tight spaces where a visible background adds clutter.
+
+---
+
+## Sizes
+
+Three sizes. Pick based on context, not preference.
+
+| Size | Height | Padding | Font | Use case |
+|------|--------|---------|------|----------|
+| `small` | 32px | 8px 12px | 13px | Tables, dense UI, inline actions |
+| `medium` | 40px | 10px 18px | 14px | Default for most flows |
+| `large` | 48px | 12px 24px | 16px | Hero CTAs, form submits, standalone actions |
+
+```tsx
+<Button size="small">Small</Button>
+<Button size="medium">Medium</Button>
+<Button size="large">Large</Button>
+```
+
+:::tip
+Touch targets must be at least 44x44px (WCAG 2.1 AA). `small` buttons are fine for mouse-only UI but add extra padding or spacing on mobile.
+:::
+
+---
+
+## States
+
+Every variant supports all six states.
+
+| State | Behavior | CSS |
+|-------|----------|-----|
+| **Default** | Idle appearance | Base tokens |
+| **Hover** | Slightly darker/lighter background | `:hover:not(:disabled)` |
+| **Active** | Pressed — `scale(0.98)` | `:active:not(:disabled)` |
+| **Focus** | Keyboard focus ring (3px) | `:focus-visible` |
+| **Disabled** | 50% opacity, `cursor: not-allowed` | `:disabled` |
+| **Loading** | Spinner replaces content, `cursor: wait` | `loading` prop |
+
+```tsx
+<Button disabled>Disabled</Button>
+<Button loading>Deploying...</Button>
+<Button loading loadingText="Deploying...">Deploy</Button>
+```
+
+### Loading behavior
+
+- `loading` alone shows a spinner, hides content.
+- `loading` + `loadingText` shows the spinner plus custom text.
+- Loading buttons set `aria-busy="true"` and block clicks via `pointer-events: none`.
+
+---
+
+## Icon Integration
+
+### Icon + text
+
+```tsx
+<Button startIcon={<PlusIcon />}>Create Contract</Button>
+<Button endIcon={<ArrowRightIcon />}>Continue</Button>
+```
+
+### Icon-only
+
+Always provide `aria-label` for screen readers.
+
+```tsx
+<Button iconOnly aria-label="Delete item" variant="danger" startIcon={<TrashIcon />} />
+<Button iconOnly aria-label="Settings" startIcon={<GearIcon />} />
+```
+
+Icon-only buttons are square (`aspect-ratio: 1`) and sized to match the button height.
+
+| Size | Icon button dimensions |
+|------|-----------------------|
+| `small` | 32x32px |
+| `medium` | 40x40px |
+| `large` | 48x48px |
+
+---
+
+## Button Groups
+
+Three group styles for toolbars and segmented controls.
+
+### Standard group
+
+```tsx
+import { ButtonGroup } from '@site/src/components/buttons';
+
+<ButtonGroup>
+  <Button variant="secondary">Preview</Button>
+  <Button variant="secondary">Draft</Button>
+  <Button variant="primary">Publish</Button>
+</ButtonGroup>
+```
+
+Buttons share borders — first child gets left radius, last gets right radius, middle buttons have none.
+
+### Connected group
+
+```tsx
+<ButtonGroup connected>
+  ...
+</ButtonGroup>
+```
+
+Overlapping borders (`margin-right: -2px`) for a tighter, toolbar look.
+
+### Segmented group
+
+```tsx
+<ButtonGroup segmented>
+  ...
+</ButtonGroup>
+```
+
+Pill-shaped container with rounded inner buttons — use for view toggles (grid/list, light/dark).
+
+---
+
+## Full Width
+
+```tsx
+<Button fullWidth>Submit Application</Button>
+```
+
+Stretches to 100% of parent. Use for mobile forms or single-action modals.
+
+---
+
+## Dark Mode
+
+All variant tokens automatically swap via `[data-theme='dark']`. No extra props needed.
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `--btn-primary-bg` | `#2e8555` | `#25c2a0` |
+| `--btn-primary-bg-hover` | `#29784c` | `#21af90` |
+| `--btn-secondary-text` | `#2e8555` | `#25c2a0` |
+| `--btn-tertiary-bg` | `#f3f4f6` | `#374151` |
+| `--btn-ghost-bg-hover` | `rgba(0,0,0,0.05)` | `rgba(255,255,255,0.08)` |
+| `--btn-danger-bg` | `#ef4444` | `#f87171` |
+| `--btn-danger-text` | `#ffffff` | `#1f2937` |
+
+Dark mode primary and danger buttons get a subtle `box-shadow` glow for depth.
+
+---
+
+## Accessibility
+
+### Keyboard navigation
+
+- `Tab` moves focus between buttons.
+- `Enter` / `Space` activates the focused button.
+- `:focus-visible` shows a 3px ring (`--btn-focus-ring`). Mouse clicks don't trigger it.
+
+### ARIA
+
+| Attribute | When | Purpose |
+|-----------|------|---------|
+| `aria-busy="true"` | Loading state | Announces loading to screen readers |
+| `aria-disabled="true"` | Disabled or loading | Semantic disabled state |
+| `aria-label` | Icon-only buttons | Required — provides accessible name |
+| `role="group"` | Button groups | Groups related buttons |
+
+### High contrast mode
+
+`@media (prefers-contrast: high)` thickens borders to 3px and adds `border-color: currentColor` to primary and danger variants.
+
+### Reduced motion
+
+`@media (prefers-reduced-motion: reduce)` disables transitions, active scale transforms, and the loading spinner animation.
+
+---
+
+## CSS Token Reference
+
+All tokens live in `buttons.module.css` under `:root` and `[data-theme='dark']`.
+
+### Per-variant tokens
+
+```
+--btn-{variant}-bg
+--btn-{variant}-bg-hover
+--btn-{variant}-bg-active
+--btn-{variant}-text
+--btn-{variant}-border
+```
+
+Where `{variant}` is `primary`, `secondary`, `tertiary`, `ghost`, or `danger`.
+
+### Sizing tokens
+
+```css
+--btn-height-sm: 32px;    --btn-padding-sm: 8px 12px;   --btn-font-sm: 13px;
+--btn-height-md: 40px;    --btn-padding-md: 10px 18px;   --btn-font-md: 14px;
+--btn-height-lg: 48px;    --btn-padding-lg: 12px 24px;   --btn-font-lg: 16px;
+```
+
+### Shared tokens
+
+```css
+--btn-focus-ring: 0 0 0 3px rgba(46, 133, 85, 0.4);
+--btn-danger-focus-ring: 0 0 0 3px rgba(239, 68, 68, 0.4);
+--btn-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+--btn-disabled-opacity: 0.5;
+```
+
+---
+
+## Do's and Don'ts
+
+### Do
+
+- Use action verbs for labels: "Deploy Contract", "Delete Key", "Save Draft"
+- Provide `aria-label` on every icon-only button
+- Use `danger` with a confirmation step for destructive actions
+- Keep one `primary` per section
+
+### Don't
+
+- Put two `primary` buttons side by side
+- Use `danger` for non-destructive actions just because you want red
+- Disable buttons without explaining why (add a tooltip or helper text)
+- Nest interactive elements inside a button

@@ -1,6 +1,7 @@
 import Link from "@docusaurus/Link";
 import PatternPreview, { Pattern } from "@site/src/components/PatternPreview";
 import Layout from "@theme/Layout";
+import Stats from "@site/src/components/Stats";
 import styles from "./index.module.css";
 import React from "react";
 
@@ -177,6 +178,7 @@ export default function Home() {
         maxVisible={6}
         enableCarousel={true}
       />
+      <Stats />
     </Layout>
   );
 }

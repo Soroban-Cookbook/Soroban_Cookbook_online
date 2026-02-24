@@ -1,0 +1,88 @@
+/**
+ * Spacing & Layout System
+ *
+ * Namespaced `--sb-space-*` tokens for the Soroban Cookbook design system.
+ * Builds on the raw `--space-*` scale in breakpoints.css, adding:
+ *   - Semantic layout tokens (section, card, stack, inline)
+ *   - Container max-widths & gutters
+ *   - Component spacing rules
+ *
+ * All tokens use the `--sb-` prefix to avoid collisions.
+ */
+
+/* ── Base Spacing Scale ──────────────────────────────────────────────────────
+ *  4px grid: 4 → 8 → 12 → 16 → 20 → 24 → 32 → 40 → 48 → 64 → 80 → 96
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --sb-space-1:  0.25rem;  /*  4px */
+  --sb-space-2:  0.5rem;   /*  8px */
+  --sb-space-3:  0.75rem;  /* 12px */
+  --sb-space-4:  1rem;     /* 16px */
+  --sb-space-5:  1.25rem;  /* 20px */
+  --sb-space-6:  1.5rem;   /* 24px */
+  --sb-space-8:  2rem;     /* 32px */
+  --sb-space-10: 2.5rem;   /* 40px */
+  --sb-space-12: 3rem;     /* 48px */
+  --sb-space-16: 4rem;     /* 64px */
+  --sb-space-20: 5rem;     /* 80px */
+  --sb-space-24: 6rem;     /* 96px */
+
+  /* ── Container Max-Widths ──────────────────────────────────────────────── */
+  --sb-container-sm:  540px;
+  --sb-container-md:  720px;
+  --sb-container-lg:  960px;
+  --sb-container-xl:  1240px;
+  --sb-container-2xl: 1500px;
+
+  /* ── Gutters (container horizontal padding per breakpoint) ─────────────── */
+  --sb-gutter-xs:  1rem;     /* 16px — mobile */
+  --sb-gutter-sm:  1.25rem;  /* 20px — mobile landscape */
+  --sb-gutter-md:  1.5rem;   /* 24px — tablet */
+  --sb-gutter-lg:  2rem;     /* 32px — laptop */
+  --sb-gutter-xl:  2.5rem;   /* 40px — desktop */
+  --sb-gutter-2xl: 3rem;     /* 48px — wide */
+
+  /* ── Grid Gap ──────────────────────────────────────────────────────────── */
+  --sb-grid-gap-xs: 1rem;
+  --sb-grid-gap-sm: 1.25rem;
+  --sb-grid-gap-md: 1.5rem;
+  --sb-grid-gap-lg: 2rem;
+
+  /* ── Section Padding (responsive vertical rhythm) ──────────────────────── */
+  --sb-section-py-xs: var(--sb-space-8);   /* 32px */
+  --sb-section-py-md: var(--sb-space-12);  /* 48px */
+  --sb-section-py-lg: var(--sb-space-16);  /* 64px */
+  --sb-section-py-xl: var(--sb-space-20);  /* 80px */
+
+  /* ── Component Spacing ─────────────────────────────────────────────────── */
+
+  /* Cards */
+  --sb-card-padding:   var(--sb-space-6);   /* 24px inner padding */
+  --sb-card-gap:       var(--sb-space-4);   /* 16px between stacked cards */
+  --sb-card-radius:    var(--radius-md, 8px);
+
+  /* Stack — vertical spacing between siblings */
+  --sb-stack-xs: var(--sb-space-2);   /*  8px — tight (labels, badges) */
+  --sb-stack-sm: var(--sb-space-3);   /* 12px — compact lists */
+  --sb-stack-md: var(--sb-space-4);   /* 16px — default paragraph/element gap */
+  --sb-stack-lg: var(--sb-space-6);   /* 24px — section sub-groups */
+  --sb-stack-xl: var(--sb-space-8);   /* 32px — major section breaks */
+
+  /* Inline — horizontal spacing between siblings */
+  --sb-inline-xs: var(--sb-space-1);  /*  4px — icon-to-text */
+  --sb-inline-sm: var(--sb-space-2);  /*  8px — tags, chips */
+  --sb-inline-md: var(--sb-space-3);  /* 12px — button groups */
+  --sb-inline-lg: var(--sb-space-4);  /* 16px — nav items */
+  --sb-inline-xl: var(--sb-space-6);  /* 24px — toolbar groups */
+
+  /* Form elements */
+  --sb-form-gap:       var(--sb-space-4);   /* 16px between form fields */
+  --sb-form-label-gap: var(--sb-space-2);   /*  8px label to input */
+  --sb-input-px:       var(--sb-space-3);   /* 12px input horizontal padding */
+  --sb-input-py:       var(--sb-space-2);   /*  8px input vertical padding */
+
+  /* Navbar / Footer */
+  --sb-nav-height:     3.75rem;  /* 60px */
+  --sb-footer-py:      var(--sb-space-12);  /* 48px */
+}
