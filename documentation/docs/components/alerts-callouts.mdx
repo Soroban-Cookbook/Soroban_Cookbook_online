@@ -1,0 +1,152 @@
+---
+sidebar_position: 1
+title: Alerts & Callouts
+description: Guide to using Alert and Callout components in documentation
+---
+
+# Alerts & Callouts
+
+Learn how to use Alert and Callout components to emphasize important information in your documentation.
+
+## Quick Start
+
+<Callout variant="info" title="Getting Started">
+  Alert and Callout components are automatically available in all MDX files. No import needed!
+</Callout>
+
+## Alert Component
+
+Alerts are interactive notifications for user feedback and system messages.
+
+### Basic Usage
+
+<Alert variant="info">
+  This is an informational alert.
+</Alert>
+
+<Alert variant="warning">
+  This is a warning alert.
+</Alert>
+
+<Alert variant="error">
+  This is an error alert.
+</Alert>
+
+<Alert variant="success">
+  This is a success alert.
+</Alert>
+
+### With Titles
+
+<Alert variant="warning" title="Important Notice">
+  Always backup your data before performing destructive operations.
+</Alert>
+
+## Callout Component
+
+Callouts are static emphasis blocks for documentation content.
+
+### Basic Usage
+
+<Callout variant="info">
+  This is an informational callout for documentation.
+</Callout>
+
+<Callout variant="warning">
+  This is a warning callout for important considerations.
+</Callout>
+
+<Callout variant="error">
+  This is an error callout for documenting common mistakes.
+</Callout>
+
+<Callout variant="success">
+  This is a success callout for best practices.
+</Callout>
+
+<Callout variant="tip">
+  This is a tip callout for helpful suggestions and pro tips.
+</Callout>
+
+### Rich Content
+
+<Callout variant="tip" title="Performance Optimization">
+  When building for production, consider these optimizations:
+  
+  - Enable minification
+  - Use code splitting
+  - Optimize images
+  - Enable caching
+  
+  See the [deployment guide](/docs/deployment) for more details.
+</Callout>
+
+## When to Use
+
+<Callout variant="info" title="Choosing the Right Component">
+  **Use Alert** for dynamic notifications, user feedback, and dismissible messages.
+  
+  **Use Callout** for static documentation emphasis, tips, and important notes.
+</Callout>
+
+## Examples in Context
+
+### Prerequisites Section
+
+<Callout variant="info" title="Prerequisites">
+  Before you begin, ensure you have:
+  
+  - Node.js 20 or higher
+  - npm or yarn package manager
+  - Basic knowledge of React
+</Callout>
+
+### Warning About Breaking Changes
+
+<Callout variant="warning" title="Breaking Change in v2.0">
+  The `oldMethod()` function has been removed. Use `newMethod()` instead.
+  
+  ```js
+  // ❌ Old (deprecated)
+  oldMethod();
+  
+  // ✅ New (recommended)
+  newMethod();
+  ```
+</Callout>
+
+### Common Error Documentation
+
+<Callout variant="error" title="Common Error">
+  If you see `MODULE_NOT_FOUND`, make sure you've installed all dependencies:
+  
+  ```bash
+  npm install
+  ```
+</Callout>
+
+### Best Practice Highlight
+
+<Callout variant="success" title="Best Practice">
+  Always validate and sanitize user input to prevent security vulnerabilities.
+</Callout>
+
+### Pro Tips
+
+<Callout variant="tip" title="Pro Tip">
+  Use environment variables to manage configuration across different environments.
+</Callout>
+
+## Accessibility
+
+Both components follow accessibility best practices:
+
+- Proper ARIA roles and attributes
+- Sufficient color contrast (WCAG AA)
+- Keyboard navigation support
+- Screen reader friendly
+- Respects reduced motion preferences
+
+<Callout variant="success">
+  All variants have been tested for color contrast and meet WCAG 2.1 AA standards in both light and dark modes.
+</Callout>

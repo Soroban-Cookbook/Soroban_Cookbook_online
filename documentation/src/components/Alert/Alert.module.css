@@ -1,0 +1,228 @@
+/**
+ * Alert Component Styles
+ * Implements standardized alert/callout components with proper contrast and dark mode support
+ */
+
+.alert {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  transition: all var(--transition-fast);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    DISPLAY MODES
+    ══════════════════════════════════════════════════════════════════════ */
+
+.alert--block {
+  width: 100%;
+  margin: var(--space-4) 0;
+}
+
+.alert--inline {
+  display: inline-flex;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - INFO
+    ══════════════════════════════════════════════════════════════════════ */
+
+.alert--info {
+  background-color: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-900);
+}
+
+.alert--info .alert__icon {
+  color: var(--color-primary-600);
+}
+
+.alert--info .alert__title {
+  color: var(--color-primary-800);
+}
+
+[data-theme='dark'] .alert--info {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-color: var(--color-primary-700);
+  color: var(--color-primary-100);
+}
+
+[data-theme='dark'] .alert--info .alert__icon {
+  color: var(--color-primary-400);
+}
+
+[data-theme='dark'] .alert--info .alert__title {
+  color: var(--color-primary-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - WARNING
+    ══════════════════════════════════════════════════════════════════════ */
+
+.alert--warning {
+  background-color: var(--color-warning-50);
+  border-color: var(--color-warning-300);
+  color: var(--color-warning-900);
+}
+
+.alert--warning .alert__icon {
+  color: var(--color-warning-600);
+}
+
+.alert--warning .alert__title {
+  color: var(--color-warning-800);
+}
+
+[data-theme='dark'] .alert--warning {
+  background-color: rgba(217, 119, 6, 0.1);
+  border-color: var(--color-warning-700);
+  color: var(--color-warning-100);
+}
+
+[data-theme='dark'] .alert--warning .alert__icon {
+  color: var(--color-warning-400);
+}
+
+[data-theme='dark'] .alert--warning .alert__title {
+  color: var(--color-warning-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - ERROR
+    ══════════════════════════════════════════════════════════════════════ */
+
+.alert--error {
+  background-color: var(--color-error-50);
+  border-color: var(--color-error-300);
+  color: var(--color-error-900);
+}
+
+.alert--error .alert__icon {
+  color: var(--color-error-600);
+}
+
+.alert--error .alert__title {
+  color: var(--color-error-800);
+}
+
+[data-theme='dark'] .alert--error {
+  background-color: rgba(220, 38, 38, 0.1);
+  border-color: var(--color-error-700);
+  color: var(--color-error-100);
+}
+
+[data-theme='dark'] .alert--error .alert__icon {
+  color: var(--color-error-400);
+}
+
+[data-theme='dark'] .alert--error .alert__title {
+  color: var(--color-error-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - SUCCESS
+    ══════════════════════════════════════════════════════════════════════ */
+
+.alert--success {
+  background-color: var(--color-success-50);
+  border-color: var(--color-success-300);
+  color: var(--color-success-900);
+}
+
+.alert--success .alert__icon {
+  color: var(--color-success-600);
+}
+
+.alert--success .alert__title {
+  color: var(--color-success-800);
+}
+
+[data-theme='dark'] .alert--success {
+  background-color: rgba(22, 163, 74, 0.1);
+  border-color: var(--color-success-700);
+  color: var(--color-success-100);
+}
+
+[data-theme='dark'] .alert--success .alert__icon {
+  color: var(--color-success-400);
+}
+
+[data-theme='dark'] .alert--success .alert__title {
+  color: var(--color-success-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    ALERT STRUCTURE
+    ══════════════════════════════════════════════════════════════════════ */
+
+.alert__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.125rem;
+}
+
+.alert__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert__title {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.alert__body {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.alert__body > *:first-child {
+  margin-top: 0;
+}
+
+.alert__body > *:last-child {
+  margin-bottom: 0;
+}
+
+.alert__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert__close:hover {
+  opacity: 1;
+}
+
+.alert__close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    ACCESSIBILITY
+    ══════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .alert {
+    transition: none;
+  }
+}

@@ -9,10 +9,12 @@ import React, { useState } from 'react';
 import Layout from '@theme/Layout';
 import { Button, ButtonGroup } from '../components/buttons';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { Alert, Callout } from '../components/Alert';
 import styles from './components-demo.module.css';
 
 export default function ComponentsDemo(): React.ReactElement {
   const [loading, setLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(true);
 
   const handleLoadingDemo = () => {
     setLoading(true);
@@ -183,7 +185,55 @@ export default function ComponentsDemo(): React.ReactElement {
           </Button>
         </section>
 
-        {/* Accessibility Info */}
+        {/* Alert Components */}
+        <section className={styles.section}>
+          <h2>Alert Components</h2>
+          <p>Interactive notifications for user feedback and system messages.</p>
+          <div className={styles.demoColumn}>
+            <Alert variant="info" title="Information">
+              This is an informational alert with a title.
+            </Alert>
+            <Alert variant="warning">
+              This is a warning alert. Use it for cautions and important notices.
+            </Alert>
+            <Alert variant="error" title="Error Occurred">
+              An error has occurred. Please try again.
+            </Alert>
+            <Alert variant="success">
+              Operation completed successfully!
+            </Alert>
+            {showAlert && (
+              <Alert variant="info" onClose={() => setShowAlert(false)}>
+                This alert can be dismissed. Click the close button.
+              </Alert>
+            )}
+          </div>
+        </section>
+
+        {/* Callout Components */}
+        <section className={styles.section}>
+          <h2>Callout Components</h2>
+          <p>Static emphasis blocks for documentation content.</p>
+          <div className={styles.demoColumn}>
+            <Callout variant="info" title="Did You Know?">
+              Callouts are perfect for highlighting important documentation details.
+            </Callout>
+            <Callout variant="warning" title="Breaking Change">
+              This API will be deprecated in version 2.0.
+            </Callout>
+            <Callout variant="error">
+              This operation is not supported in the current version.
+            </Callout>
+            <Callout variant="success" title="Best Practice">
+              Always validate user input before processing.
+            </Callout>
+            <Callout variant="tip" title="Pro Tip">
+              Use the <code>--release</code> flag for production builds.
+            </Callout>
+          </div>
+        </section>
+
+        {/* Accessibility */}
         <section className={styles.section}>
           <h2>Accessibility Features</h2>
           <ul className={styles.featureList}>

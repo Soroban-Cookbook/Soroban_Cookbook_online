@@ -1,0 +1,247 @@
+---
+sidebar_position: 5
+title: Alerts & Callouts
+description: Visual emphasis components for important information
+---
+
+# Alerts & Callouts
+
+Standardized components for displaying important information with visual emphasis throughout the documentation.
+
+## Overview
+
+<Callout variant="info">
+  Alert and Callout components are automatically available in all MDX files without importing.
+</Callout>
+
+### Alert vs Callout
+
+- **Alert**: Interactive notifications for user feedback, system messages, and dismissible content
+- **Callout**: Static emphasis blocks for documentation content, tips, and important notes
+
+## Alert Component
+
+### Variants
+
+<Alert variant="info" title="Info">
+  Use for general information, notices, and helpful context.
+</Alert>
+
+<Alert variant="warning" title="Warning">
+  Use for cautions, deprecations, and actions requiring attention.
+</Alert>
+
+<Alert variant="error" title="Error">
+  Use for errors, failures, and critical issues.
+</Alert>
+
+<Alert variant="success" title="Success">
+  Use for confirmations, successful operations, and positive outcomes.
+</Alert>
+
+### Usage Examples
+
+```mdx
+<Alert variant="info">
+  Basic informational message.
+</Alert>
+
+<Alert variant="warning" title="Important">
+  Warning with a title.
+</Alert>
+
+<Alert variant="error" icon={false}>
+  Error without an icon.
+</Alert>
+```
+
+## Callout Component
+
+### Variants
+
+<Callout variant="info" title="Info">
+  Highlight important documentation details and context.
+</Callout>
+
+<Callout variant="warning" title="Warning">
+  Document cautions, gotchas, and important considerations.
+</Callout>
+
+<Callout variant="error" title="Error">
+  Document common errors and how to avoid them.
+</Callout>
+
+<Callout variant="success" title="Success">
+  Highlight best practices and recommended patterns.
+</Callout>
+
+<Callout variant="tip" title="Tip">
+  Share helpful suggestions, pro tips, and optimization advice.
+</Callout>
+
+### Usage Examples
+
+```mdx
+<Callout variant="tip" title="Pro Tip">
+  Use environment variables for configuration.
+</Callout>
+
+<Callout variant="warning">
+  This feature is experimental.
+</Callout>
+```
+
+## Display Modes
+
+Both components support block (default) and inline display:
+
+### Block Display
+
+<Callout variant="info">
+  This is a block-level callout that spans the full width.
+</Callout>
+
+### Inline Display
+
+Here's an example with <Alert variant="warning" display="inline">inline alert</Alert> embedded in text.
+
+## Icon Options
+
+### Default Icons
+
+Each variant has an appropriate default icon that displays automatically.
+
+### Custom Icons
+
+```mdx
+<Alert variant="success" icon={<CustomIcon />}>
+  Alert with custom icon
+</Alert>
+```
+
+### No Icon
+
+<Alert variant="info" icon={false}>
+  Alert without an icon for a cleaner appearance.
+</Alert>
+
+## Rich Content Support
+
+<Callout variant="tip" title="Advanced Usage">
+  Callouts support rich markdown content:
+  
+  - **Bold** and *italic* text
+  - `Inline code` snippets
+  - [Links](/) to other pages
+  - Lists and nested content
+  
+  ```js
+  // Code blocks
+  const example = true;
+  ```
+</Callout>
+
+## Real-World Examples
+
+### Prerequisites
+
+<Callout variant="info" title="Before You Start">
+  Ensure you have the following installed:
+  
+  - Node.js 20 or higher
+  - Rust 1.70 or higher
+  - Soroban CLI
+</Callout>
+
+### Breaking Changes
+
+<Callout variant="warning" title="Breaking Change in v2.0">
+  The `deploy()` method signature has changed. Update your code:
+  
+  ```rust
+  // ❌ Old
+  contract.deploy(params);
+  
+  // ✅ New
+  contract.deploy(params, options);
+  ```
+</Callout>
+
+### Common Errors
+
+<Callout variant="error" title="Common Error: Contract Not Found">
+  If you encounter this error, verify:
+  
+  1. Contract is deployed to the network
+  2. Contract ID is correct
+  3. Network configuration is valid
+</Callout>
+
+### Best Practices
+
+<Callout variant="success" title="Best Practice">
+  Always test contracts on testnet before deploying to mainnet.
+</Callout>
+
+### Pro Tips
+
+<Callout variant="tip" title="Performance Tip">
+  Use batch operations to reduce transaction costs when processing multiple items.
+</Callout>
+
+## Accessibility
+
+<Callout variant="success" title="WCAG 2.1 AA Compliant">
+  All variants meet accessibility standards:
+  
+  - ✅ Sufficient color contrast in light and dark modes
+  - ✅ Proper ARIA roles and attributes
+  - ✅ Keyboard navigation support
+  - ✅ Screen reader friendly
+  - ✅ Respects reduced motion preferences
+</Callout>
+
+## API Reference
+
+### Alert Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'info' \| 'warning' \| 'error' \| 'success'` | `'info'` | Visual style |
+| `display` | `'block' \| 'inline'` | `'block'` | Display mode |
+| `title` | `string` | - | Optional title |
+| `icon` | `ReactNode \| boolean` | `true` | Icon display |
+| `onClose` | `() => void` | - | Close handler |
+| `className` | `string` | - | Additional classes |
+
+### Callout Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'info' \| 'warning' \| 'error' \| 'success' \| 'tip'` | `'info'` | Visual style |
+| `display` | `'block' \| 'inline'` | `'block'` | Display mode |
+| `title` | `string` | - | Optional title |
+| `icon` | `ReactNode \| boolean` | `true` | Icon display |
+| `className` | `string` | - | Additional classes |
+
+## Design Tokens Used
+
+Components leverage existing design tokens:
+
+- `--color-{variant}-{shade}` - Color palette
+- `--space-{size}` - Spacing scale
+- `--radius-{size}` - Border radius
+- `--shadow-{size}` - Box shadows
+- `--font-{property}-{value}` - Typography
+- `--transition-{speed}` - Transitions
+
+## Browser Support
+
+Follows Docusaurus browser support:
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+- No IE11 support required
+
+<Callout variant="success">
+  Components are production-ready and can be used immediately throughout the documentation.
+</Callout>

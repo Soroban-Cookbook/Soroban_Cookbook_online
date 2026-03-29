@@ -1,0 +1,138 @@
+---
+sidebar_position: 1
+title: Environment Setup (Enhanced Example)
+description: Example showing Alert and Callout components in action
+---
+
+# Environment Setup
+
+Set up your Soroban development environment to start building smart contracts.
+
+<Callout variant="info" title="Prerequisites">
+  Before you begin, ensure you have:
+  
+  - **Rust** - Latest stable version
+  - **Soroban CLI** - Command-line interface for Soroban
+  - **Code Editor** - VS Code or your preferred editor
+  - **Git** - Version control
+</Callout>
+
+## Installation Steps
+
+### 1. Install Rust
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+<Callout variant="tip" title="Pro Tip">
+  On Windows, you can also use the [rustup installer](https://rustup.rs/) for a GUI-based installation.
+</Callout>
+
+Verify installation:
+
+```bash
+rustc --version
+cargo --version
+```
+
+<Alert variant="success">
+  If you see version numbers, Rust is installed correctly!
+</Alert>
+
+### 2. Install Soroban CLI
+
+```bash
+cargo install --locked soroban-cli
+```
+
+<Callout variant="warning">
+  This installation may take several minutes. The `--locked` flag ensures you get the exact dependency versions tested with this release.
+</Callout>
+
+Verify installation:
+
+```bash
+soroban --version
+```
+
+### 3. Configure Target
+
+Add the WebAssembly target:
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+<Callout variant="success" title="Setup Complete">
+  Your Soroban development environment is now ready! You can start building smart contracts.
+</Callout>
+
+## Verify Your Setup
+
+Test your environment with:
+
+```bash
+soroban --help
+```
+
+You should see the Soroban CLI help output.
+
+## Next Steps
+
+Now that your environment is ready:
+
+1. [Create your first contract](./first-contract.md)
+2. [Learn core concepts](../concepts/overview.md)
+3. [Explore patterns](../patterns/overview.md)
+
+## Troubleshooting
+
+### Common Issues
+
+<Callout variant="error" title="Rust Installation Fails">
+  If the installation script fails:
+  
+  - Check your internet connection
+  - Ensure you have write permissions
+  - Try manual installation from [rust-lang.org](https://www.rust-lang.org/tools/install)
+  - On Windows, you may need Visual Studio C++ Build Tools
+</Callout>
+
+<Callout variant="error" title="Soroban CLI Not Found">
+  If `soroban` command is not recognized:
+  
+  1. Restart your terminal after installation
+  2. Check if cargo bin directory is in your PATH:
+     ```bash
+     echo $PATH | grep cargo
+     ```
+  3. Verify installation with:
+     ```bash
+     cargo install --list | grep soroban
+     ```
+</Callout>
+
+<Callout variant="warning" title="PATH Configuration">
+  The cargo bin directory should be automatically added to your PATH. If not, add this to your shell profile:
+  
+  ```bash
+  export PATH="$HOME/.cargo/bin:$PATH"
+  ```
+</Callout>
+
+### Getting Help
+
+<Callout variant="info">
+  Need assistance? Join the community:
+  
+  - [Stellar Discord](https://discord.gg/stellardev) - Active community support
+  - [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts) - Official docs
+  - [GitHub Discussions](https://github.com/stellar/soroban-cli/discussions) - Q&A forum
+</Callout>
+
+---
+
+<Alert variant="success">
+  Ready to build? Head to the [First Contract](./first-contract.md) guide to create your first Soroban smart contract!
+</Alert>

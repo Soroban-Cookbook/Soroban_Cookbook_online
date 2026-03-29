@@ -1,0 +1,252 @@
+/**
+ * Callout Component Styles
+ * Implements emphasized content blocks for documentation with proper contrast
+ */
+
+.callout {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    DISPLAY MODES
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout--block {
+  width: 100%;
+  margin: var(--space-6) 0;
+}
+
+.callout--inline {
+  display: inline-flex;
+  margin: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - INFO
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout--info {
+  background-color: var(--color-primary-50);
+  border-left-color: var(--color-primary-500);
+  color: var(--color-primary-900);
+}
+
+.callout--info .callout__icon {
+  color: var(--color-primary-600);
+}
+
+.callout--info .callout__title {
+  color: var(--color-primary-800);
+}
+
+[data-theme='dark'] .callout--info {
+  background-color: rgba(37, 99, 235, 0.15);
+  border-left-color: var(--color-primary-500);
+  color: var(--color-primary-100);
+}
+
+[data-theme='dark'] .callout--info .callout__icon {
+  color: var(--color-primary-400);
+}
+
+[data-theme='dark'] .callout--info .callout__title {
+  color: var(--color-primary-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - WARNING
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout--warning {
+  background-color: var(--color-warning-50);
+  border-left-color: var(--color-warning-500);
+  color: var(--color-warning-900);
+}
+
+.callout--warning .callout__icon {
+  color: var(--color-warning-600);
+}
+
+.callout--warning .callout__title {
+  color: var(--color-warning-800);
+}
+
+[data-theme='dark'] .callout--warning {
+  background-color: rgba(217, 119, 6, 0.15);
+  border-left-color: var(--color-warning-500);
+  color: var(--color-warning-100);
+}
+
+[data-theme='dark'] .callout--warning .callout__icon {
+  color: var(--color-warning-400);
+}
+
+[data-theme='dark'] .callout--warning .callout__title {
+  color: var(--color-warning-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - ERROR
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout--error {
+  background-color: var(--color-error-50);
+  border-left-color: var(--color-error-500);
+  color: var(--color-error-900);
+}
+
+.callout--error .callout__icon {
+  color: var(--color-error-600);
+}
+
+.callout--error .callout__title {
+  color: var(--color-error-800);
+}
+
+[data-theme='dark'] .callout--error {
+  background-color: rgba(220, 38, 38, 0.15);
+  border-left-color: var(--color-error-500);
+  color: var(--color-error-100);
+}
+
+[data-theme='dark'] .callout--error .callout__icon {
+  color: var(--color-error-400);
+}
+
+[data-theme='dark'] .callout--error .callout__title {
+  color: var(--color-error-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - SUCCESS
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout--success {
+  background-color: var(--color-success-50);
+  border-left-color: var(--color-success-500);
+  color: var(--color-success-900);
+}
+
+.callout--success .callout__icon {
+  color: var(--color-success-600);
+}
+
+.callout--success .callout__title {
+  color: var(--color-success-800);
+}
+
+[data-theme='dark'] .callout--success {
+  background-color: rgba(22, 163, 74, 0.15);
+  border-left-color: var(--color-success-500);
+  color: var(--color-success-100);
+}
+
+[data-theme='dark'] .callout--success .callout__icon {
+  color: var(--color-success-400);
+}
+
+[data-theme='dark'] .callout--success .callout__title {
+  color: var(--color-success-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    VARIANT STYLES - TIP
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout--tip {
+  background-color: var(--color-secondary-50);
+  border-left-color: var(--color-secondary-500);
+  color: var(--color-secondary-900);
+}
+
+.callout--tip .callout__icon {
+  color: var(--color-secondary-600);
+}
+
+.callout--tip .callout__title {
+  color: var(--color-secondary-800);
+}
+
+[data-theme='dark'] .callout--tip {
+  background-color: rgba(147, 51, 234, 0.15);
+  border-left-color: var(--color-secondary-500);
+  color: var(--color-secondary-100);
+}
+
+[data-theme='dark'] .callout--tip .callout__icon {
+  color: var(--color-secondary-400);
+}
+
+[data-theme='dark'] .callout--tip .callout__title {
+  color: var(--color-secondary-200);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    CALLOUT STRUCTURE
+    ══════════════════════════════════════════════════════════════════════ */
+
+.callout__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.125rem;
+}
+
+.callout__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.callout__title {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.callout__body {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+}
+
+.callout__body > *:first-child {
+  margin-top: 0;
+}
+
+.callout__body > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Support for nested content */
+.callout__body p {
+  margin: var(--space-2) 0;
+}
+
+.callout__body ul,
+.callout__body ol {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-5);
+}
+
+.callout__body code {
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-base);
+  font-size: 0.9em;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+    ACCESSIBILITY
+    ══════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .callout {
+    transition: none;
+  }
+}

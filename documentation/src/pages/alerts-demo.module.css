@@ -1,0 +1,97 @@
+.container {
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--container-lg);
+  margin: 0 auto;
+}
+
+.content {
+  padding: var(--space-6);
+}
+
+.content h1 {
+  font-size: var(--font-size-4xl);
+  margin-bottom: var(--space-4);
+  color: var(--ifm-heading-color);
+}
+
+.intro {
+  font-size: var(--font-size-lg);
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: var(--space-8);
+}
+
+.section {
+  margin-bottom: var(--space-12);
+}
+
+.section h2 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--ifm-border-color);
+}
+
+.section h3 {
+  font-size: var(--font-size-xl);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+  color: var(--ifm-color-emphasis-700);
+}
+
+.examples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+}
+
+.comparison h3 {
+  margin-top: 0;
+}
+
+.comparison ul {
+  list-style: disc;
+  padding-left: var(--space-5);
+}
+
+.comparison li {
+  margin-bottom: var(--space-2);
+}
+
+.resetButton {
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--ifm-color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: background-color var(--transition-fast);
+}
+
+.resetButton:hover {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.resetButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .content h1 {
+    font-size: var(--font-size-3xl);
+  }
+}
