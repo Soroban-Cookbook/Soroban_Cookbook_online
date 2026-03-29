@@ -105,7 +105,7 @@ Use this checklist before every deployment:
 - [ ] **Input Sanitization:** All user inputs (amounts, addresses, metadata) are validated.
 - [ ] **Storage Limits:** No unbounded loops or storage growth that could cause DoS.
 - [ ] **Events:** Sensitive operations (admin changes, large transfers) emit descriptive events.
-- [ ] **Error Handling:** Errors are explicit (using `Result` and custom error enums).
+- [ ] **Error Handling:** Errors are explicit (using `Result` and custom error enums). See [Error Handling Guide](/docs/concepts/error-handling) for patterns.
 
 ---
 
@@ -117,3 +117,71 @@ Use this checklist before every deployment:
 4.  **Integration Testing:** Test interactions between multiple contracts.
 5.  **Self-Audit:** Review code against the [Mitigation Checklist](#3-mitigation-checklist).
 6.  **Peer Review:** Have another developer review the logic and security assumptions.
+
+---
+
+## 5. Error Handling & Recovery
+
+Proper error handling is a critical security measure. Poor error handling can lead to:
+- Funds being locked in contracts
+- Inconsistent state after partial failures
+- Information disclosure through error messages
+- Denial of service vulnerabilities
+
+### Secure Error Handling Patterns
+
+**Use Result Types:**
+```rust
+// ✅ GOOD: Explicit error handling
+pub fn withdraw(env: Env, user: Address, amount: i128) -> Result<(), Error> {
+    user.require_auth();
+    
+    let balance = Self::get_balance(&env, &user);
+    if balance < amount {
+        return Err(Error::InsufficientBalance);
+    }
+    
+    // Process withdrawal
+    Ok(())
+}
+```
+
+**Validate Before State Changes:**
+```rust
+// ✅ GOOD: Validate first, then modify state
+pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), Error> {
+    from.require_auth();
+    
+    // All validation first
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    
+    let balance = Self::get_balance(&env, &from);
+    if balance < amount {
+        return Err(Error::InsufficientBalance);
+    }
+    
+    // Now safe to modify state
+    Self::set_balance(&env, &from, balance - amount);
+    Ok(())
+}
+```
+
+**Leverage Automatic Rollback:**
+Soroban automatically reverts all storage changes when a transaction fails. Design operations to be atomic:
+
+```rust
+pub fn atomic_swap(env: Env, user_a: Address, user_b: Address) -> Result<(), Error> {
+    // If ANY operation fails, ALL changes are rolled back
+    Self::validate_users(&env, &user_a, &user_b)?;
+    Self::update_balance_a(&env, &user_a)?;
+    Self::update_balance_b(&env, &user_b)?;
+    Ok(())
+}
+```
+
+**For comprehensive error handling patterns, see:**
+- [Error Handling Concept](/docs/concepts/error-handling) - Core concepts
+- [Error Handling Pattern](/docs/patterns/error-handling) - Detailed patterns
+- [Complete Example](/docs/patterns/error-handling-example) - Working code

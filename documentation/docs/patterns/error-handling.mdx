@@ -1,0 +1,1073 @@
+---
+sidebar_position: 3
+title: Error Handling & Recovery
+description: Comprehensive patterns for error handling, recovery, and graceful degradation in Soroban contracts
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="error-handling"
+  difficulty="intermediate"
+  category="Best Practices"
+  status="stable"
+  lastReviewed="March 2026"
+/>
+
+## Overview
+
+Robust error handling is critical for building reliable Soroban smart contracts. This pattern demonstrates try-catch equivalents, fallback logic, graceful degradation, and transaction rollback strategies.
+
+<Callout variant="info" title="Why Error Handling Matters">
+  Smart contract errors can lead to failed transactions, lost funds, or stuck states. Proper error handling ensures your contract behaves predictably under all conditions.
+</Callout>
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed ([setup guide](/docs/getting-started/setup))
+- Understanding of Rust `Result` and `Option` types
+- Familiarity with Soroban SDK error types
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+### 1. Try-Catch Patterns (Result Type)
+
+Soroban uses Rust's `Result` type for error handling instead of try-catch blocks.
+
+<Tabs>
+  <TabItem value="basic" label="Basic Result" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, contracterror, Env, Address};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    InsufficientBalance = 1,
+    Unauthorized = 2,
+    InvalidAmount = 3,
+}
+
+#[contract]
+pub struct ErrorHandlingContract;
+
+#[contractimpl]
+impl ErrorHandlingContract {
+    /// Transfer with explicit error handling
+    pub fn transfer(
+        env: Env,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
+        from.require_auth();
+        
+        // Validate input
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        
+        // Check balance
+        let balance = Self::get_balance(&env, &from);
+        if balance < amount {
+            return Err(Error::InsufficientBalance);
+        }
+        
+        // Execute transfer
+        Self::set_balance(&env, &from, balance - amount);
+        let to_balance = Self::get_balance(&env, &to);
+        Self::set_balance(&env, &to, to_balance + amount);
+        
+        Ok(())
+    }
+    
+    fn get_balance(env: &Env, addr: &Address) -> i128 {
+        env.storage().persistent().get(addr).unwrap_or(0)
+    }
+    
+    fn set_balance(env: &Env, addr: &Address, amount: i128) {
+        env.storage().persistent().set(addr, &amount);
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="test" label="Test">
+
+```rust
+#[test]
+fn test_transfer_insufficient_balance() {
+    let env = Env::default();
+    let contract_id = env.register(ErrorHandlingContract, ());
+    let client = ErrorHandlingContractClient::new(&env, &contract_id);
+    
+    let user1 = Address::generate(&env);
+    let user2 = Address::generate(&env);
+    
+    // Attempt transfer with no balance
+    let result = client.try_transfer(&user1, &user2, &100);
+    
+    assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
+}
+
+#[test]
+fn test_transfer_invalid_amount() {
+    let env = Env::default();
+    let contract_id = env.register(ErrorHandlingContract, ());
+    let client = ErrorHandlingContractClient::new(&env, &contract_id);
+    
+    let user1 = Address::generate(&env);
+    let user2 = Address::generate(&env);
+    
+    // Attempt transfer with negative amount
+    let result = client.try_transfer(&user1, &user2, &-100);
+    
+    assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="tip" title="Result vs Panic">
+  Use `Result` for expected errors (insufficient balance, invalid input). Use `panic!` only for invariant violations that should never occur.
+</Callout>
+
+### 2. Fallback Logic
+
+Implement fallback values when operations might fail.
+
+<Tabs>
+  <TabItem value="fallback" label="Fallback Pattern" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, String, Symbol};
+
+#[contract]
+pub struct ConfigContract;
+
+#[contractimpl]
+impl ConfigContract {
+    /// Get config value with fallback
+    pub fn get_config(env: Env, key: Symbol) -> String {
+        env.storage()
+            .instance()
+            .get(&key)
+            .unwrap_or_else(|| Self::default_config(&env, &key))
+    }
+    
+    /// Provide default configurations
+    fn default_config(env: &Env, key: &Symbol) -> String {
+        match key.to_string().as_str() {
+            "max_supply" => String::from_str(env, "1000000"),
+            "decimals" => String::from_str(env, "7"),
+            "name" => String::from_str(env, "Default Token"),
+            _ => String::from_str(env, ""),
+        }
+    }
+    
+    /// Safe division with fallback
+    pub fn calculate_ratio(env: Env, numerator: i128, denominator: i128) -> i128 {
+        if denominator == 0 {
+            env.events().publish(
+                (Symbol::new(&env, "error"),),
+                String::from_str(&env, "Division by zero, returning 0")
+            );
+            return 0; // Fallback value
+        }
+        
+        numerator.checked_div(denominator).unwrap_or(0)
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="success" title="Best Practice">
+  Always provide sensible defaults for non-critical operations. This prevents contract failures from cascading.
+</Callout>
+
+
+### 3. Graceful Degradation
+
+Design contracts to continue operating even when some features fail.
+
+<Tabs>
+  <TabItem value="degradation" label="Graceful Degradation" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address, Vec};
+
+#[contract]
+pub struct MultiServiceContract;
+
+#[contractimpl]
+impl MultiServiceContract {
+    /// Process batch with partial success
+    pub fn process_batch(env: Env, items: Vec<Address>) -> (u32, u32) {
+        let mut success_count = 0u32;
+        let mut failure_count = 0u32;
+        
+        for item in items.iter() {
+            match Self::process_item(&env, &item) {
+                Ok(_) => success_count += 1,
+                Err(_) => {
+                    failure_count += 1;
+                    // Log failure but continue processing
+                    env.events().publish(
+                        (Symbol::new(&env, "item_failed"),),
+                        item
+                    );
+                }
+            }
+        }
+        
+        (success_count, failure_count)
+    }
+    
+    fn process_item(env: &Env, item: &Address) -> Result<(), Error> {
+        // Validation
+        if !Self::is_valid_item(env, item) {
+            return Err(Error::InvalidItem);
+        }
+        
+        // Process
+        Self::update_item_state(env, item);
+        Ok(())
+    }
+    
+    /// Service with fallback to cached data
+    pub fn get_price_with_fallback(env: Env, asset: Symbol) -> i128 {
+        // Try to get live price from oracle
+        match Self::fetch_oracle_price(&env, &asset) {
+            Ok(price) => price,
+            Err(_) => {
+                // Fallback to cached price
+                env.events().publish(
+                    (Symbol::new(&env, "using_cached_price"),),
+                    asset.clone()
+                );
+                Self::get_cached_price(&env, &asset)
+            }
+        }
+    }
+    
+    fn fetch_oracle_price(env: &Env, asset: &Symbol) -> Result<i128, Error> {
+        // Oracle call that might fail
+        env.storage()
+            .temporary()
+            .get(asset)
+            .ok_or(Error::OracleUnavailable)
+    }
+    
+    fn get_cached_price(env: &Env, asset: &Symbol) -> i128 {
+        env.storage()
+            .persistent()
+            .get(asset)
+            .unwrap_or(0)
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="warning" title="Partial Failures">
+  When processing batches, decide whether to fail-fast (stop on first error) or continue with partial success. Document this behavior clearly.
+</Callout>
+
+### 4. Transaction Rollback
+
+Soroban automatically rolls back all state changes when a transaction fails.
+
+<Tabs>
+  <TabItem value="rollback" label="Atomic Operations" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contract]
+pub struct AtomicContract;
+
+#[contractimpl]
+impl AtomicContract {
+    /// Atomic swap - either both succeed or both fail
+    pub fn atomic_swap(
+        env: Env,
+        user_a: Address,
+        user_b: Address,
+        amount_a: i128,
+        amount_b: i128,
+    ) -> Result<(), Error> {
+        user_a.require_auth();
+        user_b.require_auth();
+        
+        // Validate both users have sufficient balance
+        let balance_a = Self::get_balance(&env, &user_a);
+        let balance_b = Self::get_balance(&env, &user_b);
+        
+        if balance_a < amount_a {
+            return Err(Error::InsufficientBalance);
+        }
+        if balance_b < amount_b {
+            return Err(Error::InsufficientBalance);
+        }
+        
+        // Both checks passed - execute atomic swap
+        // If any operation fails, entire transaction rolls back
+        Self::set_balance(&env, &user_a, balance_a - amount_a + amount_b);
+        Self::set_balance(&env, &user_b, balance_b - amount_b + amount_a);
+        
+        // Emit success event
+        env.events().publish(
+            (Symbol::new(&env, "swap_complete"),),
+            (user_a, user_b, amount_a, amount_b)
+        );
+        
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="checkpoint" label="Checkpoint Pattern">
+
+```rust
+/// Multi-step operation with validation checkpoints
+pub fn complex_operation(
+    env: Env,
+    user: Address,
+    params: OperationParams,
+) -> Result<(), Error> {
+    user.require_auth();
+    
+    // Checkpoint 1: Validate all inputs
+    Self::validate_params(&env, &params)?;
+    
+    // Checkpoint 2: Check preconditions
+    Self::check_preconditions(&env, &user)?;
+    
+    // Checkpoint 3: Reserve resources
+    Self::reserve_resources(&env, &user, &params)?;
+    
+    // All checks passed - execute operation
+    // Any error here will rollback all state changes
+    Self::execute_operation(&env, &user, &params)?;
+    
+    Ok(())
+}
+
+fn validate_params(env: &Env, params: &OperationParams) -> Result<(), Error> {
+    if params.amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    if params.duration == 0 {
+        return Err(Error::InvalidDuration);
+    }
+    Ok(())
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="success" title="Automatic Rollback">
+  Soroban automatically reverts all storage changes when a contract returns an error or panics. You don't need manual rollback logic.
+</Callout>
+
+
+### 5. Safe Arithmetic with Checked Operations
+
+Prevent overflow/underflow errors with checked arithmetic.
+
+<Tabs>
+  <TabItem value="checked" label="Checked Arithmetic" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contract]
+pub struct SafeMathContract;
+
+#[contractimpl]
+impl SafeMathContract {
+    /// Safe addition with overflow protection
+    pub fn safe_add(env: Env, a: i128, b: i128) -> Result<i128, Error> {
+        a.checked_add(b).ok_or(Error::Overflow)
+    }
+    
+    /// Safe subtraction with underflow protection
+    pub fn safe_sub(env: Env, a: i128, b: i128) -> Result<i128, Error> {
+        a.checked_sub(b).ok_or(Error::Underflow)
+    }
+    
+    /// Safe multiplication with overflow protection
+    pub fn safe_mul(env: Env, a: i128, b: i128) -> Result<i128, Error> {
+        a.checked_mul(b).ok_or(Error::Overflow)
+    }
+    
+    /// Safe division with zero check
+    pub fn safe_div(env: Env, a: i128, b: i128) -> Result<i128, Error> {
+        if b == 0 {
+            return Err(Error::DivisionByZero);
+        }
+        a.checked_div(b).ok_or(Error::Overflow)
+    }
+    
+    /// Complex calculation with multiple checks
+    pub fn calculate_fee(
+        env: Env,
+        amount: i128,
+        fee_rate: i128,
+        fee_divisor: i128,
+    ) -> Result<i128, Error> {
+        // Validate inputs
+        if amount < 0 || fee_rate < 0 || fee_divisor <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        
+        // Calculate: (amount * fee_rate) / fee_divisor
+        let product = amount
+            .checked_mul(fee_rate)
+            .ok_or(Error::Overflow)?;
+        
+        let fee = product
+            .checked_div(fee_divisor)
+            .ok_or(Error::DivisionByZero)?;
+        
+        Ok(fee)
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="error" title="Never Use Unchecked Math">
+  Always use `checked_*` methods for arithmetic operations. Unchecked operations can panic in debug mode or silently wrap in release mode.
+</Callout>
+
+### 6. Input Validation
+
+Validate all inputs before processing to fail fast with clear errors.
+
+<Tabs>
+  <TabItem value="validation" label="Input Validation" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address, String};
+
+#[contract]
+pub struct ValidatedContract;
+
+#[contractimpl]
+impl ValidatedContract {
+    /// Comprehensive input validation
+    pub fn create_order(
+        env: Env,
+        creator: Address,
+        amount: i128,
+        price: i128,
+        expiry: u64,
+    ) -> Result<u64, Error> {
+        creator.require_auth();
+        
+        // Validate all inputs upfront
+        Self::validate_order_params(&env, amount, price, expiry)?;
+        
+        // Create order
+        let order_id = Self::next_order_id(&env);
+        Self::store_order(&env, order_id, creator, amount, price, expiry);
+        
+        Ok(order_id)
+    }
+    
+    fn validate_order_params(
+        env: &Env,
+        amount: i128,
+        price: i128,
+        expiry: u64,
+    ) -> Result<(), Error> {
+        // Amount validation
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        
+        // Price validation
+        if price <= 0 {
+            return Err(Error::InvalidPrice);
+        }
+        
+        // Expiry validation
+        let current_time = env.ledger().timestamp();
+        if expiry <= current_time {
+            return Err(Error::ExpiredOrder);
+        }
+        
+        // Maximum expiry check (e.g., 30 days)
+        let max_expiry = current_time + (30 * 24 * 60 * 60);
+        if expiry > max_expiry {
+            return Err(Error::ExpiryTooFar);
+        }
+        
+        Ok(())
+    }
+    
+    /// Validate address is not zero/invalid
+    pub fn validate_address(env: Env, addr: Address) -> Result<(), Error> {
+        // Check if address is contract or account
+        if !Self::is_valid_address(&env, &addr) {
+            return Err(Error::InvalidAddress);
+        }
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="tip" title="Fail Fast">
+  Validate all inputs at the beginning of your function. This saves gas and provides clear error messages.
+</Callout>
+
+
+### 7. Error Propagation with ? Operator
+
+Use the `?` operator to propagate errors up the call stack.
+
+<Tabs>
+  <TabItem value="propagation" label="Error Propagation" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contract]
+pub struct ChainedContract;
+
+#[contractimpl]
+impl ChainedContract {
+    /// High-level operation that chains multiple fallible operations
+    pub fn execute_workflow(
+        env: Env,
+        user: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
+        user.require_auth();
+        
+        // Each operation can fail, errors propagate automatically
+        Self::validate_user(&env, &user)?;
+        Self::check_balance(&env, &user, amount)?;
+        Self::process_payment(&env, &user, amount)?;
+        Self::update_records(&env, &user)?;
+        Self::emit_success_event(&env, &user, amount)?;
+        
+        Ok(())
+    }
+    
+    fn validate_user(env: &Env, user: &Address) -> Result<(), Error> {
+        if Self::is_blacklisted(env, user) {
+            return Err(Error::UserBlacklisted);
+        }
+        Ok(())
+    }
+    
+    fn check_balance(env: &Env, user: &Address, amount: i128) -> Result<(), Error> {
+        let balance = Self::get_balance(env, user);
+        if balance < amount {
+            return Err(Error::InsufficientBalance);
+        }
+        Ok(())
+    }
+    
+    fn process_payment(env: &Env, user: &Address, amount: i128) -> Result<(), Error> {
+        let balance = Self::get_balance(env, user);
+        let new_balance = balance
+            .checked_sub(amount)
+            .ok_or(Error::Underflow)?;
+        
+        Self::set_balance(env, user, new_balance);
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="info" title="Error Propagation">
+  The `?` operator automatically returns errors to the caller, making error handling code cleaner and more maintainable.
+</Callout>
+
+### 8. Custom Error Types
+
+Define domain-specific errors for better debugging.
+
+<Tabs>
+  <TabItem value="custom" label="Custom Errors" default>
+
+```rust
+use soroban_sdk::{contracterror, contract, contractimpl, Env};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum TokenError {
+    // Authorization errors (1-10)
+    Unauthorized = 1,
+    InsufficientAllowance = 2,
+    
+    // Balance errors (11-20)
+    InsufficientBalance = 11,
+    BalanceOverflow = 12,
+    
+    // Supply errors (21-30)
+    SupplyOverflow = 21,
+    MaxSupplyExceeded = 22,
+    
+    // Input validation (31-40)
+    InvalidAmount = 31,
+    InvalidAddress = 32,
+    InvalidRecipient = 33,
+    
+    // State errors (41-50)
+    AlreadyInitialized = 41,
+    NotInitialized = 42,
+    ContractPaused = 43,
+    
+    // Operation errors (51-60)
+    TransferFailed = 51,
+    MintingDisabled = 52,
+    BurningDisabled = 53,
+}
+
+#[contract]
+pub struct TokenContract;
+
+#[contractimpl]
+impl TokenContract {
+    pub fn transfer(
+        env: Env,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) -> Result<(), TokenError> {
+        from.require_auth();
+        
+        // Check if contract is paused
+        if Self::is_paused(&env) {
+            return Err(TokenError::ContractPaused);
+        }
+        
+        // Validate inputs
+        if amount <= 0 {
+            return Err(TokenError::InvalidAmount);
+        }
+        
+        if to == from {
+            return Err(TokenError::InvalidRecipient);
+        }
+        
+        // Check balance
+        let balance = Self::get_balance(&env, &from);
+        if balance < amount {
+            return Err(TokenError::InsufficientBalance);
+        }
+        
+        // Execute transfer with overflow protection
+        let new_from_balance = balance
+            .checked_sub(amount)
+            .ok_or(TokenError::InsufficientBalance)?;
+        
+        let to_balance = Self::get_balance(&env, &to);
+        let new_to_balance = to_balance
+            .checked_add(amount)
+            .ok_or(TokenError::BalanceOverflow)?;
+        
+        // Update balances
+        Self::set_balance(&env, &from, new_from_balance);
+        Self::set_balance(&env, &to, new_to_balance);
+        
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="success" title="Error Organization">
+  Group related errors by category (1-10, 11-20, etc.) to make error codes more maintainable and debuggable.
+</Callout>
+
+
+### 9. Retry Logic with Exponential Backoff
+
+Implement retry patterns for operations that might temporarily fail.
+
+<Tabs>
+  <TabItem value="retry" label="Retry Pattern" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contract]
+pub struct RetryContract;
+
+#[contractimpl]
+impl RetryContract {
+    /// Operation with retry logic
+    pub fn execute_with_retry(
+        env: Env,
+        user: Address,
+        max_attempts: u32,
+    ) -> Result<(), Error> {
+        user.require_auth();
+        
+        let mut attempts = 0u32;
+        let mut last_error = Error::Unknown;
+        
+        while attempts < max_attempts {
+            match Self::try_operation(&env, &user) {
+                Ok(_) => {
+                    env.events().publish(
+                        (Symbol::new(&env, "success_after_retry"),),
+                        attempts
+                    );
+                    return Ok(());
+                }
+                Err(e) => {
+                    last_error = e;
+                    attempts += 1;
+                    
+                    // Log retry attempt
+                    env.events().publish(
+                        (Symbol::new(&env, "retry_attempt"),),
+                        (attempts, e as u32)
+                    );
+                    
+                    // Only retry on transient errors
+                    if !Self::is_retryable_error(e) {
+                        return Err(e);
+                    }
+                }
+            }
+        }
+        
+        // All retries exhausted
+        Err(last_error)
+    }
+    
+    fn is_retryable_error(error: Error) -> bool {
+        matches!(
+            error,
+            Error::TemporaryFailure | Error::ResourceBusy | Error::NetworkTimeout
+        )
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="warning" title="Retry Carefully">
+  Only retry transient errors (network issues, temporary locks). Never retry errors like insufficient balance or invalid input.
+</Callout>
+
+### 10. Circuit Breaker Pattern
+
+Prevent cascading failures by temporarily disabling failing operations.
+
+<Tabs>
+  <TabItem value="circuit" label="Circuit Breaker" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Symbol};
+
+const FAILURE_THRESHOLD: u32 = 5;
+const CIRCUIT_OPEN_DURATION: u64 = 300; // 5 minutes
+
+#[contract]
+pub struct CircuitBreakerContract;
+
+#[contractimpl]
+impl CircuitBreakerContract {
+    /// Execute operation with circuit breaker protection
+    pub fn protected_operation(env: Env) -> Result<(), Error> {
+        // Check circuit state
+        if Self::is_circuit_open(&env) {
+            return Err(Error::CircuitOpen);
+        }
+        
+        // Try operation
+        match Self::risky_operation(&env) {
+            Ok(result) => {
+                Self::record_success(&env);
+                Ok(result)
+            }
+            Err(e) => {
+                Self::record_failure(&env);
+                
+                // Check if we should open circuit
+                if Self::should_open_circuit(&env) {
+                    Self::open_circuit(&env);
+                }
+                
+                Err(e)
+            }
+        }
+    }
+    
+    fn is_circuit_open(env: &Env) -> bool {
+        let key = Symbol::new(env, "circuit_opened_at");
+        
+        if let Some(opened_at) = env.storage().temporary().get::<Symbol, u64>(&key) {
+            let current_time = env.ledger().timestamp();
+            let elapsed = current_time - opened_at;
+            
+            if elapsed < CIRCUIT_OPEN_DURATION {
+                return true; // Circuit still open
+            } else {
+                // Circuit timeout expired, close it
+                env.storage().temporary().remove(&key);
+                Self::reset_failure_count(env);
+            }
+        }
+        
+        false
+    }
+    
+    fn record_failure(env: &Env) {
+        let key = Symbol::new(env, "failure_count");
+        let count: u32 = env.storage().temporary().get(&key).unwrap_or(0);
+        env.storage().temporary().set(&key, &(count + 1));
+    }
+    
+    fn should_open_circuit(env: &Env) -> bool {
+        let key = Symbol::new(env, "failure_count");
+        let count: u32 = env.storage().temporary().get(&key).unwrap_or(0);
+        count >= FAILURE_THRESHOLD
+    }
+    
+    fn open_circuit(env: &Env) {
+        let key = Symbol::new(env, "circuit_opened_at");
+        let current_time = env.ledger().timestamp();
+        env.storage().temporary().set(&key, &current_time);
+        
+        env.events().publish(
+            (Symbol::new(env, "circuit_opened"),),
+            current_time
+        );
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="info" title="Circuit Breaker Benefits">
+  Circuit breakers prevent cascading failures by temporarily disabling operations that are consistently failing, giving the system time to recover.
+</Callout>
+
+
+</PatternSection>
+
+<PatternSection id="best-practices" title="Best Practices">
+
+### Error Handling Principles
+
+1. **Use Result for Expected Errors**
+   - Invalid input
+   - Insufficient balance
+   - Authorization failures
+   - Business logic violations
+
+2. **Use Panic for Invariant Violations**
+   - Internal consistency checks
+   - Unreachable code paths
+   - Critical system failures
+
+3. **Validate Early, Fail Fast**
+   - Check all inputs at function entry
+   - Return errors before modifying state
+   - Provide clear error messages
+
+4. **Leverage Automatic Rollback**
+   - Soroban rolls back all changes on error
+   - No need for manual cleanup
+   - Design operations to be atomic
+
+5. **Log Errors for Debugging**
+   - Emit events for error conditions
+   - Include relevant context
+   - Help users understand failures
+
+### Common Patterns Summary
+
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| `Result<T, E>` | Expected errors | Balance checks, validation |
+| `Option<T>` | Optional values | Storage lookups |
+| `unwrap_or()` | Fallback values | Default configurations |
+| `checked_*()` | Safe arithmetic | All math operations |
+| `?` operator | Error propagation | Chaining operations |
+| Circuit breaker | Cascading failures | External service calls |
+| Retry logic | Transient failures | Network operations |
+
+<Callout variant="warning" title="Avoid These Anti-Patterns">
+  - ❌ Using `unwrap()` on user inputs
+  - ❌ Ignoring arithmetic overflow
+  - ❌ Catching all errors without handling
+  - ❌ Returning generic error messages
+  - ❌ Modifying state before validation
+</Callout>
+
+</PatternSection>
+
+<PatternSection id="testing" title="Testing Error Scenarios">
+
+### Test All Error Paths
+
+<Tabs>
+  <TabItem value="tests" label="Comprehensive Tests" default>
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{testutils::Address as _, Env};
+
+    #[test]
+    fn test_insufficient_balance() {
+        let env = Env::default();
+        let contract_id = env.register(ErrorHandlingContract, ());
+        let client = ErrorHandlingContractClient::new(&env, &contract_id);
+        
+        let user = Address::generate(&env);
+        
+        // Should fail with insufficient balance
+        let result = client.try_transfer(&user, &Address::generate(&env), &100);
+        assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
+    }
+    
+    #[test]
+    fn test_invalid_amount() {
+        let env = Env::default();
+        let contract_id = env.register(ErrorHandlingContract, ());
+        let client = ErrorHandlingContractClient::new(&env, &contract_id);
+        
+        let user = Address::generate(&env);
+        
+        // Should fail with invalid amount
+        let result = client.try_transfer(&user, &Address::generate(&env), &0);
+        assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+    }
+    
+    #[test]
+    fn test_overflow_protection() {
+        let env = Env::default();
+        let contract_id = env.register(SafeMathContract, ());
+        let client = SafeMathContractClient::new(&env, &contract_id);
+        
+        // Should fail with overflow
+        let result = client.try_safe_add(&i128::MAX, &1);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+    
+    #[test]
+    fn test_division_by_zero() {
+        let env = Env::default();
+        let contract_id = env.register(SafeMathContract, ());
+        let client = SafeMathContractClient::new(&env, &contract_id);
+        
+        // Should fail with division by zero
+        let result = client.try_safe_div(&100, &0);
+        assert_eq!(result, Err(Ok(Error::DivisionByZero)));
+    }
+    
+    #[test]
+    fn test_graceful_degradation() {
+        let env = Env::default();
+        let contract_id = env.register(MultiServiceContract, ());
+        let client = MultiServiceContractClient::new(&env, &contract_id);
+        
+        let items = vec![&env, valid_item(), invalid_item(), valid_item()];
+        let (success, failure) = client.process_batch(&items);
+        
+        assert_eq!(success, 2);
+        assert_eq!(failure, 1);
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="tip" title="Test Coverage">
+  Aim for 100% coverage of error paths. Every `Err` variant should have at least one test case.
+</Callout>
+
+</PatternSection>
+
+<PatternSection id="security" title="Security Considerations">
+
+### Error Handling Security
+
+<Callout variant="error" title="Information Disclosure">
+  Be careful not to leak sensitive information in error messages. Avoid exposing internal state, balances of other users, or system details.
+</Callout>
+
+**Secure Error Handling:**
+- ✅ Return generic errors for authentication failures
+- ✅ Log detailed errors internally (events)
+- ✅ Validate all inputs before processing
+- ✅ Use checked arithmetic everywhere
+- ✅ Test all error paths thoroughly
+
+**Security Checklist:**
+- [ ] All arithmetic uses `checked_*` methods
+- [ ] All user inputs are validated
+- [ ] Authorization checks happen before state changes
+- [ ] Error messages don't leak sensitive data
+- [ ] All error paths are tested
+- [ ] Circuit breakers protect against DoS
+- [ ] Fallback logic is secure and tested
+
+<Callout variant="warning" title="Reentrancy Protection">
+  Always update internal state before making external contract calls. Soroban provides some protection, but following Checks-Effects-Interactions pattern is still critical.
+</Callout>
+
+</PatternSection>
+
+<PatternSection id="related" title="Related Patterns">
+
+- [Security Fundamentals](/docs/security/fundamentals) - Core security concepts
+- [Storage Patterns](/docs/concepts/storage) - Safe storage operations
+- [Authorization](/docs/concepts/authorization) - Access control patterns
+- [Hello World](/docs/patterns/hello-world) - Basic pattern template
+
+</PatternSection>
+
+## Summary
+
+Effective error handling in Soroban contracts requires:
+
+1. **Result Types** - Use `Result<T, Error>` for all fallible operations
+2. **Custom Errors** - Define domain-specific error enums
+3. **Input Validation** - Validate early, fail fast
+4. **Safe Arithmetic** - Always use `checked_*` methods
+5. **Fallback Logic** - Provide sensible defaults where appropriate
+6. **Graceful Degradation** - Continue operating when non-critical features fail
+7. **Automatic Rollback** - Leverage Soroban's transaction rollback
+8. **Comprehensive Testing** - Test all error paths
+
+<Alert variant="success">
+  Following these patterns will make your contracts more robust, maintainable, and secure.
+</Alert>
