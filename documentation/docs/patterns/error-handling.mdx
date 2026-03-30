@@ -1,0 +1,284 @@
+---
+sidebar_position: 3
+title: Error Handling & Recovery
+description: Comprehensive patterns for error handling, recovery, and graceful degradation in Soroban contracts
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="error-handling"
+  difficulty="intermediate"
+  category="Best Practices"
+  status="stable"
+  lastReviewed="March 2026"
+/>
+
+## Overview
+
+Robust error handling is critical for building reliable Soroban smart contracts. This pattern demonstrates try-catch equivalents, fallback logic, graceful degradation, and transaction rollback strategies.
+
+<Callout variant="info" title="Why Error Handling Matters">
+  Smart contract errors can lead to failed transactions, lost funds, or stuck states. Proper error handling ensures your contract behaves predictably under all conditions.
+</Callout>
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed ([setup guide](/docs/getting-started/setup))
+- Understanding of Rust `Result` and `Option` types
+- Familiarity with Soroban SDK error types
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+### 1. Try-Catch Patterns (Result Type)
+
+Soroban uses Rust's `Result` type for error handling instead of try-catch blocks.
+
+<Tabs>
+  <TabItem value="basic" label="Basic Result" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, contracterror, Env, Address};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    InsufficientBalance = 1,
+    Unauthorized = 2,
+    InvalidAmount = 3,
+}
+
+#[contract]
+pub struct ErrorHandlingContract;
+
+#[contractimpl]
+impl ErrorHandlingContract {
+    pub fn transfer(
+        env: Env,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
+        from.require_auth();
+        
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        
+        let balance = Self::get_balance(&env, &from);
+        if balance < amount {
+            return Err(Error::InsufficientBalance);
+        }
+        
+        Self::set_balance(&env, &from, balance - amount);
+        let to_balance = Self::get_balance(&env, &to);
+        Self::set_balance(&env, &to, to_balance + amount);
+        
+        Ok(())
+    }
+    
+    fn get_balance(env: &Env, addr: &Address) -> i128 {
+        env.storage().persistent().get(addr).unwrap_or(0)
+    }
+    
+    fn set_balance(env: &Env, addr: &Address, amount: i128) {
+        env.storage().persistent().set(addr, &amount);
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="test" label="Test">
+
+```rust
+#[test]
+fn test_transfer_insufficient_balance() {
+    let env = Env::default();
+    let contract_id = env.register(ErrorHandlingContract, ());
+    let client = ErrorHandlingContractClient::new(&env, &contract_id);
+    
+    let user1 = Address::generate(&env);
+    let user2 = Address::generate(&env);
+    
+    let result = client.try_transfer(&user1, &user2, &100);
+    assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="tip" title="Result vs Panic">
+  Use `Result` for expected errors (insufficient balance, invalid input). Use `panic!` only for invariant violations that should never occur.
+</Callout>
+
+### 2. Fallback Logic
+
+Implement fallback values when operations might fail.
+
+<Tabs>
+  <TabItem value="fallback" label="Fallback Pattern" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, String, Symbol};
+
+#[contract]
+pub struct ConfigContract;
+
+#[contractimpl]
+impl ConfigContract {
+    pub fn get_config(env: Env, key: Symbol) -> String {
+        env.storage()
+            .instance()
+            .get(&key)
+            .unwrap_or_else(|| Self::default_config(&env, &key))
+    }
+    
+    fn default_config(env: &Env, key: &Symbol) -> String {
+        String::from_str(env, "default")
+    }
+    
+    pub fn calculate_ratio(env: Env, numerator: i128, denominator: i128) -> i128 {
+        if denominator == 0 {
+            return 0;
+        }
+        numerator.checked_div(denominator).unwrap_or(0)
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="success" title="Best Practice">
+  Always provide sensible defaults for non-critical operations. This prevents contract failures from cascading.
+</Callout>
+
+### 3. Graceful Degradation
+
+Design contracts to continue operating even when some features fail.
+
+<Tabs>
+  <TabItem value="degradation" label="Graceful Degradation" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address, Vec};
+
+#[contract]
+pub struct MultiServiceContract;
+
+#[contractimpl]
+impl MultiServiceContract {
+    pub fn process_batch(env: Env, items: Vec<Address>) -> (u32, u32) {
+        let mut success_count = 0u32;
+        let mut failure_count = 0u32;
+        
+        for item in items.iter() {
+            match Self::process_item(&env, &item) {
+                Ok(_) => success_count += 1,
+                Err(_) => failure_count += 1,
+            }
+        }
+        
+        (success_count, failure_count)
+    }
+    
+    fn process_item(env: &Env, item: &Address) -> Result<(), Error> {
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="warning" title="Partial Failures">
+  When processing batches, decide whether to fail-fast (stop on first error) or continue with partial success. Document this behavior clearly.
+</Callout>
+
+### 4. Transaction Rollback
+
+Soroban automatically rolls back all state changes when a transaction fails.
+
+<Tabs>
+  <TabItem value="rollback" label="Atomic Operations" default>
+
+```rust
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contract]
+pub struct AtomicContract;
+
+#[contractimpl]
+impl AtomicContract {
+    pub fn atomic_swap(
+        env: Env,
+        user_a: Address,
+        user_b: Address,
+        amount_a: i128,
+        amount_b: i128,
+    ) -> Result<(), Error> {
+        user_a.require_auth();
+        user_b.require_auth();
+        
+        let balance_a = Self::get_balance(&env, &user_a);
+        let balance_b = Self::get_balance(&env, &user_b);
+        
+        if balance_a < amount_a {
+            return Err(Error::InsufficientBalance);
+        }
+        if balance_b < amount_b {
+            return Err(Error::InsufficientBalance);
+        }
+        
+        Self::set_balance(&env, &user_a, balance_a - amount_a + amount_b);
+        Self::set_balance(&env, &user_b, balance_b - amount_b + amount_a);
+        
+        Ok(())
+    }
+    
+    fn get_balance(env: &Env, addr: &Address) -> i128 {
+        env.storage().persistent().get(addr).unwrap_or(0)
+    }
+    
+    fn set_balance(env: &Env, addr: &Address, amount: i128) {
+        env.storage().persistent().set(addr, &amount);
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+<Callout variant="success" title="Automatic Rollback">
+  Soroban automatically reverts all storage changes when a contract returns an error or panics. You don't need manual rollback logic.
+</Callout>
+
+</PatternSection>
+
+<PatternSection id="security" title="Security considerations">
+
+- **Input Validation**: Always validate inputs before modifying state
+- **Checked Arithmetic**: Use `checked_*` methods to prevent overflow/underflow
+- **Authorization**: Check authorization before state changes
+- **Error Messages**: Don't leak sensitive information in error messages
+
+<Callout variant="warning" title="Production checklist">
+  Before mainnet, add thorough tests, use checked arithmetic, and validate all inputs.
+</Callout>
+
+</PatternSection>
+
+<PatternSection id="related" title="Related patterns">
+
+- [Pattern library overview](/docs/patterns/overview) — navigation hub
+- [Storage concepts](/docs/concepts/storage) — deeper dive into Soroban storage
+- [Security fundamentals](/docs/security/fundamentals) — security best practices
+
+</PatternSection>

@@ -22,7 +22,7 @@ Emit events and logs for contract monitoring and debugging.
 
 ### Error Handling
 
-Proper error handling and recovery strategies.
+Proper error handling and recovery strategies. [Learn more →](./error-handling)
 
 ### Contract Lifecycle
 

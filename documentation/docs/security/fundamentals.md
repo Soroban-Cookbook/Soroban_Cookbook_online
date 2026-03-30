@@ -105,7 +105,7 @@ Use this checklist before every deployment:
 - [ ] **Input Sanitization:** All user inputs (amounts, addresses, metadata) are validated.
 - [ ] **Storage Limits:** No unbounded loops or storage growth that could cause DoS.
 - [ ] **Events:** Sensitive operations (admin changes, large transfers) emit descriptive events.
-- [ ] **Error Handling:** Errors are explicit (using `Result` and custom error enums).
+- [ ] **Error Handling:** Errors are explicit (using `Result` and custom error enums). See [Error Handling Guide](/docs/concepts/error-handling) for patterns.
 
 ---
 

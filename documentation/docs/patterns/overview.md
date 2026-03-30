@@ -16,6 +16,10 @@ The **[Hello World storage](/docs/patterns/hello-world)** pattern demonstrates t
 
 Browse battle-tested contract patterns for various use cases.
 
+### 🛡️ Error Handling & Recovery
+
+- **[Error Handling](/docs/patterns/error-handling)** - Comprehensive error handling patterns
+
 ## Pattern Categories
 
 ### 🪙 Token Standards
