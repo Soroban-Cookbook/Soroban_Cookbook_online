@@ -255,7 +255,7 @@
 
   /* Difficulty — light mode */
   --sb-badge-beginner-bg: rgba(34, 197, 94, 0.15);
-  --sb-badge-beginner-text: #15803d;
+  --sb-badge-beginner-text: #14532d;
   --sb-badge-beginner-border: rgba(34, 197, 94, 0.35);
 
   --sb-badge-intermediate-bg: rgba(245, 158, 11, 0.15);
@@ -276,7 +276,7 @@
   --sb-badge-updated-border: #1d4ed8;
 
   --sb-badge-coming-soon-bg: transparent;
-  --sb-badge-coming-soon-text: #6b7280;
+  --sb-badge-coming-soon-text: #374151;
   --sb-badge-coming-soon-border: #d1d5db;
 
   --sb-badge-deprecated-bg: #dc2626;
