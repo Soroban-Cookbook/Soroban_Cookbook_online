@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "generated": "2026-08-27T00:00:00.000Z",
+  "patterns": {
+    "hello-world": {
+      "id": "hello-world",
+      "title": "Hello World",
+      "category": "Getting Started",
+      "difficulty": "beginner",
+      "tags": [
+        "basics",
+        "introduction",
+        "first-contract"
+      ],
+      "url": "/patterns/hello-world"
+    },
+    "custom-types": {
+      "id": "custom-types",
+      "title": "Custom Types",
+      "category": "Patterns",
+      "difficulty": "intermediate",
+      "tags": [
+        "types",
+        "contracts",
+        "data-structures"
+      ],
+      "url": "/patterns/custom-types"
+    },
+    "error-handling": {
+      "id": "error-handling",
+      "title": "Error Handling",
+      "category": "Patterns",
+      "difficulty": "intermediate",
+      "tags": [
+        "error",
+        "recovery",
+        "validation"
+      ],
+      "url": "/patterns/error-handling"
+    },
+    "error-recovery": {
+      "id": "error-recovery",
+      "title": "Error Recovery",
+      "category": "Patterns",
+      "difficulty": "advanced",
+      "tags": [
+        "error",
+        "recovery",
+        "resilience"
+      ],
+      "url": "/patterns/error-recovery"
+    },
+    "lifecycle-upgrades": {
+      "id": "lifecycle-upgrades",
+      "title": "Lifecycle & Upgrades",
+      "category": "Advanced Patterns",
+      "difficulty": "advanced",
+      "tags": [
+        "lifecycle",
+        "upgrade",
+        "versioning"
+      ],
+      "url": "/patterns/lifecycle-upgrades"
+    },
+    "optimization-playbook": {
+      "id": "optimization-playbook",
+      "title": "Optimization Playbook",
+      "category": "Advanced Patterns",
+      "difficulty": "advanced",
+      "tags": [
+        "optimization",
+        "performance",
+        "efficiency"
+      ],
+      "url": "/patterns/optimization-playbook"
+    }
+  }
+}

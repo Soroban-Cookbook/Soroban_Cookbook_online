@@ -20,7 +20,9 @@
     "format:write": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\" \"scripts/**/*.{js,ts}\" \"docusaurus.config.ts\" \"*.{ts,js,json,md}\"",
     "test": "vitest",
     "test:run": "vitest --run",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "build:registry": "node scripts/generate-content-registry.mjs",
+    "check:registry": "node scripts/generate-content-registry.mjs --check"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",
