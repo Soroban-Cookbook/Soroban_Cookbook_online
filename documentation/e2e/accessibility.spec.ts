@@ -21,8 +21,13 @@ test.describe('Automated Accessibility Audit (@axe-core)', () => {
     test(`${name} (${path}) should have no critical or serious accessibility violations`, async ({
       page,
     }) => {
+      // Avoid mid-animation opacity on homepage pattern cards (axe contrast flakes).
+      await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(path);
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle');
+      // Allow CSS transitions / lazy sections to settle after reduced-motion.
+      await page.waitForTimeout(300);
 
       const accessibilityScanResults = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

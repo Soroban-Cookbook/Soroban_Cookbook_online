@@ -196,6 +196,18 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .patternCardWrapper {
+    animation: none;
+    opacity: 1;
+  }
+
+  .patternsContainer.animating {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Metadata */
 .metadata {
   margin-top: 1rem;
@@ -218,15 +230,15 @@
 }
 
 .difficulty[data-difficulty='beginner'] {
-  color: #047857;
+  color: #065f46;
 }
 
 .difficulty[data-difficulty='intermediate'] {
-  color: #92400e;
+  color: #78350f;
 }
 
 .difficulty[data-difficulty='advanced'] {
-  color: #b91c1c;
+  color: #7f1d1d;
 }
 
 .popularity {
