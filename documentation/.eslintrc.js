@@ -3,7 +3,7 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
-    node: true,
+    node: true, // Enables Node.js globals for scripts/
   },
   extends: [
     'eslint:recommended',
@@ -42,11 +42,11 @@ module.exports = {
       version: 'detect',
     },
   },
+  // Ignore patterns for files that should not be linted
+  // See LINTING_GUIDELINES.md for detailed scope documentation
   ignorePatterns: [
     'node_modules/',
     'build/',
     '.docusaurus/',
-    '*.config.js',
-    '*.config.ts',
   ],
 };
