@@ -1,11 +1,13 @@
 anonymised
 API
+authContexts
 authorisation
 authorise
 authorised
 autoplay
 behaviour
 Binaryen
+blocklist
 browsable
 Bun
 CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC
@@ -41,6 +43,8 @@ defi
 Deque
 deserialises
 desync
+DEX
+DEXes
 distros
 Docusaurus
 DSN
@@ -51,6 +55,8 @@ favourable
 Fira
 FOIT
 footgun
+footprint
+Footprints
 friendbot
 Friendbot
 frontends
@@ -91,6 +97,10 @@ MDX
 Minimise
 Moto
 MSVC
+multisig
+Multisig
+muxed
+MuxedAddress
 navbars
 ncpu
 newtype
@@ -107,6 +117,7 @@ Optimising
 Optimizely
 Overlines
 pacman
+passkeys
 performancebudget
 PII
 playthrough
@@ -126,10 +137,12 @@ Rust
 rustc
 RUSTFLAGS
 rustup
+SAC
 sandboxed
 SCCs
 SDEX
 Sentry
+SEP
 serialisation
 serialises
 Soroban
@@ -161,4 +174,5 @@ USERPROFILE
 WCAG
 WebAssembly
 wght
+XLM
 YAML
