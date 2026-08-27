@@ -4,8 +4,10 @@ import clsx from 'clsx';
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export type BadgeDifficulty = 'beginner' | 'intermediate' | 'advanced';
-export type BadgeStatus = 'new' | 'updated' | 'coming-soon' | 'deprecated' | 'stable' | 'experimental' | 'draft';
-export type TagCategory = 'token' | 'defi' | 'nft' | 'security' | 'storage' | 'auth' | 'governance' | 'error-handling';
+export type BadgeStatus =
+  'new' | 'updated' | 'coming-soon' | 'deprecated' | 'stable' | 'experimental' | 'draft';
+export type TagCategory =
+  'token' | 'defi' | 'nft' | 'security' | 'storage' | 'auth' | 'governance' | 'error-handling';
 export type BadgeSize = 'sm' | 'md' | 'lg';
 
 type BadgeVariant = BadgeDifficulty | BadgeStatus;
@@ -72,8 +74,7 @@ export function Badge({
         className,
       )}
       role={asStatus ? 'status' : undefined}
-      aria-label={ariaLabel}
-    >
+      aria-label={ariaLabel}>
       {label}
     </span>
   );
@@ -113,8 +114,7 @@ export function Tag({
         size !== 'md' && `sb-tag--${size}`,
         clickable && 'sb-tag--clickable',
         className,
-      )}
-    >
+      )}>
       {label}
     </Element>
   );

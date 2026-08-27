@@ -1,0 +1,165 @@
+name: Log Aggregation
+
+# Centralizes CI/CD logs so debugging a failed deploy does not depend on
+# GitHub's per-run log viewer (issue #268/#363).
+#
+# Two independent sinks, both optional-by-default:
+#   1. Archive  — always on. Bundles the triggering run's logs into a workflow
+#                 artifact with an explicit retention window.
+#   2. Forward  — only when DATADOG_API_KEY is configured. Ships the same logs
+#                 to Datadog for cross-run search and alerting.
+#
+# See LOGGING.md for retention policy, setup, and how to search the results.
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+      - "CD - Deploy to GitHub Pages"
+    types:
+      - completed
+
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Workflow run ID to archive (defaults to the latest CD run)'
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+
+# Retention for the archived log artifact. GitHub caps free-tier artifact
+# retention at 90 days; 30 covers a normal debugging window without bloating
+# storage. Change here and in LOGGING.md together.
+env:
+  LOG_RETENTION_DAYS: 30
+
+jobs:
+  aggregate:
+    name: Archive and forward run logs
+    runs-on: ubuntu-latest
+    # The `secrets` context is unavailable in step-level `if:`, so resolve
+    # "is forwarding configured?" into a job-level env value once.
+    env:
+      DATADOG_ENABLED: ${{ secrets.DATADOG_API_KEY != '' }}
+    steps:
+      - name: Resolve target run
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_RUN_ID: ${{ inputs.run_id }}
+          EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          run_id="${INPUT_RUN_ID:-${EVENT_RUN_ID:-}}"
+          if [ -z "$run_id" ]; then
+            run_id=$(gh run list --repo "$REPO" \
+              --workflow 'CD - Deploy to GitHub Pages' \
+              --limit 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          if [ -z "$run_id" ] || [ "$run_id" = "null" ]; then
+            echo "::error::Could not resolve a workflow run to archive."
+            exit 1
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "Archiving logs for run $run_id"
+
+      - name: Download run logs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.target.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p logs
+          # Logs become available only after the run finishes writing them;
+          # retry briefly rather than failing the archive on a race.
+          for attempt in 1 2 3; do
+            if gh api "repos/$REPO/actions/runs/$RUN_ID/logs" > logs/run-logs.zip 2>/dev/null; then
+              break
+            fi
+            echo "Logs not ready (attempt $attempt); retrying in 15s"
+            sleep 15
+          done
+          if [ ! -s logs/run-logs.zip ]; then
+            echo "::error::Log archive for run $RUN_ID is empty or unavailable."
+            exit 1
+          fi
+          unzip -q logs/run-logs.zip -d logs/extracted
+          echo "Extracted $(find logs/extracted -type f | wc -l) log files"
+
+      - name: Upload log archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: run-logs-${{ steps.target.outputs.run_id }}
+          path: logs/extracted
+          retention-days: ${{ env.LOG_RETENTION_DAYS }}
+
+      - name: Forward logs to Datadog
+        # Skipped silently when the secret is unset — forwarding is opt-in.
+        if: env.DATADOG_ENABLED == 'true'
+        env:
+          DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DD_SITE: ${{ vars.DATADOG_SITE || 'datadoghq.com' }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.target.outputs.run_id }}
+          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
+          SOURCE_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SOURCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          set -euo pipefail
+          # Datadog's intake caps a single payload at 5MB; send one request per
+          # job log file and truncate any oversized file rather than dropping it.
+          find logs/extracted -type f -name '*.txt' | while read -r file; do
+            job_name=$(basename "$file" .txt)
+            head -c 4000000 "$file" > /tmp/chunk.txt
+            jq -Rs \
+              --arg service soroban-cookbook-ci \
+              --arg ddsource github-actions \
+              --arg repo "$REPO" \
+              --arg run_id "$RUN_ID" \
+              --arg workflow "${SOURCE_WORKFLOW:-manual}" \
+              --arg branch "${SOURCE_BRANCH:-unknown}" \
+              --arg conclusion "${SOURCE_CONCLUSION:-unknown}" \
+              --arg job "$job_name" \
+              '{
+                 ddsource: $ddsource,
+                 service: $service,
+                 hostname: "github-actions",
+                 ddtags: ("repo:" + $repo + ",run_id:" + $run_id + ",workflow:" + $workflow + ",branch:" + $branch + ",conclusion:" + $conclusion + ",job:" + $job),
+                 message: .
+               }' /tmp/chunk.txt > /tmp/payload.json
+
+            status=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+              "https://http-intake.logs.$DD_SITE/api/v2/logs" \
+              -H "DD-API-KEY: $DD_API_KEY" \
+              -H 'Content-Type: application/json' \
+              --data @/tmp/payload.json)
+
+            if [ "$status" -ge 300 ]; then
+              # Do not fail the workflow — log shipping is best-effort and must
+              # never mask or block the deploy pipeline's own result.
+              echo "::warning::Datadog intake returned HTTP $status for job '$job_name'"
+            else
+              echo "Forwarded '$job_name' to Datadog"
+            fi
+          done
+
+      - name: Summary
+        env:
+          RUN_ID: ${{ steps.target.outputs.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          {
+            echo "## 🗂 Log aggregation"
+            echo ""
+            echo "**Source run:** [\`$RUN_ID\`](https://github.com/$REPO/actions/runs/$RUN_ID)"
+            echo "**Artifact:** \`run-logs-$RUN_ID\` (retained ${LOG_RETENTION_DAYS} days)"
+            if [ "$DATADOG_ENABLED" = "true" ]; then
+              echo "**Datadog forwarding:** enabled"
+            else
+              echo "**Datadog forwarding:** disabled (DATADOG_API_KEY unset)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,146 @@
+/**
+ * CodeComparison component styling
+ * Side-by-side diff of two code samples with added/removed highlighting
+ */
+
+.comparison {
+  margin: var(--space-6) 0;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--ifm-pre-background, var(--color-bg-secondary));
+}
+
+.caption {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ifm-font-color-base);
+}
+
+.labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-surface-color, var(--color-bg-secondary));
+}
+
+.label {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.labelBefore {
+  border-right: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.diff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.pane {
+  overflow-x: auto;
+  font-family: var(--font-family-mono, var(--ifm-font-family-monospace));
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.pane:first-child {
+  border-right: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.line {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--space-5);
+}
+
+.gutter {
+  flex-shrink: 0;
+  width: 3rem;
+  padding-right: var(--space-3);
+  text-align: right;
+  user-select: none;
+  color: var(--ifm-color-emphasis-500, var(--color-text-muted));
+  background: var(--ifm-background-surface-color, var(--color-bg-secondary));
+}
+
+.code {
+  white-space: pre;
+  padding-left: var(--space-3);
+  color: var(--ifm-code-color, var(--ifm-font-color-base));
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Diff highlighting: removed lines (before) */
+.line--removed {
+  background-color: var(--color-error-50, rgba(239, 68, 68, 0.12));
+}
+
+.line--removed .code {
+  color: var(--color-error-800, #b91c1c);
+}
+
+/* Diff highlighting: added lines (after) */
+.line--added {
+  background-color: var(--color-success-50, rgba(34, 197, 94, 0.12));
+}
+
+.line--added .code {
+  color: var(--color-success-800, #15803d);
+}
+
+.lineEmpty .code {
+  color: transparent;
+}
+
+/* Dark mode diff highlighting */
+[data-theme='dark'] .line--removed {
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+[data-theme='dark'] .line--removed .code {
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .line--added {
+  background-color: rgba(34, 197, 94, 0.12);
+}
+
+[data-theme='dark'] .line--added .code {
+  color: #86efac;
+}
+
+/* Stack panes vertically on narrow viewports */
+@media (max-width: 720px) {
+  .labels {
+    grid-template-columns: 1fr;
+  }
+
+  .labelBefore {
+    border-right: none;
+    border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  }
+
+  .diff {
+    grid-template-columns: 1fr;
+  }
+
+  .pane:first-child {
+    border-right: none;
+    border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .comparison {
+    transition: none;
+  }
+}

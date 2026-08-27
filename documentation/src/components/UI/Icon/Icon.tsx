@@ -1,5 +1,5 @@
 import React from 'react';
-import { LucideIcon, LucideProps } from 'lucide-react';
+import type { LucideIcon, LucideProps } from 'lucide-react';
 import clsx from 'clsx';
 
 /**

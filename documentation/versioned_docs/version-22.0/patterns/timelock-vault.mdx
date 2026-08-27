@@ -1,0 +1,247 @@
+---
+time: 20
+title: Timelock Vault
+description: Lock assets until a scheduled timestamp, then release them to a beneficiary.
+sidebar_label: Timelock Vault
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Timelock Vault
+
+A **timelock vault** locks an asset amount on-chain until a specific Unix timestamp.
+Only after that timestamp can the beneficiary withdraw the funds.
+The depositor may cancel before unlock to recover their assets.
+
+## When to use this pattern
+
+- Vesting schedules (e.g. lock team tokens for 12 months)
+- Escrow with a time-based release trigger
+- Scheduled payments / grant disbursements
+- Time-delayed multi-sig safety nets
+
+## Contract overview
+
+```
+deposit(depositor, beneficiary, amount, unlock_time)
+  └─ stores vault data; reverts if already initialised or inputs invalid
+
+withdraw()
+  └─ releases funds to beneficiary; reverts if still locked or already claimed
+
+cancel()
+  └─ depositor reclaims funds; only valid before unlock_time
+
+unlock_time() / amount() / beneficiary() / time_remaining() / is_claimed()
+  └─ read-only view helpers
+```
+
+## Storage layout
+
+| Key           | Type      | Storage    | Description                            |
+|---------------|-----------|------------|----------------------------------------|
+| `Depositor`   | `Address` | persistent | Account that locked the funds          |
+| `Beneficiary` | `Address` | persistent | Account allowed to withdraw after lock |
+| `Amount`      | `i128`    | persistent | Token amount locked (stroops)          |
+| `UnlockTime`  | `u64`     | persistent | Unix timestamp (seconds) for release   |
+| `Claimed`     | `bool`    | persistent | Whether vault has been claimed/cancelled |
+
+`persistent` storage ensures the vault survives ledger TTL expiry without manual extension.
+
+## Full source
+
+```rust title="examples/timelock-vault/src/lib.rs"
+#![no_std]
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Depositor,
+    Beneficiary,
+    Amount,
+    UnlockTime,
+    Claimed,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    AlreadyInitialised = 1,
+    NotInitialised     = 2,
+    NotUnlockedYet     = 3,
+    AlreadyClaimed     = 4,
+    Unauthorised       = 5,
+    InvalidAmount      = 6,
+    InvalidUnlockTime  = 7,
+}
+
+#[contract]
+pub struct TimelockVault;
+
+#[contractimpl]
+impl TimelockVault {
+    pub fn deposit(
+        env: Env,
+        depositor: Address,
+        beneficiary: Address,
+        amount: i128,
+        unlock_time: u64,
+    ) -> Result<(), Error> {
+        depositor.require_auth();
+
+        if env.storage().persistent().has(&DataKey::Depositor) {
+            return Err(Error::AlreadyInitialised);
+        }
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        if unlock_time <= env.ledger().timestamp() {
+            return Err(Error::InvalidUnlockTime);
+        }
+
+        env.storage().persistent().set(&DataKey::Depositor,   &depositor);
+        env.storage().persistent().set(&DataKey::Beneficiary, &beneficiary);
+        env.storage().persistent().set(&DataKey::Amount,      &amount);
+        env.storage().persistent().set(&DataKey::UnlockTime,  &unlock_time);
+        env.storage().persistent().set(&DataKey::Claimed,     &false);
+        Ok(())
+    }
+
+    pub fn withdraw(env: Env) -> Result<i128, Error> {
+        Self::assert_initialised(&env)?;
+        if env.storage().persistent().get(&DataKey::Claimed).unwrap_or(false) {
+            return Err(Error::AlreadyClaimed);
+        }
+        let unlock_time: u64 = env.storage().persistent().get(&DataKey::UnlockTime).unwrap();
+        if env.ledger().timestamp() < unlock_time {
+            return Err(Error::NotUnlockedYet);
+        }
+        let amount: i128 = env.storage().persistent().get(&DataKey::Amount).unwrap();
+        env.storage().persistent().set(&DataKey::Claimed, &true);
+        Ok(amount)
+    }
+
+    pub fn cancel(env: Env) -> Result<i128, Error> {
+        Self::assert_initialised(&env)?;
+        let depositor: Address = env.storage().persistent().get(&DataKey::Depositor).unwrap();
+        depositor.require_auth();
+        if env.storage().persistent().get(&DataKey::Claimed).unwrap_or(false) {
+            return Err(Error::AlreadyClaimed);
+        }
+        let unlock_time: u64 = env.storage().persistent().get(&DataKey::UnlockTime).unwrap();
+        if env.ledger().timestamp() >= unlock_time {
+            return Err(Error::Unauthorised);
+        }
+        let amount: i128 = env.storage().persistent().get(&DataKey::Amount).unwrap();
+        env.storage().persistent().set(&DataKey::Claimed, &true);
+        Ok(amount)
+    }
+
+    pub fn unlock_time(env: Env) -> Result<u64, Error> {
+        Self::assert_initialised(&env)?;
+        Ok(env.storage().persistent().get(&DataKey::UnlockTime).unwrap())
+    }
+
+    pub fn amount(env: Env) -> Result<i128, Error> {
+        Self::assert_initialised(&env)?;
+        Ok(env.storage().persistent().get(&DataKey::Amount).unwrap())
+    }
+
+    pub fn is_claimed(env: Env) -> bool {
+        env.storage().persistent().get(&DataKey::Claimed).unwrap_or(false)
+    }
+
+    pub fn beneficiary(env: Env) -> Result<Address, Error> {
+        Self::assert_initialised(&env)?;
+        Ok(env.storage().persistent().get(&DataKey::Beneficiary).unwrap())
+    }
+
+    pub fn time_remaining(env: Env) -> Result<u64, Error> {
+        Self::assert_initialised(&env)?;
+        let unlock_time: u64 = env.storage().persistent().get(&DataKey::UnlockTime).unwrap();
+        let now = env.ledger().timestamp();
+        Ok(if now >= unlock_time { 0 } else { unlock_time - now })
+    }
+
+    fn assert_initialised(env: &Env) -> Result<(), Error> {
+        if !env.storage().persistent().has(&DataKey::Depositor) {
+            return Err(Error::NotInitialised);
+        }
+        Ok(())
+    }
+}
+```
+
+## Key design decisions
+
+### Checks-effects pattern
+`Claimed` is set to `true` **before** returning the amount in both `withdraw` and `cancel`.
+This prevents re-entrancy even though Soroban's execution model already guards against it
+at the host level — the pattern makes the intent explicit.
+
+### `persistent` over `instance` storage
+Vault state must survive beyond a single ledger bump window.
+`persistent` storage entries have an independent TTL that can be extended,
+making them appropriate for long-duration locks (months/years).
+
+### Depositor authorisation on `cancel`
+`cancel` calls `depositor.require_auth()` so the depositor's signature must be
+present in the transaction's authorisation tree. This prevents a third party from
+prematurely cancelling a vault on behalf of the depositor.
+
+### No token interface in this example
+This contract records *amounts* but does not move tokens directly — it is intentionally
+scoped as a **basic** vault to demonstrate the time-lock pattern without the additional
+complexity of SAC (Stellar Asset Contract) integration. See the token-transfer example
+for cross-contract token movement.
+
+## Running the tests
+
+```bash
+cd examples/timelock-vault
+cargo test
+```
+
+Expected output:
+
+```
+running 16 tests
+test tests::test_deposit_stores_vault_data ... ok
+test tests::test_deposit_rejects_zero_amount ... ok
+test tests::test_deposit_rejects_negative_amount ... ok
+test tests::test_deposit_rejects_past_unlock_time ... ok
+test tests::test_deposit_rejects_double_init ... ok
+test tests::test_withdraw_succeeds_after_unlock_time ... ok
+test tests::test_withdraw_succeeds_well_after_unlock_time ... ok
+test tests::test_withdraw_fails_before_unlock_time ... ok
+test tests::test_withdraw_fails_on_not_initialised ... ok
+test tests::test_withdraw_fails_on_double_claim ... ok
+test tests::test_cancel_returns_funds_to_depositor ... ok
+test tests::test_cancel_fails_after_unlock_time ... ok
+test tests::test_cancel_fails_on_already_claimed ... ok
+test tests::test_time_remaining_decreases_over_time ... ok
+test tests::test_time_remaining_is_zero_after_unlock ... ok
+test tests::test_view_helpers_fail_before_init ... ok
+test result: ok. 16 passed; 0 failed
+```
+
+## Error reference
+
+| Code | Variant              | Meaning                                              |
+|------|----------------------|------------------------------------------------------|
+| 1    | `AlreadyInitialised` | `deposit` called on an already-initialised vault     |
+| 2    | `NotInitialised`     | Any call before `deposit`                            |
+| 3    | `NotUnlockedYet`     | `withdraw` called before `unlock_time`               |
+| 4    | `AlreadyClaimed`     | `withdraw` or `cancel` on an already-claimed vault   |
+| 5    | `Unauthorised`       | `cancel` called at or after `unlock_time`            |
+| 6    | `InvalidAmount`      | `amount` is zero or negative                         |
+| 7    | `InvalidUnlockTime`  | `unlock_time` is not strictly in the future          |
+
+## Next steps
+
+- Integrate a SAC token interface to actually move assets on `withdraw`/`cancel`
+- Add a partial-release schedule (cliff + linear vesting)
+- Emit events on deposit, withdrawal, and cancellation for off-chain indexing

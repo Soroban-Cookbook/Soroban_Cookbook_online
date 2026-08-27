@@ -50,16 +50,16 @@
 /* Dark mode - Info */
 [data-theme='dark'] .alert--info {
   background-color: rgba(37, 99, 235, 0.1);
-  border-color: var(--color-primary-800);
-  color: var(--color-primary-100);
+  border-color: rgba(96, 165, 250, 0.3);
+  color: #bfdbfe;
 }
 
 [data-theme='dark'] .alert--info .alert__icon {
-  color: var(--color-primary-400);
+  color: #60a5fa;
 }
 
 [data-theme='dark'] .alert--info .alert__title {
-  color: var(--color-primary-200);
+  color: #93c5fd;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -83,16 +83,16 @@
 /* Dark mode - Warning */
 [data-theme='dark'] .alert--warning {
   background-color: rgba(245, 158, 11, 0.1);
-  border-color: var(--color-warning-800);
-  color: var(--color-warning-100);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: #fde68a;
 }
 
 [data-theme='dark'] .alert--warning .alert__icon {
-  color: var(--color-warning-400);
+  color: #fbbf24;
 }
 
 [data-theme='dark'] .alert--warning .alert__title {
-  color: var(--color-warning-200);
+  color: #fcd34d;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -116,16 +116,16 @@
 /* Dark mode - Error */
 [data-theme='dark'] .alert--error {
   background-color: rgba(239, 68, 68, 0.1);
-  border-color: var(--color-error-800);
-  color: var(--color-error-100);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #fecaca;
 }
 
 [data-theme='dark'] .alert--error .alert__icon {
-  color: var(--color-error-400);
+  color: #f87171;
 }
 
 [data-theme='dark'] .alert--error .alert__title {
-  color: var(--color-error-200);
+  color: #fca5a5;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -149,16 +149,16 @@
 /* Dark mode - Success */
 [data-theme='dark'] .alert--success {
   background-color: rgba(34, 197, 94, 0.1);
-  border-color: var(--color-success-800);
-  color: var(--color-success-100);
+  border-color: rgba(74, 222, 128, 0.3);
+  color: #bbf7d0;
 }
 
 [data-theme='dark'] .alert--success .alert__icon {
-  color: var(--color-success-400);
+  color: #4ade80;
 }
 
 [data-theme='dark'] .alert--success .alert__title {
-  color: var(--color-success-200);
+  color: #86efac;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -234,22 +234,27 @@
 
 [data-theme='dark'] .alert--info .alert__body code {
   background-color: rgba(37, 99, 235, 0.2);
-  color: var(--color-primary-200);
+  color: #bfdbfe;
 }
 
 [data-theme='dark'] .alert--warning .alert__body code {
   background-color: rgba(245, 158, 11, 0.2);
-  color: var(--color-warning-200);
+  color: #fde68a;
 }
 
 [data-theme='dark'] .alert--error .alert__body code {
   background-color: rgba(239, 68, 68, 0.2);
-  color: var(--color-error-200);
+  color: #fecaca;
 }
 
 [data-theme='dark'] .alert--success .alert__body code {
   background-color: rgba(34, 197, 94, 0.2);
-  color: var(--color-success-200);
+  color: #bbf7d0;
+}
+
+/* Dark mode close button: inherit variant text colour */
+[data-theme='dark'] .alert__close {
+  color: currentColor;
 }
 
 .alert__close {

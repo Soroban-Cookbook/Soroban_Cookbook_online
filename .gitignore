@@ -2,10 +2,13 @@
 node_modules/
 .pnp
 .pnp.js
+target/
 
 # Testing
 coverage/
 .nyc_output/
+.tools/
+.playwright-browsers/
 
 # Build outputs
 documentation/build/

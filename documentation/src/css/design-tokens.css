@@ -124,18 +124,18 @@
     'JetBrains Mono Variable', 'JetBrains Mono Fallback', 'Fira Code', 'Consolas', 'Monaco',
     'Courier New', monospace;
 
-  /* Font Sizes */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-base: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
-  --font-size-4xl: 2.25rem; /* 36px */
-  --font-size-5xl: 3rem; /* 48px */
-  --font-size-6xl: 3.75rem; /* 60px */
-  --font-size-7xl: 4.5rem; /* 72px */
+  /* Font Sizes — mobile-safe clamp values preserve readability and honor user font-size preferences */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.1vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.2vw, 1rem);
+  --font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1rem + 0.25vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.125rem + 0.25vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 1.25rem + 0.5vw, 1.75rem);
+  --font-size-3xl: clamp(1.875rem, 1.5rem + 0.75vw, 2.25rem);
+  --font-size-4xl: clamp(2.25rem, 2rem + 0.75vw, 2.75rem);
+  --font-size-5xl: clamp(3rem, 2.5rem + 1vw, 3.5rem);
+  --font-size-6xl: clamp(3.75rem, 3rem + 1.25vw, 4.5rem);
+  --font-size-7xl: clamp(4.5rem, 3.75rem + 1.5vw, 5.5rem);
 
   /* Font Weights */
   --font-weight-light: 300;
@@ -239,86 +239,86 @@
   --sb-badge-letter-spacing: 0.01em;
 
   /* Size — sm */
-  --sb-badge-height-sm: 1.25rem;   /* 20px */
-  --sb-badge-px-sm: 0.375rem;      /* 6px */
-  --sb-badge-font-sm: 0.6875rem;   /* 11px */
+  --sb-badge-height-sm: 1.25rem; /* 20px */
+  --sb-badge-px-sm: 0.375rem; /* 6px */
+  --sb-badge-font-sm: 0.6875rem; /* 11px */
 
   /* Size — md (default) */
-  --sb-badge-height-md: 1.5rem;    /* 24px */
-  --sb-badge-px-md: 0.5rem;        /* 8px */
-  --sb-badge-font-md: 0.75rem;     /* 12px */
+  --sb-badge-height-md: 1.5rem; /* 24px */
+  --sb-badge-px-md: 0.5rem; /* 8px */
+  --sb-badge-font-md: 0.75rem; /* 12px */
 
   /* Size — lg */
-  --sb-badge-height-lg: 1.75rem;   /* 28px */
-  --sb-badge-px-lg: 0.75rem;       /* 12px */
-  --sb-badge-font-lg: 0.8125rem;   /* 13px */
+  --sb-badge-height-lg: 1.75rem; /* 28px */
+  --sb-badge-px-lg: 0.75rem; /* 12px */
+  --sb-badge-font-lg: 0.8125rem; /* 13px */
 
   /* Difficulty — light mode */
-  --sb-badge-beginner-bg:          rgba(34, 197, 94, 0.15);
-  --sb-badge-beginner-text:        #15803d;
-  --sb-badge-beginner-border:      rgba(34, 197, 94, 0.35);
+  --sb-badge-beginner-bg: rgba(34, 197, 94, 0.15);
+  --sb-badge-beginner-text: #15803d;
+  --sb-badge-beginner-border: rgba(34, 197, 94, 0.35);
 
-  --sb-badge-intermediate-bg:      rgba(245, 158, 11, 0.15);
-  --sb-badge-intermediate-text:    #b45309;
-  --sb-badge-intermediate-border:  rgba(245, 158, 11, 0.35);
+  --sb-badge-intermediate-bg: rgba(245, 158, 11, 0.15);
+  --sb-badge-intermediate-text: #b45309;
+  --sb-badge-intermediate-border: rgba(245, 158, 11, 0.35);
 
-  --sb-badge-advanced-bg:          rgba(239, 68, 68, 0.12);
-  --sb-badge-advanced-text:        #b91c1c;
-  --sb-badge-advanced-border:      rgba(239, 68, 68, 0.3);
+  --sb-badge-advanced-bg: rgba(239, 68, 68, 0.12);
+  --sb-badge-advanced-text: #b91c1c;
+  --sb-badge-advanced-border: rgba(239, 68, 68, 0.3);
 
   /* Status — light mode */
-  --sb-badge-new-bg:               #16a34a;
-  --sb-badge-new-text:             #ffffff;
-  --sb-badge-new-border:           #15803d;
+  --sb-badge-new-bg: #16a34a;
+  --sb-badge-new-text: #ffffff;
+  --sb-badge-new-border: #15803d;
 
-  --sb-badge-updated-bg:           #2563eb;
-  --sb-badge-updated-text:         #ffffff;
-  --sb-badge-updated-border:       #1d4ed8;
+  --sb-badge-updated-bg: #2563eb;
+  --sb-badge-updated-text: #ffffff;
+  --sb-badge-updated-border: #1d4ed8;
 
-  --sb-badge-coming-soon-bg:       transparent;
-  --sb-badge-coming-soon-text:     #6b7280;
-  --sb-badge-coming-soon-border:   #d1d5db;
+  --sb-badge-coming-soon-bg: transparent;
+  --sb-badge-coming-soon-text: #6b7280;
+  --sb-badge-coming-soon-border: #d1d5db;
 
-  --sb-badge-deprecated-bg:        #dc2626;
-  --sb-badge-deprecated-text:      #ffffff;
-  --sb-badge-deprecated-border:    #b91c1c;
+  --sb-badge-deprecated-bg: #dc2626;
+  --sb-badge-deprecated-text: #ffffff;
+  --sb-badge-deprecated-border: #b91c1c;
 
-  --sb-badge-stable-bg:            #0891b2;
-  --sb-badge-stable-text:          #ffffff;
-  --sb-badge-stable-border:        #0e7490;
+  --sb-badge-stable-bg: #0891b2;
+  --sb-badge-stable-text: #ffffff;
+  --sb-badge-stable-border: #0e7490;
 
-  --sb-badge-experimental-bg:      rgba(168, 85, 247, 0.15);
-  --sb-badge-experimental-text:    #7e22ce;
-  --sb-badge-experimental-border:  rgba(168, 85, 247, 0.35);
+  --sb-badge-experimental-bg: rgba(168, 85, 247, 0.15);
+  --sb-badge-experimental-text: #7e22ce;
+  --sb-badge-experimental-border: rgba(168, 85, 247, 0.35);
 
-  --sb-badge-draft-bg:             rgba(107, 114, 128, 0.12);
-  --sb-badge-draft-text:           #4b5563;
-  --sb-badge-draft-border:         rgba(107, 114, 128, 0.3);
+  --sb-badge-draft-bg: rgba(107, 114, 128, 0.12);
+  --sb-badge-draft-text: #4b5563;
+  --sb-badge-draft-border: rgba(107, 114, 128, 0.3);
 
   /* Category tags — light mode */
-  --sb-tag-token-bg:               var(--color-primary-100);
-  --sb-tag-token-text:             var(--color-primary-700);
+  --sb-tag-token-bg: var(--color-primary-100);
+  --sb-tag-token-text: var(--color-primary-700);
 
-  --sb-tag-defi-bg:                var(--color-secondary-100);
-  --sb-tag-defi-text:              var(--color-secondary-700);
+  --sb-tag-defi-bg: var(--color-secondary-100);
+  --sb-tag-defi-text: var(--color-secondary-700);
 
-  --sb-tag-nft-bg:                 rgba(6, 182, 212, 0.12);
-  --sb-tag-nft-text:               #0e7490;
+  --sb-tag-nft-bg: rgba(6, 182, 212, 0.12);
+  --sb-tag-nft-text: #0e7490;
 
-  --sb-tag-security-bg:            rgba(239, 68, 68, 0.1);
-  --sb-tag-security-text:          #b91c1c;
+  --sb-tag-security-bg: rgba(239, 68, 68, 0.1);
+  --sb-tag-security-text: #b91c1c;
 
-  --sb-tag-storage-bg:             rgba(245, 158, 11, 0.12);
-  --sb-tag-storage-text:           #b45309;
+  --sb-tag-storage-bg: rgba(245, 158, 11, 0.12);
+  --sb-tag-storage-text: #b45309;
 
-  --sb-tag-auth-bg:                var(--color-gray-100);
-  --sb-tag-auth-text:              var(--color-gray-700);
+  --sb-tag-auth-bg: var(--color-gray-100);
+  --sb-tag-auth-text: var(--color-gray-700);
 
-  --sb-tag-governance-bg:          rgba(168, 85, 247, 0.1);
-  --sb-tag-governance-text:        #7e22ce;
+  --sb-tag-governance-bg: rgba(168, 85, 247, 0.1);
+  --sb-tag-governance-text: #7e22ce;
 
-  --sb-tag-error-handling-bg:      rgba(239, 68, 68, 0.1);
-  --sb-tag-error-handling-text:    #b91c1c;
+  --sb-tag-error-handling-bg: rgba(239, 68, 68, 0.1);
+  --sb-tag-error-handling-text: #b91c1c;
 
   /* Default semantic colors */
   --color-text-primary: var(--color-gray-900);
@@ -426,73 +426,75 @@
   --color-text-primary: var(--color-gray-50);
 
   /* Badge & Tag — dark mode overrides */
-  --sb-badge-beginner-bg:          rgba(74, 222, 128, 0.15);
-  --sb-badge-beginner-text:        #4ade80;
-  --sb-badge-beginner-border:      rgba(74, 222, 128, 0.3);
+  --sb-badge-beginner-bg: rgba(74, 222, 128, 0.15);
+  --sb-badge-beginner-text: #4ade80;
+  --sb-badge-beginner-border: rgba(74, 222, 128, 0.3);
 
-  --sb-badge-intermediate-bg:      rgba(251, 191, 36, 0.15);
-  --sb-badge-intermediate-text:    #fbbf24;
-  --sb-badge-intermediate-border:  rgba(251, 191, 36, 0.3);
+  --sb-badge-intermediate-bg: rgba(251, 191, 36, 0.15);
+  --sb-badge-intermediate-text: #fbbf24;
+  --sb-badge-intermediate-border: rgba(251, 191, 36, 0.3);
 
-  --sb-badge-advanced-bg:          rgba(248, 113, 113, 0.15);
-  --sb-badge-advanced-text:        #f87171;
-  --sb-badge-advanced-border:      rgba(248, 113, 113, 0.3);
+  --sb-badge-advanced-bg: rgba(248, 113, 113, 0.15);
+  --sb-badge-advanced-text: #f87171;
+  --sb-badge-advanced-border: rgba(248, 113, 113, 0.3);
 
-  --sb-badge-new-bg:               #15803d;
-  --sb-badge-new-border:           #166534;
+  --sb-badge-new-bg: #15803d;
+  --sb-badge-new-border: #166534;
 
-  --sb-badge-updated-bg:           #1d4ed8;
-  --sb-badge-updated-border:       #1e40af;
+  --sb-badge-updated-bg: #1d4ed8;
+  --sb-badge-updated-border: #1e40af;
 
-  --sb-badge-coming-soon-text:     #9ca3af;
-  --sb-badge-coming-soon-border:   #374151;
+  --sb-badge-coming-soon-text: #9ca3af;
+  --sb-badge-coming-soon-border: #374151;
 
-  --sb-badge-deprecated-bg:        #b91c1c;
-  --sb-badge-deprecated-border:    #991b1b;
+  --sb-badge-deprecated-bg: #b91c1c;
+  --sb-badge-deprecated-border: #991b1b;
 
-  --sb-badge-stable-bg:            #0e7490;
-  --sb-badge-stable-border:        #155e75;
+  --sb-badge-stable-bg: #0e7490;
+  --sb-badge-stable-border: #155e75;
 
-  --sb-badge-experimental-bg:      rgba(192, 132, 252, 0.15);
-  --sb-badge-experimental-text:    #c084fc;
-  --sb-badge-experimental-border:  rgba(192, 132, 252, 0.3);
+  --sb-badge-experimental-bg: rgba(192, 132, 252, 0.15);
+  --sb-badge-experimental-text: #c084fc;
+  --sb-badge-experimental-border: rgba(192, 132, 252, 0.3);
 
-  --sb-badge-draft-bg:             rgba(156, 163, 175, 0.12);
-  --sb-badge-draft-text:           #9ca3af;
-  --sb-badge-draft-border:         rgba(156, 163, 175, 0.25);
+  --sb-badge-draft-bg: rgba(156, 163, 175, 0.12);
+  --sb-badge-draft-text: #9ca3af;
+  --sb-badge-draft-border: rgba(156, 163, 175, 0.25);
 
-  --sb-tag-token-bg:               rgba(96, 165, 250, 0.15);
-  --sb-tag-token-text:             #93c5fd;
+  --sb-tag-token-bg: rgba(96, 165, 250, 0.15);
+  --sb-tag-token-text: #93c5fd;
 
-  --sb-tag-defi-bg:                rgba(192, 132, 252, 0.15);
-  --sb-tag-defi-text:              #d8b4fe;
+  --sb-tag-defi-bg: rgba(192, 132, 252, 0.15);
+  --sb-tag-defi-text: #d8b4fe;
 
-  --sb-tag-nft-bg:                 rgba(34, 211, 238, 0.12);
-  --sb-tag-nft-text:               #67e8f9;
+  --sb-tag-nft-bg: rgba(34, 211, 238, 0.12);
+  --sb-tag-nft-text: #67e8f9;
 
-  --sb-tag-security-bg:            rgba(248, 113, 113, 0.12);
-  --sb-tag-security-text:          #fca5a5;
+  --sb-tag-security-bg: rgba(248, 113, 113, 0.12);
+  --sb-tag-security-text: #fca5a5;
 
-  --sb-tag-storage-bg:             rgba(251, 191, 36, 0.12);
-  --sb-tag-storage-text:           #fcd34d;
+  --sb-tag-storage-bg: rgba(251, 191, 36, 0.12);
+  --sb-tag-storage-text: #fcd34d;
 
-  --sb-tag-auth-bg:                rgba(156, 163, 175, 0.12);
-  --sb-tag-auth-text:              #d1d5db;
+  --sb-tag-auth-bg: rgba(156, 163, 175, 0.12);
+  --sb-tag-auth-text: #d1d5db;
 
-  --sb-tag-governance-bg:          rgba(192, 132, 252, 0.12);
-  --sb-tag-governance-text:        #d8b4fe;
+  --sb-tag-governance-bg: rgba(192, 132, 252, 0.12);
+  --sb-tag-governance-text: #d8b4fe;
 
-  --sb-tag-error-handling-bg:      rgba(248, 113, 113, 0.12);
-  --sb-tag-error-handling-text:    #fca5a5;
+  --sb-tag-error-handling-bg: rgba(248, 113, 113, 0.12);
+  --sb-tag-error-handling-text: #fca5a5;
   --color-text-secondary: var(--color-gray-300);
   --color-text-tertiary: var(--color-gray-500);
-  --color-text-inverse: var(--color-gray-900);
+  /* In dark mode, "inverse" means a light-coloured surface (used for e.g. light-on-dark badges) */
+  --color-text-inverse: #f3f4f6;
 
+  /* Dark surfaces — explicit values so they are unaffected by the inverted gray scale */
   --color-bg-primary: #0a0a0a;
-  --color-bg-secondary: var(--color-gray-900);
-  --color-bg-tertiary: var(--color-gray-800);
+  --color-bg-secondary: #111827;
+  --color-bg-tertiary: #1f2937;
 
-  --color-border-light: var(--color-gray-800);
-  --color-border-medium: var(--color-gray-700);
-  --color-border-strong: var(--color-gray-600);
+  --color-border-light: #1f2937;
+  --color-border-medium: #374151;
+  --color-border-strong: #4b5563;
 }

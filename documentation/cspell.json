@@ -1,0 +1,21 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "dictionaries": ["customWords"],
+  "dictionaryDefinitions": [
+    {
+      "name": "customWords",
+      "path": "./cspell-custom-words.txt",
+      "addWords": true
+    }
+  ],
+  "files": ["docs/**/*.{md,mdx}", "README.md"],
+  "ignorePaths": [
+    "node_modules/**",
+    "build/**",
+    "*.lock",
+    "bun.lock",
+    "package-lock.json"
+  ],
+  "flagWords": []
+}

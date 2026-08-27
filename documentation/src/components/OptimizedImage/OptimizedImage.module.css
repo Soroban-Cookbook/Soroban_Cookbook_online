@@ -1,5 +1,8 @@
-/* Optimized Image Component Styles */
-img {
+.picture {
+  display: contents;
+}
+
+.img {
   max-width: 100%;
   height: auto;
   border-radius: inherit;

@@ -1,0 +1,102 @@
+---
+time: 10
+sidebar_position: 2
+title: Hello World Storage
+description: Minimal Soroban contract with instance storage — pattern template example.
+image: /img/soroban-social-card.png
+---
+
+<PatternMeta
+  slug="hello-world"
+  difficulty="beginner"
+  category="Storage"
+  status="stable"
+  lastReviewed="March 2026"
+/>
+
+## Overview
+
+This page demonstrates the **pattern detail template**: metadata header, prerequisite and security sections, tabbed code, and related patterns. Use it as a starting point when adding new contract patterns to the cookbook.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed ([setup guide](/docs/getting-started/setup))
+- Basic familiarity with Rust modules and `soroban_sdk` types
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+Read instance storage and return a greeting string. This is the smallest useful contract for bootstrapping tests and deployments.
+
+<PatternCallout variant="info" title="When to use">
+
+Use this pattern to verify tooling, ledger integration, and storage before layering tokens or authorization.
+
+</PatternCallout>
+
+<CodeSnippet
+  collapseAt={12}
+  tabs={[
+    {
+      label: 'Contract',
+      fileName: 'hello-world/src/lib.rs',
+      language: 'rust',
+      highlightLines: [1, 7, 8],
+      code: `#![no_std]
+use soroban_sdk::{contract, contractimpl, Env, String};
+
+#[contract]
+pub struct HelloWorld;
+
+#[contractimpl]
+impl HelloWorld {
+    pub fn hello(env: Env) -> String {
+        env.storage().instance().get(&String::from_str(&env, "msg")).unwrap_or(
+            String::from_str(&env, "Hello, Soroban!"),
+        )
+    }
+}`,
+    },
+    {
+      label: 'Test',
+      fileName: 'hello-world/src/test.rs',
+      language: 'rust',
+      highlightLines: [1, 5, 7],
+      code: `use soroban_sdk::{testutils::Storage, Env, String};
+
+#[test]
+fn hello_default() {
+    let env = Env::default();
+    let contract_id = env.register(HelloWorld, ());
+    let client = HelloWorldClient::new(&env, &contract_id);
+    assert_eq!(client.hello(), String::from_str(&env, "Hello, Soroban!"));
+}`,
+    },
+  ]}
+/>
+
+</PatternSection>
+
+<PatternSection id="security" title="Security considerations">
+
+- **Storage scope**: Instance storage is shared across all invocations; never store per-user secrets without namespacing by `Address`.
+- **Upgrade surface**: If you add admin functions later, protect them with `require_auth` and explicit roles.
+- **Re-entrancy**: Not applicable to this minimal example; review when adding cross-contract calls.
+
+<PatternCallout variant="warning" title="Production checklist">
+
+Before mainnet, add thorough tests, metering review, and an explicit data migration plan if storage layout changes.
+
+</PatternCallout>
+
+</PatternSection>
+
+<PatternSection id="related" title="Related patterns">
+
+- [Pattern library overview](/docs/patterns/overview) — navigation hub
+- [Storage concepts](/docs/concepts/storage) — deeper dive into Soroban storage
+- [First contract tutorial](/docs/getting-started/first-contract) — step-by-step build
+
+</PatternSection>

@@ -126,3 +126,31 @@
     width: 100%;
   }
 }
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+
+[data-theme='dark'] .input {
+  background: var(--ifm-background-surface-color, #1e293b);
+  border-color: var(--ifm-color-emphasis-400, #64748b);
+  color: var(--ifm-font-color-base, #cbd5e1);
+}
+
+[data-theme='dark'] .input::placeholder {
+  color: var(--ifm-color-emphasis-500, #94a3b8);
+}
+
+[data-theme='dark'] .feedbackError {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fecaca;
+}
+
+[data-theme='dark'] .feedbackSuccess {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #bbf7d0;
+}
+
+[data-theme='dark'] .privacy {
+  color: var(--ifm-color-emphasis-500, #94a3b8);
+}

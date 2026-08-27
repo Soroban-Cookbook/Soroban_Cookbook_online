@@ -1,0 +1,259 @@
+---
+time: 25
+sidebar_position: 7
+title: Proposal Lifecycle (DAO State Machine)
+description: Model a DAO proposal as an explicit state machine — Pending → Active → Succeeded/Defeated → Executed.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="proposal-lifecycle"
+  difficulty="intermediate"
+  category="Governance"
+  status="stable"
+  lastReviewed="June 2026"
+/>
+
+## Overview
+
+Governance contracts need a clear, auditable state machine so that proposals can only advance through valid transitions. This pattern encodes the full lifecycle as a `#[contracttype]` enum and enforces transitions at the contract boundary, making invalid states unrepresentable on-chain.
+
+```text
+Pending ──► Active ──► Succeeded ──► Executed
+                  └──► Defeated
+```
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed ([setup guide](/docs/getting-started/setup))
+- Familiarity with `contracttype` enums and `instance` storage
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+<PatternCallout variant="info" title="Design principle">
+
+Encode every invalid state as a compile-time impossibility or a guarded `assert!`. Never rely on callers to pass the right state — the contract should enforce it.
+
+</PatternCallout>
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+```rust illustrative
+#![no_std]
+use soroban_sdk::{contract, contractimpl, contracttype, Env};
+
+/// All valid proposal states.
+#[contracttype]
+#[derive(Clone, PartialEq, Debug)]
+pub enum ProposalState {
+    Pending,    // created but voting not open
+    Active,     // voting is open
+    Succeeded,  // more for-votes than against
+    Defeated,   // equal or more against-votes
+    Executed,   // on-chain action has been carried out
+}
+
+#[contracttype]
+pub enum DataKey {
+    State,
+    VotesFor,
+    VotesAgainst,
+}
+
+#[contract]
+pub struct SimpleDao;
+
+#[contractimpl]
+impl SimpleDao {
+    /// Create a new proposal in the Pending state.
+    pub fn create(env: Env) {
+        env.storage().instance().set(&DataKey::State, &ProposalState::Pending);
+        env.storage().instance().set(&DataKey::VotesFor, &0_u32);
+        env.storage().instance().set(&DataKey::VotesAgainst, &0_u32);
+    }
+
+    /// Pending → Active: open voting.
+    pub fn activate(env: Env) {
+        let state: ProposalState = env.storage().instance().get(&DataKey::State).unwrap();
+        assert!(state == ProposalState::Pending, "must be Pending to activate");
+        env.storage().instance().set(&DataKey::State, &ProposalState::Active);
+    }
+
+    /// Record a vote while Active.
+    pub fn vote(env: Env, in_favor: bool) {
+        let state: ProposalState = env.storage().instance().get(&DataKey::State).unwrap();
+        assert!(state == ProposalState::Active, "voting is not open");
+        if in_favor {
+            let v: u32 = env.storage().instance().get(&DataKey::VotesFor).unwrap_or(0);
+            env.storage().instance().set(&DataKey::VotesFor, &(v + 1));
+        } else {
+            let v: u32 = env.storage().instance().get(&DataKey::VotesAgainst).unwrap_or(0);
+            env.storage().instance().set(&DataKey::VotesAgainst, &(v + 1));
+        }
+    }
+
+    /// Active → Succeeded or Defeated based on vote counts.
+    pub fn finalize(env: Env) {
+        let state: ProposalState = env.storage().instance().get(&DataKey::State).unwrap();
+        assert!(state == ProposalState::Active, "must be Active to finalize");
+        let for_votes: u32 = env.storage().instance().get(&DataKey::VotesFor).unwrap_or(0);
+        let against_votes: u32 = env.storage().instance().get(&DataKey::VotesAgainst).unwrap_or(0);
+        let next = if for_votes > against_votes {
+            ProposalState::Succeeded
+        } else {
+            ProposalState::Defeated
+        };
+        env.storage().instance().set(&DataKey::State, &next);
+    }
+
+    /// Succeeded → Executed: carry out the on-chain action.
+    pub fn execute(env: Env) {
+        let state: ProposalState = env.storage().instance().get(&DataKey::State).unwrap();
+        assert!(state == ProposalState::Succeeded, "must be Succeeded to execute");
+        env.storage().instance().set(&DataKey::State, &ProposalState::Executed);
+    }
+
+    pub fn get_state(env: Env) -> ProposalState {
+        env.storage().instance().get(&DataKey::State).unwrap()
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="tests" label="Tests">
+
+```rust illustrative
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::Env;
+
+    fn setup() -> (Env, soroban_sdk::Address) {
+        let env = Env::default();
+        let id = env.register(SimpleDao, ());
+        (env, id)
+    }
+
+    #[test]
+    fn test_create_sets_pending() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        assert_eq!(client.get_state(), ProposalState::Pending);
+    }
+
+    #[test]
+    fn test_pending_to_active() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        assert_eq!(client.get_state(), ProposalState::Active);
+    }
+
+    #[test]
+    fn test_active_to_succeeded() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.vote(&true);
+        client.vote(&true);
+        client.vote(&false);
+        client.finalize();
+        assert_eq!(client.get_state(), ProposalState::Succeeded);
+    }
+
+    #[test]
+    fn test_active_to_defeated() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.vote(&false);
+        client.vote(&false);
+        client.vote(&true);
+        client.finalize();
+        assert_eq!(client.get_state(), ProposalState::Defeated);
+    }
+
+    #[test]
+    fn test_succeeded_to_executed() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.vote(&true);
+        client.finalize();
+        client.execute();
+        assert_eq!(client.get_state(), ProposalState::Executed);
+    }
+
+    #[test]
+    #[should_panic(expected = "must be Pending to activate")]
+    fn test_cannot_activate_twice() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.activate(); // invalid
+    }
+
+    #[test]
+    #[should_panic(expected = "voting is not open")]
+    fn test_cannot_vote_when_pending() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.vote(&true); // invalid
+    }
+
+    #[test]
+    #[should_panic(expected = "must be Succeeded to execute")]
+    fn test_cannot_execute_defeated_proposal() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.vote(&false);
+        client.finalize();
+        client.execute(); // invalid
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+</PatternSection>
+
+<PatternSection id="security" title="Security considerations">
+
+- **Authorization**: Production DAOs must guard `activate`, `finalize`, and `execute` with `require_auth()` on a governor address or multi-sig. The example omits this for clarity.
+- **Tie handling**: The current rule (`for > against`) treats ties as defeats. Make this explicit in your governance spec.
+- **Double execution**: Once `Executed`, the state cannot regress. Add any further idempotency guards inside the `execute` body.
+- **Sybil resistance**: Vote weighting (token-weighted, NFT-gated) must be added before production use.
+
+<PatternCallout variant="warning" title="Production checklist">
+
+Add `require_auth()` guards on every privileged transition before deploying to mainnet.
+
+</PatternCallout>
+
+</PatternSection>
+
+<PatternSection id="related" title="Related patterns">
+
+- [Authorization & Access Control](/docs/patterns/authorization) — guard transitions with `require_auth`
+- [Governance Security](/docs/security/governance) — voting and timelock hardening
+- [Lifecycle & Upgrades](/docs/patterns/lifecycle-upgrades) — contract upgrade patterns
+- [Pattern library overview](/docs/patterns/overview)
+
+</PatternSection>

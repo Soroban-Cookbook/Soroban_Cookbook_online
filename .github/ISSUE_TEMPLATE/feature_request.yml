@@ -1,0 +1,88 @@
+name: Feature Request
+description: Suggest an idea, guide, pattern, or improvement for the Soroban Cookbook.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an idea! Please describe what you'd like to see added or improved.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the cookbook does this relate to?
+      options:
+        - New Guide / Tutorial
+        - New Contract Pattern
+        - Existing Content Update
+        - Code Examples
+        - Documentation Site (UI / Navigation)
+        - Tooling / CLI
+        - Security
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? What gap does it fill?
+      placeholder: |
+        As a Soroban developer, I often need to... but the cookbook currently doesn't cover...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the feature, guide, or change you'd like to see.
+      placeholder: |
+        A new guide that walks through...
+
+        - Step 1: ...
+        - Step 2: ...
+        - Key considerations: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternatives or workarounds have you considered?
+      placeholder: I have tried reading the official Soroban docs, but they don't cover this specific pattern.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References / Examples
+      description: Link to any relevant issues, discussions, external resources, or examples that support this request.
+      placeholder: |
+        - Related issue: #123
+        - Official Stellar docs: https://...
+        - Example implementation: https://...
+      render: markdown
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you like to help implement this?
+      options:
+        - label: I am interested in contributing this feature.
+          required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verification
+      options:
+        - label: I have searched existing issues and feature requests to confirm this is not a duplicate.
+          required: true
+        - label: I have provided a clear description of the problem and proposed solution.
+          required: true

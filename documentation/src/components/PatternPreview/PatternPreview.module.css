@@ -180,6 +180,7 @@
 /* Pattern Card Wrapper */
 .patternCardWrapper {
   animation: slideInUp 0.5s ease forwards;
+  animation-delay: var(--animation-delay, 0ms);
   opacity: 0;
   position: relative;
 }
@@ -214,6 +215,18 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-family: var(--ifm-font-family-monospace);
+}
+
+.difficulty[data-difficulty='beginner'] {
+  color: #10b981;
+}
+
+.difficulty[data-difficulty='intermediate'] {
+  color: #f59e0b;
+}
+
+.difficulty[data-difficulty='advanced'] {
+  color: #ef4444;
 }
 
 .popularity {

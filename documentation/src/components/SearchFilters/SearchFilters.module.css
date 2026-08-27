@@ -1,0 +1,175 @@
+/**
+ * SearchFilters Styles
+ * Responsive filter UI with keyboard navigation support
+ */
+
+.filterContainer {
+  margin-bottom: 1.5rem;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-content-secondary);
+  border-radius: var(--ifm-global-radius);
+  color: var(--ifm-font-color-base);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.filterToggle:hover {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-100);
+}
+
+.filterToggle:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.1);
+}
+
+.filterLabel {
+  flex: 1;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  background: var(--ifm-color-primary);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chevron {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.filterToggle[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+.filterPanel {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-content-secondary);
+  border-radius: var(--ifm-global-radius);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filterGroup {
+  border: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.filterGroup:last-of-type {
+  margin-bottom: 0;
+}
+
+.filterGroupLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: 0.5rem;
+  padding: 0;
+}
+
+.checkboxGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.15s ease;
+  font-size: 0.9rem;
+}
+
+.checkboxLabel:hover {
+  background-color: var(--ifm-color-emphasis-200);
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--ifm-color-primary);
+  border-radius: 0.25rem;
+}
+
+.checkbox:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.clearButton {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--ifm-color-danger);
+  border-radius: var(--ifm-global-radius);
+  color: var(--ifm-color-danger);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.clearButton:hover {
+  background: var(--ifm-color-danger);
+  color: white;
+}
+
+.clearButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 87, 51, 0.2);
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 640px) {
+  .checkboxGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .filterPanel {
+    padding: 0.75rem;
+  }
+}

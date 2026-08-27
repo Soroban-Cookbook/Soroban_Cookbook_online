@@ -1,0 +1,67 @@
+name: Deploy PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./documentation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format, Lint, Typecheck, and Build
+        # Always validate the build, including for fork PRs.
+        if: github.event.action != 'closed'
+        run: bun run format:check && bun run lint && bun run typecheck && bun run build
+
+      # Fork PRs cannot push to upstream gh-pages (403 for github-actions[bot]).
+      - name: Deploy PR Preview
+        # Only same-repo PRs can push to upstream gh-pages with GITHUB_TOKEN.
+        if: >
+          github.event.action != 'closed' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./documentation/build
+          action: auto
+
+      - name: Skip preview deploy for fork PRs
+        if: >
+          github.event.action != 'closed' &&
+          github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "Skipping gh-pages preview deploy for fork PR (GITHUB_TOKEN cannot push to upstream)."
+          echo "Documentation build completed successfully."
+
+      - name: Remove PR Preview
+        if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./documentation/build
+          action: remove
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "Build succeeded."
+          echo "Skipping gh-pages preview deploy for fork PR (GITHUB_TOKEN cannot push to upstream)."
+      - name: Verify build (fork PRs)
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          test -d build
+          echo "✅ Preview build OK at documentation/build (deploy skipped for fork PR — no gh-pages write access)"

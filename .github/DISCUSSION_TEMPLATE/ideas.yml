@@ -1,0 +1,25 @@
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Share your idea!
+        We love new ideas. Please fill out the details below.
+
+  - type: input
+    id: idea_summary
+    attributes:
+      label: "Idea Summary"
+      description: "Provide a concise summary of your idea."
+      placeholder: "A feature to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: "Details"
+      description: "Explain how this idea works and why it would be beneficial."
+    validations:
+      required: true

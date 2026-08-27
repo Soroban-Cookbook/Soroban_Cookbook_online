@@ -43,7 +43,9 @@ export default function PatternCard({
       <div className={styles.patternHeader}>
         {icon && <span className={styles.patternIcon}>{icon}</span>}
         <span className={styles.patternBadge}>SOROBAN CONTRACT</span>
-        <Tag variant="storage" size="sm">{tag}</Tag>
+        <Tag variant="storage" size="sm">
+          {tag}
+        </Tag>
       </div>
 
       {/* Contract name — monospace, feels like code */}
@@ -66,7 +68,6 @@ export default function PatternCard({
         <pre
           id={`code-${contractName}`}
           className={styles.patternCode}
-          tabIndex={0}
           aria-label={`Code example for ${contractName}`}>
           <code>{code}</code>
         </pre>

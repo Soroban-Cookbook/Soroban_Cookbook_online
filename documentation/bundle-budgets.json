@@ -1,0 +1,40 @@
+{
+  "description": "CI bundle size budgets for the Docusaurus documentation build. Thresholds are based on measured production asset sizes after docs versioning (current + 22.0), with ~12% headroom for intentional growth. Update deliberately when a feature requires a larger budget.",
+  "measuredAt": "2026-08-06",
+  "notes": [
+    "Sizes are uncompressed on-disk bytes after `bun run build` (not gzip transfer size).",
+    "Total JS includes all code-split chunks across versioned doc sets; the main entry is checked separately as the critical-path budget.",
+    "Budgets were refreshed after the merge campaign + Docusaurus versioning roughly tripled aggregate JS chunk volume versus the 2026-07 single-version baseline.",
+    "The older `.performancebudget.json` values (300 KB JS / 50 KB CSS) are aspirational Lighthouse resource targets and are intentionally not used as hard CI gates here because they do not match current output."
+  ],
+  "budgets": [
+    {
+      "id": "main-js",
+      "description": "Main client JavaScript entry (critical path)",
+      "pattern": "build/assets/js/main.*.js",
+      "aggregate": false,
+      "maxBytes": 720896
+    },
+    {
+      "id": "main-css",
+      "description": "Primary stylesheet",
+      "pattern": "build/assets/css/styles.*.css",
+      "aggregate": false,
+      "maxBytes": 278528
+    },
+    {
+      "id": "total-js",
+      "description": "All JavaScript assets under build/",
+      "pattern": "build/**/*.js",
+      "aggregate": true,
+      "maxBytes": 9175040
+    },
+    {
+      "id": "total-css",
+      "description": "All CSS assets under build/",
+      "pattern": "build/**/*.css",
+      "aggregate": true,
+      "maxBytes": 278528
+    }
+  ]
+}

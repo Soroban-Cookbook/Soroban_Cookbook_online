@@ -1,0 +1,295 @@
+/* PatternFilterBar.module.css */
+
+.filterBar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: var(--ifm-global-radius);
+  margin-bottom: 2rem;
+}
+
+/* ── Top row: search + difficulty + clear ──────────────────────────────── */
+
+.topRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1 1 240px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ifm-color-content-secondary);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6rem 0.875rem 0.6rem 2.25rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.9rem;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.2);
+}
+
+.difficultySelect {
+  flex: 0 0 auto;
+  padding: 0.6rem 2rem 0.6rem 0.875rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.9rem;
+  cursor: pointer;
+  appearance: auto;
+  min-height: 38px;
+}
+
+.difficultySelect:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.2);
+}
+
+.clearBtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--ifm-color-danger);
+  border-radius: var(--ifm-global-radius);
+  background: transparent;
+  color: var(--ifm-color-danger);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+  white-space: nowrap;
+}
+
+.clearBtn:hover {
+  background: var(--ifm-color-danger);
+  color: #fff;
+}
+
+.clearBtn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+.clearCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  background: currentColor;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  /* Invert the text colour relative to background */
+  color: var(--ifm-background-color);
+}
+
+.clearBtn:hover .clearCount {
+  background: #fff;
+  color: var(--ifm-color-danger);
+}
+
+/* ── Category pills ─────────────────────────────────────────────────────── */
+
+.categoryRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.categoryPill {
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  background: var(--ifm-background-color);
+  color: var(--ifm-color-emphasis-800);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s,
+    transform 0.1s;
+  white-space: nowrap;
+}
+
+.categoryPill:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  transform: translateY(-1px);
+}
+
+.categoryPill:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.2);
+}
+
+.categoryPill.active {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ── Tag toggles ────────────────────────────────────────────────────────── */
+
+.tagRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.tagLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-content-secondary);
+  white-space: nowrap;
+}
+
+.tagToggle {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 0.375rem;
+  background: var(--ifm-background-color);
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.tagToggle:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.tagToggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.2);
+}
+
+.tagToggle.active {
+  background: var(--ifm-color-primary-lightest, rgba(46, 133, 85, 0.12));
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  font-weight: 700;
+}
+
+/* ── Result count ───────────────────────────────────────────────────────── */
+
+.resultCount {
+  font-size: 0.825rem;
+  color: var(--ifm-color-content-secondary);
+  margin: 0;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* ── Accessibility ──────────────────────────────────────────────────────── */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .filterBar {
+    padding: 1rem;
+  }
+
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .difficultySelect {
+    width: 100%;
+  }
+
+  .clearBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .categoryRow {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    /* hide scrollbar but keep scroll */
+    scrollbar-width: none;
+  }
+
+  .categoryRow::-webkit-scrollbar {
+    display: none;
+  }
+
+  .categoryPill {
+    flex-shrink: 0;
+  }
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+
+:global([data-theme='dark']) .filterBar {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-300);
+}
+
+:global([data-theme='dark']) .searchInput,
+:global([data-theme='dark']) .difficultySelect {
+  background: var(--ifm-background-surface-color);
+  border-color: var(--ifm-color-emphasis-400);
+  color: var(--ifm-font-color-base);
+}

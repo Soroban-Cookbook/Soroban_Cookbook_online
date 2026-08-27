@@ -191,7 +191,8 @@ const FeatureList = [
     icon: <Icon icon={BookOpen} size="lg" ariaLabel="Smart Contracts" />,
     title: 'Smart Contracts',
     description:
-      "Build secure, efficient smart contracts on Stellar using Soroban's Rust-based SDK. Deploy and invoke contracts with confidence.",
+      "Build secure, efficient smart contracts on Stellar using Soroban's " +
+      'Rust-based SDK. Deploy and invoke contracts with confidence.',
     accent: '#6366f1',
     href: '/docs/getting-started/first-contract',
   },
@@ -199,7 +200,8 @@ const FeatureList = [
     icon: <Icon icon={Zap} size="lg" ariaLabel="Quick Setup" />,
     title: 'Quick Setup',
     description:
-      'Get up and running in minutes with the Soroban CLI and Rust toolchain. From installation to your first deployment.',
+      'Get up and running in minutes with the Soroban CLI and Rust ' +
+      'toolchain. From installation to your first deployment.',
     accent: '#10b981',
     href: '/docs/getting-started/setup',
   },
@@ -207,7 +209,8 @@ const FeatureList = [
     icon: <Icon icon={Code} size="lg" ariaLabel="Core Concepts" />,
     title: 'Core Concepts',
     description:
-      'Understand the fundamentals of Soroban — from contract lifecycle and storage to authentication and cross-contract calls.',
+      'Understand the fundamentals of Soroban — from contract lifecycle and ' +
+      'storage to authentication and cross-contract calls.',
     accent: '#8b5cf6',
     href: '/docs/concepts/overview',
   },
@@ -215,7 +218,8 @@ const FeatureList = [
     icon: <Icon icon={Package} size="lg" ariaLabel="Reusable Patterns" />,
     title: 'Reusable Patterns',
     description:
-      'Leverage battle-tested design patterns for token contracts, access control, upgradability, and more.',
+      'Leverage battle-tested design patterns for token contracts, access ' +
+      'control, upgradability, and more.',
     accent: '#f59e0b',
     href: '/docs/patterns/overview',
   },
@@ -223,7 +227,8 @@ const FeatureList = [
     icon: <Icon icon={Shield} size="lg" ariaLabel="Rust-Powered" />,
     title: 'Rust-Powered',
     description:
-      "Harness Rust's memory safety and performance. Soroban contracts compile to WebAssembly for fast, predictable execution.",
+      "Harness Rust's memory safety and performance. Soroban contracts compile " +
+      'to WebAssembly for fast, predictable execution.',
     accent: '#ef4444',
     href: '/docs/getting-started/setup',
   },
@@ -231,7 +236,8 @@ const FeatureList = [
     icon: <Icon icon={Rocket} size="lg" ariaLabel="Stellar Network" />,
     title: 'Stellar Network',
     description:
-      "Tap into Stellar's global financial network. Build DeFi apps, issue assets, and interact with the ecosystem natively.",
+      "Tap into Stellar's global financial network. Build DeFi apps, issue " +
+      'assets, and interact with the ecosystem natively.',
     accent: '#0ea5e9',
     href: '/docs/concepts/overview',
   },

@@ -1,8 +1,11 @@
 .statsSection {
   padding: 5rem 2rem;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  /* Light mode: subtle light gradient */
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
   overflow: hidden;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .statsSection::before {
@@ -31,8 +34,9 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 3rem;
-  color: white;
-  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  /* Light mode: dark text gradient */
+  color: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -47,10 +51,11 @@
 .statItem {
   text-align: center;
   padding: 2rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Light mode: white card with border */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -82,10 +87,10 @@
 .statNumber {
   font-size: 3rem;
   font-weight: 800;
-  color: white;
   margin-bottom: 0.5rem;
   line-height: 1;
-  background: linear-gradient(135deg, #ffffff 0%, #7c3aed 100%);
+  /* Light mode: dark-to-purple gradient number */
+  background: linear-gradient(135deg, #1e293b 0%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -93,8 +98,47 @@
 
 .statLabel {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  /* Light mode: readable slate */
+  color: #64748b;
   font-weight: 500;
+}
+
+/* ── Dark mode overrides ────────────────────────────────────────────────── */
+
+[data-theme='dark'] .statsSection {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  border-color: transparent;
+}
+
+[data-theme='dark'] .heading {
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme='dark'] .statItem {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+
+[data-theme='dark'] .statItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(124, 58, 237, 0.4);
+  box-shadow: 0 20px 40px rgba(124, 58, 237, 0.2);
+}
+
+[data-theme='dark'] .statNumber {
+  background: linear-gradient(135deg, #ffffff 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme='dark'] .statLabel {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Responsive Design */

@@ -2,7 +2,6 @@ import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import React from 'react';
 import styles from './404.module.css';
-import OptimizedImage from '@site/src/components/OptimizedImage';
 
 const recoveryLinks = [
   {
@@ -18,7 +17,7 @@ const recoveryLinks = [
     description: 'Explore production-ready contract patterns',
   },
   {
-    href: 'https://github.com/Soroban-Cookbook/Soroban-Cookbook-',
+    href: 'https://github.com/Soroban-Cookbook/Soroban_Cookbook_online',
     icon: '⭐',
     label: 'GitHub',
     description: 'View source and contribute',
@@ -34,12 +33,14 @@ export default function NotFound() {
         <div className={styles.glowTwo} aria-hidden="true" />
         <div className={styles.container}>
           <h1 className={styles.title}>Page Not Found</h1>
-          <OptimizedImage
-            src="/img/404.png"
-            alt="A confused person flipping through a cookbook unable to find the page"
+          <img
+            src="/img/undraw_docusaurus_mountain.svg"
+            alt="Illustration of a mountain landscape displayed on the 404 page not found error screen"
             className={styles.illustration}
             width={300}
-            height={300}
+            height={250}
+            loading="lazy"
+            decoding="async"
           />
           <p className={styles.subtitle}>
             This page doesn&apos;t exist in the cookbook — yet. It may have moved, <br />

@@ -1,0 +1,28 @@
+{
+  "name": "Soroban Cookbook",
+  "short_name": "Soroban Cookbook",
+  "description": "A comprehensive guide to building smart contracts on Stellar with Soroban",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e1e2e",
+  "theme_color": "#1e1e2e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/img/pwa-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/pwa-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/img/pwa-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

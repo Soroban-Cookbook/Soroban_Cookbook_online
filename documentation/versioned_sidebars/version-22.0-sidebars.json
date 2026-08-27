@@ -1,0 +1,112 @@
+{
+  "tutorialSidebar": [
+    {
+      "type": "category",
+      "label": "Getting Started",
+      "items": [
+        "getting-started/setup",
+        "getting-started/setup-linux",
+        "getting-started/setup-windows",
+        "getting-started/setup-macos",
+        "getting-started/first-contract",
+        "getting-started/building-and-compilation",
+        "getting-started/contract-testing",
+        "getting-started/local-testing-and-simulation",
+        "getting-started/deploy-testnet",
+        "getting-started/deploy-mainnet",
+        "getting-started/contract-interaction",
+        "contributing",
+        "contributing/add-tested-example",
+        "contributing/versioning-strategy"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Migrations",
+      "items": [
+        "migrations/index",
+        "migrations/baseline-22-0",
+        "migrations/template"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Core Concepts",
+      "items": [
+        "concepts/introduction",
+        "concepts/overview",
+        "concepts/best-practices",
+        "concepts/storage",
+        "concepts/authorization",
+        "concepts/events",
+        "concepts/gas-and-resources",
+        "concepts/cross-contract-invocation"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Patterns",
+      "items": [
+        "patterns/overview",
+        "patterns/hello-world",
+        "patterns/basic-token",
+        "patterns/custom-types",
+        "patterns/token-standards",
+        "patterns/authorization",
+        "patterns/error-handling",
+        "patterns/error-recovery",
+        "patterns/optimization-playbook",
+        "patterns/lifecycle-upgrades",
+        "patterns/proposal-lifecycle"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Security",
+      "items": [
+        "security/fundamentals",
+        "security/governance",
+        "security/defi-patterns"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Design System",
+      "items": [
+        "design-system/buttons",
+        "design-system/typography",
+        "design-system/badges-tags",
+        "design-system/empty-states"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Components",
+      "items": [
+        "components/buttons",
+        "components/testimonials"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Responsive",
+      "items": [
+        "responsive/breakpoints"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Security Audit",
+      "items": [
+        "security/code-audit"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Planning",
+      "items": [
+        "planning/ab-testing"
+      ]
+    }
+  ]
+}

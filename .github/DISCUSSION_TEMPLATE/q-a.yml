@@ -1,0 +1,26 @@
+title: "[Q&A] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Welcome to Q&A!
+        Please ask your questions here and provide as much detail as possible.
+
+  - type: input
+    id: subject
+    attributes:
+      label: "Subject"
+      description: "Briefly state your question."
+      placeholder: "How do I..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: "Details"
+      description: "Provide any additional context or details."
+      placeholder: "I am trying to achieve..."
+    validations:
+      required: true

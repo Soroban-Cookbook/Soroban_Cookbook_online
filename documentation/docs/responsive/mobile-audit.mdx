@@ -1,0 +1,194 @@
+---
+sidebar_position: 2
+title: Mobile Responsiveness Audit
+description: Comprehensive audit of all pages at 375 px, 768 px, and 1280 px viewport widths. Documents bugs found and fixes applied.
+---
+
+# Mobile Responsiveness Audit
+
+Issue #135 — Phase 6 Mobile Responsiveness Audit
+
+This document records the full audit of every page template at the three mandated
+reference widths: **375 px** (mobile portrait), **768 px** (tablet), and
+**1280 px** (desktop). Bugs found are linked to the fix committed in
+`src/css/mobile-audit.css`.
+
+## Audit scope
+
+| Page / template | 375 px | 768 px | 1280 px |
+|-----------------|--------|--------|---------|
+| Homepage (`/`) | ✅ | ✅ | ✅ |
+| Docs landing (`/docs`) | ✅ | ✅ | ✅ |
+| Docs article (e.g. `/docs/patterns/hello-world`) | ✅ | ✅ | ✅ |
+| Docs with table (e.g. `/docs/responsive/breakpoints`) | ✅ | ✅ | ✅ |
+| Docs with code block | ✅ | ✅ | ✅ |
+| 404 page | ✅ | ✅ | ✅ |
+| Components demo | ✅ | ✅ | ✅ |
+
+## Bugs found and fixes
+
+### BUG-1 · Tables overflow viewport on 375 px
+
+**Affected pages:** Any doc page containing a Markdown table (e.g. breakpoints reference, storage layout tables, role/permission tables).
+
+**Symptom:** Table is wider than the viewport. The entire page gains a horizontal scrollbar, making navigation confusing.
+
+**Root cause:** Docusaurus renders `<table>` inside `.markdown` with no overflow container. Tables with many columns are naturally wider than 375 px.
+
+**Fix applied** (`src/css/mobile-audit.css`):
+
+```css
+.markdown table,
+.theme-doc-markdown table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+```
+
+The table becomes a scrollable block, keeping the page body overflow clean.
+
+---
+
+### BUG-2 · Code blocks overflow on narrow screens
+
+**Affected pages:** Any page with long code lines in Prism-highlighted blocks.
+
+**Symptom:** A single long Rust line (e.g. a full function signature) pushes the `<pre>` block past the viewport edge.
+
+**Root cause:** Prism renderer already sets `overflow-x: auto` on `.prism-code` but not on all `<pre>` wrappers, and admonition code blocks sometimes bypass this.
+
+**Fix applied:**
+
+```css
+pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+```
+
+---
+
+### BUG-3 · Hero title clips on 320 px screens
+
+**Affected pages:** Homepage.
+
+**Symptom:** The 3.4 rem title from `index.module.css` is already reduced to 2.2 rem at ≤768 px, but on a 320 px screen the word "Contracts" still overflows its container.
+
+**Root cause:** 2.2 rem ≈ 35 px; at 320 px with a 2 rem padding inset the effective content width is 288 px, which cannot contain three 35 px-tall characters side by side without overflow.
+
+**Fix applied:**
+
+```css
+@media (max-width: 374px) {
+  .hero h1,
+  [class*='hero'] h1 {
+    font-size: clamp(1.6rem, 7vw, 2.2rem) !important;
+    word-break: break-word;
+  }
+}
+```
+
+The `clamp` shrinks the title fluidly with viewport width; `word-break: break-word` is a last-resort guard.
+
+---
+
+### BUG-4 · Images without explicit dimensions overflow containers
+
+**Affected pages:** Any page with an `<img>` tag lacking `width`/`height` attributes.
+
+**Root cause:** Browsers render such images at their intrinsic pixel width, which can exceed the container width.
+
+**Fix applied:**
+
+```css
+img {
+  max-width: 100%;
+  height: auto;
+}
+```
+
+This is a global defensive rule; images with inline dimensions are unaffected.
+
+---
+
+### BUG-5 · Inline code doesn't wrap in body text on mobile
+
+**Affected pages:** Docs articles with long inline `` `identifiers` `` or `` `rust::module::TypeName` ``.
+
+**Symptom:** A very long inline code token prevents text from wrapping, causing the parent paragraph to overflow.
+
+**Fix applied:**
+
+```css
+@media (max-width: 767px) {
+  :not(pre) > code {
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+}
+```
+
+---
+
+### BUG-6 · Feature grid gap too large on narrow two-column layout
+
+**Affected pages:** Homepage hero feature chips (480–767 px range).
+
+**Symptom:** The feature chips are displayed in a 2-column grid inherited from `index.module.css`. At ~540 px the inherited gap makes each chip appear cramped.
+
+**Fix applied:**
+
+```css
+@media (min-width: 480px) and (max-width: 767px) {
+  [class*='features'] {
+    gap: var(--space-3, 0.75rem);
+  }
+}
+```
+
+---
+
+## Additional hardening
+
+Beyond the six named bugs, the audit also added:
+
+- **`html, body { overflow-x: hidden }`** — prevents any rogue element from causing a viewport-level horizontal scroll.
+- **`#__docusaurus { overflow-x: hidden }`** — clips the root Docusaurus mount point.
+- **Touch target reinforcement** — pagination arrows, theme toggle, and TOC links all receive `min-height: 44px` on mobile, meeting WCAG 2.1 AA.
+- **Admonition title wrapping** — long admonition headings now wrap gracefully on 375 px rather than overflowing.
+
+## Checklist
+
+Run through this checklist before marking any responsive PR as ready:
+
+- [x] No horizontal scrollbar at 375 px, 768 px, 1280 px
+- [x] All tables scrollable on mobile
+- [x] Code blocks scroll horizontally (no page overflow)
+- [x] Hero title readable at 320 px
+- [x] All images respect container width
+- [x] Inline code wraps on narrow screens
+- [x] Touch targets ≥ 44 × 44 px on mobile
+- [x] No content hidden below fold due to overflow clipping
+- [x] Dark mode visuals checked at each width
+- [x] Admonitions render correctly at all widths
+
+## How to run a local audit
+
+```bash
+# 1. Start the dev server
+cd documentation && npm start
+
+# 2. Open browser DevTools → Toggle Device Toolbar (Ctrl+Shift+M)
+# 3. Set custom viewport sizes: 375, 768, 1280
+# 4. Navigate through all page templates listed in the scope table above
+# 5. Check each item in the checklist
+```
+
+For automated visual regression, use the Playwright tests:
+
+```bash
+cd documentation && npm run e2e
+```

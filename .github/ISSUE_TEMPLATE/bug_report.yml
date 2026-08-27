@@ -1,0 +1,114 @@
+name: Bug Report
+description: File a bug report to help us improve the Soroban Cookbook.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report. Please provide as much detail as possible so we can reproduce and fix the issue.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the cookbook does this affect?
+      options:
+        - Getting Started / Setup
+        - Core Concepts
+        - Contract Patterns
+        - Security
+        - Documentation Site (UI / Navigation)
+        - Examples / Code Snippets
+        - CI / Build Pipeline
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: |
+        When I follow the "Deploy to Testnet" guide, the `soroban contract deploy` command fails with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the issue.
+      placeholder: |
+        1. Run `stellar contract init test-project`
+        2. Run `stellar contract build`
+        3. Run `stellar contract deploy ...`
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+      placeholder: The contract should deploy successfully and return a contract ID.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs / Output
+      description: Please copy and paste any relevant error output or logs. This will be automatically formatted into code blocks.
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: Soroban CLI / Stellar CLI Version
+      description: Run `stellar --version` or `soroban --version` and paste the output here.
+      placeholder: e.g. stellar 21.0.0
+
+  - type: input
+    id: rust-version
+    attributes:
+      label: Rust Version
+      description: Run `rustc --version` and paste the output here.
+      placeholder: e.g. rustc 1.77.0
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - macOS
+        - Linux (Ubuntu / Debian)
+        - Linux (Other)
+        - Windows (WSL)
+        - Windows (Native)
+        - Other
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or relevant information.
+      placeholder: |
+        - I am using the latest version of the cookbook.
+        - The issue started after updating my Soroban SDK from 21.0.0 to 22.0.0.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verification
+      description: Please confirm before submitting.
+      options:
+        - label: I have searched existing issues to confirm this is not a duplicate.
+          required: true
+        - label: I have provided all requested information to the best of my ability.
+          required: true

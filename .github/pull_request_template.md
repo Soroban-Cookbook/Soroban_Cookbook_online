@@ -38,6 +38,12 @@ If your changes include new or modified UI components, please verify the followi
 - [ ] **Color Contrast:** Text and background colors meet WCAG 2.1 AA contrast requirements (at least 4.5:1 for normal text).
 - [ ] **ARIA & Semantics:** Proper HTML semantics are used, and `aria-*` attributes are added where necessary for screen readers.
 
+## UAT Sign-Off (releases only)
+If this PR is part of a release, confirm UAT has been completed:
+- [ ] UAT conducted against [UAT_TEMPLATE.md](UAT_TEMPLATE.md)
+- [ ] All critical and high-severity scenarios passed
+- [ ] Stakeholder sign-off recorded in the completed UAT template
+
 ---
 
 **Thank you for your contribution! 🚀**

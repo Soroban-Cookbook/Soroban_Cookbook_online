@@ -1,4 +1,15 @@
+---
+sidebar_position: 6
+title: Authorization
+description: Implement secure authorization patterns in Soroban contracts — identity validation, role-based access control, and permission management for sensitive operations.
+---
+
 # Authorization
+
+title: Authorization
+description: Access control patterns for Soroban smart contracts.
+sidebar_position: 5
+---
 
 Authorization in Soroban ensures only expected identities can execute sensitive contract actions.
 
@@ -21,8 +32,13 @@ Authorization in Soroban ensures only expected identities can execute sensitive 
 - Mint/burn operations in token-like contracts
 - Upgrading contract logic or config
 
+## Related Examples
+
+The [`examples/multisig-wallet/`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/multisig-wallet) example demonstrates M-of-N authorization, where a configurable threshold of signers must approve a transaction before it can be executed.
+
 ## Next
 
 - [Security Fundamentals](../security/fundamentals.md)
+- [Token Pattern Security Audit](../security/token-audit.md)
 - [Storage Patterns](./storage.md)
 - [Events](./events.md)

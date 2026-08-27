@@ -258,13 +258,20 @@
   margin-top: 12px;
   padding: 14px;
   border-radius: 8px;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  /* Light mode: use the site surface colour for the code block */
+  background: var(--ifm-background-surface-color, #f3f4f6);
+  color: var(--ifm-font-color-base, #374151);
   font-size: 12px;
   line-height: 1.65;
   overflow-x: auto;
   font-family: var(--ifm-font-family-monospace);
   outline: none;
+}
+
+/* Dark mode: restore the Catppuccin-style dark code block */
+[data-theme='dark'] .patternCode {
+  background: #1e1e2e;
+  color: #cdd6f4;
 }
 
 /* ── Action Card ──────────────────────────────────────────────────────────── */
@@ -354,4 +361,9 @@
 [data-theme='dark'] .actionButton--default {
   background: #e8e8e8;
   color: #111;
+}
+
+/* Dark mode: make action description text legible */
+[data-theme='dark'] .actionDescription {
+  color: var(--ifm-color-emphasis-600, #cbd5e1);
 }

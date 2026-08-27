@@ -1,0 +1,272 @@
+/**
+ * QuickNav Component Styles
+ * Floating quick navigation menu for long documentation pages
+ */
+
+/* ── Mobile toggle button ──────────────────────────────────────────────────── */
+
+.toggleButton {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base) var(--ease-out);
+  margin-bottom: var(--space-4);
+  width: fit-content;
+}
+
+.toggleButton:hover {
+  border-color: var(--color-border-medium);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.toggleLabel {
+  white-space: nowrap;
+}
+
+/* ── Nav container ──────────────────────────────────────────────────────────── */
+
+.quicknav {
+  position: fixed;
+  top: calc(var(--ifm-navbar-height) + var(--space-8));
+  right: max(calc((100vw - var(--ifm-container-width-xl)) / 2 - 240px), var(--space-4));
+  width: 200px;
+  max-height: calc(100vh - var(--ifm-navbar-height) - var(--space-16));
+  overflow-y: auto;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+  z-index: var(--z-index-sticky);
+  transition:
+    opacity var(--transition-base) var(--ease-out),
+    transform var(--transition-base) var(--ease-out),
+    visibility var(--transition-base) var(--ease-out);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+
+.quicknavHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.quicknavTitle {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  color: var(--color-text-tertiary);
+}
+
+.closeButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-out);
+}
+
+.closeButton:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* ── List ────────────────────────────────────────────────────────────────────── */
+
+.quicknavList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.quicknavList li {
+  margin: 0;
+}
+
+/* ── Links ───────────────────────────────────────────────────────────────────── */
+
+.quicknavLink {
+  display: block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-snug);
+  text-decoration: none;
+  transition: all var(--transition-fast) var(--ease-out);
+  word-break: break-word;
+}
+
+.quicknavLink:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  text-decoration: none;
+}
+
+.quicknavLink:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  text-decoration: none;
+}
+
+/* Level-specific indentation */
+
+.quicknavLinkLevel2 {
+  padding-left: var(--space-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.quicknavLinkLevel3 {
+  padding-left: var(--space-5);
+  font-size: calc(var(--font-size-xs) - 0.0625rem);
+}
+
+/* Active state */
+
+.quicknavLinkActive {
+  color: var(--ifm-color-primary);
+  background-color: rgba(46, 133, 85, 0.08);
+  font-weight: var(--font-weight-semibold);
+  border-left: 2px solid var(--ifm-color-primary);
+  padding-left: calc(var(--space-2) - 2px);
+}
+
+.quicknavLinkLevel3.quicknavLinkActive {
+  padding-left: calc(var(--space-5) - 2px);
+}
+
+[data-theme='dark'] .quicknavLinkActive {
+  background-color: rgba(37, 194, 160, 0.1);
+  border-left-color: var(--ifm-color-primary);
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+
+.quicknav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.quicknav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.quicknav::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-light);
+  border-radius: 4px;
+}
+
+/* ── Show on desktop when there's enough room ───────────────────────────────── */
+
+@media (min-width: 1400px) {
+  .quicknav {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+/* ── Mobile styles ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 1399px) {
+  .toggleButton {
+    display: inline-flex;
+  }
+
+  .quicknav {
+    position: fixed;
+    top: var(--ifm-navbar-height);
+    right: 0;
+    left: auto;
+    width: 280px;
+    max-height: calc(100vh - var(--ifm-navbar-height) - var(--space-4));
+    border-radius: 0 0 0 var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(100%);
+    transition: all var(--transition-slow) var(--ease-out);
+    z-index: var(--z-index-modal);
+  }
+
+  .quicknavOpen {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .closeButton {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .quicknav {
+    width: calc(100vw - var(--space-8));
+    right: var(--space-4);
+    border-radius: var(--radius-lg);
+    max-height: calc(100vh - var(--ifm-navbar-height) - var(--space-8));
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .quicknav,
+  .quicknavLink,
+  .toggleButton,
+  .closeButton {
+    transition: none;
+  }
+
+  .quicknav {
+    transform: none;
+  }
+}
+
+/* ── High contrast ──────────────────────────────────────────────────────────── */
+
+@media (prefers-contrast: high) {
+  .quicknav {
+    border-width: 2px;
+  }
+
+  .quicknavLinkActive {
+    border-left-width: 3px;
+  }
+}

@@ -3,8 +3,6 @@ title: Image Optimization Guidelines
 description: Best practices for using images in Soroban Cookbook documentation
 ---
 
-# Image Optimization Guidelines
-
 This guide covers best practices for using images in the Soroban Cookbook documentation to ensure optimal performance and user experience.
 
 ## Quick Start
@@ -20,17 +18,19 @@ import OptimizedImage from '@site/src/components/OptimizedImage';
   width={300}
   height={200}
   loading="lazy"
-/>
+/>;
 ```
 
 ## Image Formats
 
 ### Preferred Formats
+
 - **WebP**: Use for all photographic images and illustrations
 - **SVG**: Use for icons, logos, and simple graphics
 - **PNG**: Use only when transparency is required and WebP isn't suitable
 
 ### Format Priority
+
 1. WebP (modern browsers) → PNG/JPEG fallback
 2. SVG for vector graphics
 3. Avoid GIFs (use WebP for animations)
@@ -38,11 +38,13 @@ import OptimizedImage from '@site/src/components/OptimizedImage';
 ## Image Sizing
 
 ### Responsive Images
+
 - Always specify `width` and `height` attributes
 - Use appropriate sizes for display (don't serve larger images than needed)
 - Consider retina displays (2x resolution)
 
 ### Common Sizes
+
 - **Thumbnails**: 150-300px width
 - **Content images**: 600-800px width
 - **Hero images**: 1200px width
@@ -51,19 +53,22 @@ import OptimizedImage from '@site/src/components/OptimizedImage';
 ## Performance Optimization
 
 ### Lazy Loading
+
 All images should use lazy loading except for:
+
 - Above-the-fold hero images
 - Critical images for user experience
 
 ```tsx
 <OptimizedImage
   src="/img/example.png"
-  alt="Description"
+  alt="Example workflow diagram illustrating image optimization steps"
   loading="lazy" // Default for OptimizedImage
 />
 ```
 
 ### Compression Guidelines
+
 - **Photographic images**: Quality 80-85%
 - **Illustrations**: Quality 85-90%
 - **Icons/logos**: Quality 90-95%
@@ -71,27 +76,30 @@ All images should use lazy loading except for:
 ## Dark Mode Support
 
 Consider providing dark mode variants for images that:
+
 - Contain text that may be hard to read in dark mode
 - Use bright colors that may be jarring in dark themes
 - Are screenshots showing light interfaces
 
 ### Implementation
+
 ```tsx
 import useThemeContext from '@theme/hooks/useThemeContext';
 
 const { isDarkTheme } = useThemeContext();
 
 <OptimizedImage
-  src={isDarkTheme ? "/img/example-dark.png" : "/img/example.png"}
-  alt="Description"
+  src={isDarkTheme ? '/img/example-dark.png' : '/img/example.png'}
+  alt="Dark mode architectural graphic variant"
   width={300}
   height={200}
-/>
+/>;
 ```
 
 ## File Organization
 
 ### Directory Structure
+
 ```
 static/img/
 ├── components/     # UI component images
@@ -102,6 +110,7 @@ static/img/
 ```
 
 ### Naming Convention
+
 - Use kebab-case: `pattern-overview.png`
 - Include size suffix for variants: `pattern-overview-small.webp`
 - Include theme suffix: `pattern-overview-dark.webp`
@@ -109,11 +118,13 @@ static/img/
 ## Alt Text Guidelines
 
 ### Good Alt Text
+
 - Descriptive and concise
 - Conveys the image's purpose
 - Includes relevant context
 
 ### Examples
+
 ```tsx
 // Good
 <OptimizedImage src="/img/soroban-logo.svg" alt="Soroban smart contract platform logo" />
@@ -131,6 +142,7 @@ Use the provided PowerShell script to optimize images:
 ```
 
 This script:
+
 - Converts images to WebP format
 - Resizes images appropriately
 - Maintains original files as backups
@@ -139,12 +151,15 @@ This script:
 ## Performance Monitoring
 
 ### Before/After Metrics
+
 Track these metrics when optimizing images:
+
 - Total page weight reduction
 - Largest Contentful Paint (LCP) improvement
 - Cumulative Layout Shift (CLS) reduction
 
 ### Tools
+
 - Lighthouse audits
 - WebPageTest
 - Chrome DevTools Network tab
@@ -152,18 +167,22 @@ Track these metrics when optimizing images:
 ## Common Issues and Solutions
 
 ### Large File Sizes
+
 - **Problem**: Images over 1MB
 - **Solution**: Resize and compress, use WebP format
 
 ### Missing Dimensions
+
 - **Problem**: Layout shift during loading
 - **Solution**: Always specify width/height attributes
 
 ### Poor Alt Text
+
 - **Problem**: Accessibility issues
 - **Solution**: Write descriptive alt text for all images
 
 ### No WebP Support
+
 - **Problem**: Older browsers can't display WebP
 - **Solution**: Use `OptimizedImage` component with fallbacks
 
@@ -183,6 +202,7 @@ Before adding new images:
 ## Migration Guide
 
 ### Existing Images
+
 1. Run the optimization script
 2. Update image usage to use `OptimizedImage` component
 3. Add proper alt text
@@ -190,6 +210,15 @@ Before adding new images:
 5. Test in both light and dark modes
 
 ### Performance Impact
+
 - **404 page**: Reduced from 1.9MB to ~50KB (97% reduction)
 - **Social cards**: Reduced by 60-80%
 - **Overall site weight**: Reduced by 40-60%
+
+---
+
+## Related links
+
+- [Contributing Guide](/docs/contributing) — documentation contribution workflow
+- [Image Optimization Performance Impact](/docs/contributing/performance-impact) — before/after metrics
+- [Empty States](/docs/design-system/empty-states) — image usage in UI patterns

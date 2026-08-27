@@ -50,14 +50,14 @@ Text with <Alert variant="info" display="inline">inline alert</Alert> inside.
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | `'info' \| 'warning' \| 'error' \| 'success'` | `'info'` | Visual style |
-| `display` | `'block' \| 'inline'` | `'block'` | Display mode |
-| `title` | `string` | - | Optional title |
-| `icon` | `ReactNode \| boolean` | `true` | Icon (true=default, false=none, or custom) |
-| `onClose` | `() => void` | - | Close callback |
-| `className` | `string` | - | Additional CSS classes |
+| Prop        | Type                                          | Default   | Description                                |
+| ----------- | --------------------------------------------- | --------- | ------------------------------------------ |
+| `variant`   | `'info' \| 'warning' \| 'error' \| 'success'` | `'info'`  | Visual style                               |
+| `display`   | `'block' \| 'inline'`                         | `'block'` | Display mode                               |
+| `title`     | `string`                                      | -         | Optional title                             |
+| `icon`      | `ReactNode \| boolean`                        | `true`    | Icon (true=default, false=none, or custom) |
+| `onClose`   | `() => void`                                  | -         | Close callback                             |
+| `className` | `string`                                      | -         | Additional CSS classes                     |
 
 ## Callout Component
 
@@ -89,16 +89,17 @@ Text with <Alert variant="info" display="inline">inline alert</Alert> inside.
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | `'info' \| 'warning' \| 'error' \| 'success' \| 'tip'` | `'info'` | Visual style |
-| `title` | `string` | Auto-generated | Title text |
-| `icon` | `ReactNode \| boolean` | `true` | Icon (true=default, false=none, or custom) |
-| `className` | `string` | - | Additional CSS classes |
+| Prop        | Type                                                   | Default        | Description                                |
+| ----------- | ------------------------------------------------------ | -------------- | ------------------------------------------ |
+| `variant`   | `'info' \| 'warning' \| 'error' \| 'success' \| 'tip'` | `'info'`       | Visual style                               |
+| `title`     | `string`                                               | Auto-generated | Title text                                 |
+| `icon`      | `ReactNode \| boolean`                                 | `true`         | Icon (true=default, false=none, or custom) |
+| `className` | `string`                                               | -              | Additional CSS classes                     |
 
 ## When to Use What
 
 ### Use Alert When:
+
 - Inline feedback for user actions
 - Form validation messages
 - System status notifications
@@ -106,6 +107,7 @@ Text with <Alert variant="info" display="inline">inline alert</Alert> inside.
 - Inline contextual information
 
 ### Use Callout When:
+
 - Documentation emphasis
 - Important guidance in tutorials
 - Highlighting best practices or anti-patterns
@@ -114,13 +116,13 @@ Text with <Alert variant="info" display="inline">inline alert</Alert> inside.
 
 ## Variant Selection Guide
 
-| Variant | Use For | Examples |
-|---------|---------|----------|
-| **info** | General information, neutral messages | Prerequisites, context, explanations |
-| **warning** | Cautions, deprecations, important notes | Breaking changes, potential issues |
-| **error** | Critical issues, mistakes to avoid | Common errors, anti-patterns, security issues |
-| **success** | Confirmations, best practices | Successful operations, recommended patterns |
-| **tip** (Callout only) | Helpful hints, optimizations | Performance tips, shortcuts, pro tips |
+| Variant                | Use For                                 | Examples                                      |
+| ---------------------- | --------------------------------------- | --------------------------------------------- |
+| **info**               | General information, neutral messages   | Prerequisites, context, explanations          |
+| **warning**            | Cautions, deprecations, important notes | Breaking changes, potential issues            |
+| **error**              | Critical issues, mistakes to avoid      | Common errors, anti-patterns, security issues |
+| **success**            | Confirmations, best practices           | Successful operations, recommended patterns   |
+| **tip** (Callout only) | Helpful hints, optimizations            | Performance tips, shortcuts, pro tips         |
 
 ## Examples in Context
 
@@ -163,9 +165,9 @@ Text with <Alert variant="info" display="inline">inline alert</Alert> inside.
 ```tsx
 <Callout variant="error" title="Common Error">
   **Error:** "Insufficient balance"
-  
+
   This occurs when trying to transfer more tokens than available.
-  
+
   **Solution:** Check the balance before calling transfer.
 </Callout>
 

@@ -1,178 +1,100 @@
-/**
- * Recommendation Tracker
- * ----------------------
- * Tracks user interactions with patterns and maintains a scoring system
- * to recommend related patterns. Uses localStorage for persistence.
- */
-
-const STORAGE_KEY = 'soroban_pattern_tracker';
-const MAX_HISTORY = 50;
-
-export interface PatternInteraction {
-  patternId: string;
-  timestamp: number;
-  viewCount: number;
+export interface UserPreferences {
+  categoryPreferences: Record<string, number>;
+  tagPreferences: Record<string, number>;
+  difficultyPreferences: Record<string, number>;
 }
 
-export interface TrackerState {
-  interactions: Record<string, PatternInteraction>;
-  lastUpdated: number;
+export interface UserHistory {
+  visitedDocs: string[];
+  preferences: UserPreferences;
 }
 
-export interface RecommendationScore {
-  patternId: string;
-  score: number;
-}
+const STORAGE_KEY = 'soroban_recommendations_history';
+const MAX_HISTORY_LENGTH = 20;
 
-/**
- * Get the current tracker state from localStorage.
- * Returns empty state if storage is unavailable or corrupted.
- */
-export function getTrackerState(): TrackerState {
+const DEFAULT_HISTORY: UserHistory = {
+  visitedDocs: [],
+  preferences: {
+    categoryPreferences: {},
+    tagPreferences: {},
+    difficultyPreferences: {},
+  },
+};
+
+export function getHistory(): UserHistory {
+  if (typeof window === 'undefined') {
+    return DEFAULT_HISTORY;
+  }
   try {
-    if (typeof window === 'undefined') {
-      return { interactions: {}, lastUpdated: 0 };
-    }
-
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return { interactions: {}, lastUpdated: 0 };
-    }
-
-    const parsed = JSON.parse(stored);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return DEFAULT_HISTORY;
+    const parsed = JSON.parse(raw);
     return {
-      interactions: parsed.interactions || {},
-      lastUpdated: parsed.lastUpdated || 0,
+      visitedDocs: Array.isArray(parsed.visitedDocs) ? parsed.visitedDocs : [],
+      preferences: {
+        categoryPreferences: parsed.preferences?.categoryPreferences || {},
+        tagPreferences: parsed.preferences?.tagPreferences || {},
+        difficultyPreferences: parsed.preferences?.difficultyPreferences || {},
+      },
     };
-  } catch {
-    // localStorage corrupted or unavailable
-    return { interactions: {}, lastUpdated: 0 };
+  } catch (e) {
+    console.error('Failed to parse recommendation history from localStorage', e);
+    return DEFAULT_HISTORY;
   }
 }
 
-/**
- * Save tracker state to localStorage.
- * Silently fails if storage is unavailable.
- */
-export function saveTrackerState(state: TrackerState): void {
+export function saveHistory(history: UserHistory): void {
+  if (typeof window === 'undefined') return;
   try {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // localStorage full or unavailable
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  } catch (e) {
+    console.error('Failed to save recommendation history to localStorage', e);
   }
 }
 
-/**
- * Record a pattern view interaction.
- * Increments view count and updates timestamp.
- */
-export function trackPatternView(patternId: string): void {
-  const state = getTrackerState();
+export function trackDocVisit(
+  docId: string,
+  category: string,
+  tags: string[],
+  difficulty: string
+): void {
+  if (typeof window === 'undefined') return;
+  if (!docId) return;
 
-  if (!state.interactions[patternId]) {
-    state.interactions[patternId] = {
-      patternId,
-      timestamp: Date.now(),
-      viewCount: 1,
-    };
-  } else {
-    state.interactions[patternId].viewCount += 1;
-    state.interactions[patternId].timestamp = Date.now();
+  const history = getHistory();
+
+  // 1. Update visitedDocs list (move to front, cap at max length)
+  const filteredDocs = history.visitedDocs.filter((id) => id !== docId);
+  history.visitedDocs = [docId, ...filteredDocs].slice(0, MAX_HISTORY_LENGTH);
+
+  // 2. Update category preference
+  if (category) {
+    const currentCatCount = history.preferences.categoryPreferences[category] || 0;
+    history.preferences.categoryPreferences[category] = currentCatCount + 1;
   }
 
-  state.lastUpdated = Date.now();
+  // 3. Update difficulty preference
+  if (difficulty) {
+    const currentDiffCount = history.preferences.difficultyPreferences[difficulty] || 0;
+    history.preferences.difficultyPreferences[difficulty] = currentDiffCount + 1;
+  }
 
-  // Keep history size bounded
-  const entries = Object.values(state.interactions).sort((a, b) => b.timestamp - a.timestamp);
-  if (entries.length > MAX_HISTORY) {
-    entries.slice(MAX_HISTORY).forEach((entry) => {
-      delete state.interactions[entry.patternId];
+  // 4. Update tag preferences
+  if (Array.isArray(tags)) {
+    tags.forEach((tag) => {
+      const currentTagCount = history.preferences.tagPreferences[tag] || 0;
+      history.preferences.tagPreferences[tag] = currentTagCount + 1;
     });
   }
 
-  saveTrackerState(state);
+  saveHistory(history);
 }
 
-/**
- * Calculate recommendation scores based on tracked interactions.
- * Uses view count and recency to weight recommendations.
- */
-export function getRecommendationScores(
-  allPatterns: string[],
-  excludePattern?: string,
-): RecommendationScore[] {
-  const state = getTrackerState();
-  const now = Date.now();
-
-  return allPatterns
-    .filter((id) => id !== excludePattern)
-    .map((patternId) => {
-      const interaction = state.interactions[patternId];
-
-      if (!interaction) {
-        // Patterns without interactions get minimal score
-        return { patternId, score: 0 };
-      }
-
-      // Decay score based on time since last view (1 week = 0 decay)
-      const daysSinceView = (now - interaction.timestamp) / (1000 * 60 * 60 * 24);
-      const recencyDecay = Math.max(0, 1 - daysSinceView / 7);
-
-      // View count contributes to score (capped at 10)
-      const viewScore = Math.min(interaction.viewCount, 10) / 10;
-
-      // Combined score: 60% recency, 40% view frequency
-      const score = recencyDecay * 0.6 + viewScore * 0.4;
-
-      return { patternId, score };
-    })
-    .sort((a, b) => b.score - a.score);
-}
-
-/**
- * Get top N recommendations based on tracked interactions.
- */
-export function getTopRecommendations(
-  allPatterns: string[],
-  limit: number = 3,
-  excludePattern?: string,
-): string[] {
-  return getRecommendationScores(allPatterns, excludePattern)
-    .filter((rec) => rec.score > 0)
-    .slice(0, limit)
-    .map((rec) => rec.patternId);
-}
-
-/**
- * Clear all tracking data.
- */
-export function clearTrackerData(): void {
+export function clearHistory(): void {
+  if (typeof window === 'undefined') return;
   try {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    window.localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // localStorage unavailable
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.error('Failed to clear recommendation history from localStorage', e);
   }
-}
-
-/**
- * Get all interactions for analytics.
- */
-export function getAllInteractions(): PatternInteraction[] {
-  const state = getTrackerState();
-  return Object.values(state.interactions);
-}
-
-/**
- * Check if tracking data exists.
- */
-export function hasTrackerData(): boolean {
-  const state = getTrackerState();
-  return Object.keys(state.interactions).length > 0;
 }

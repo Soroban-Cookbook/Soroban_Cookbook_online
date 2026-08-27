@@ -1,0 +1,301 @@
+name: CD - Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./documentation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: "1.2.0"
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ hashFiles('documentation/bun.lock') }}
+          restore-keys: |
+            bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build website
+        run: bun run build
+        env:
+          # Sourced from GitHub Repository Secrets — never hardcode these values.
+          # See DEPLOYMENT.md → Environment Variables for setup instructions.
+          SITE_URL: ${{ github.ref_name == 'main' && 'https://soroban-cookbook.dev' || 'https://staging.soroban-cookbook.dev' }}
+          NEWSLETTER_ENDPOINT: ${{ secrets.NEWSLETTER_ENDPOINT }}
+          DISCORD_INVITE_URL: ${{ secrets.DISCORD_INVITE_URL }}
+          # Analytics stays disabled until these are set — see DEPLOYMENT.md → Analytics.
+          GA_MEASUREMENT_ID: ${{ secrets.GA_MEASUREMENT_ID }}
+          CLARITY_PROJECT_ID: ${{ secrets.CLARITY_PROJECT_ID }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build
+
+  deploy:
+    if: github.ref_name == 'main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+      - name: Deployment Summary
+        run: |
+          echo "## ✅ Deployment Complete"
+          echo ""
+          echo "**Environment**: Production (GitHub Pages)"
+          echo "**URL**: ${{ steps.deployment.outputs.page_url }}"
+          echo "**Commit**: ${{ github.sha }}"
+          echo "**Branch**: ${{ github.ref_name }}"
+
+  deploy-staging:
+    if: github.ref_name == 'staging'
+    environment:
+      name: staging
+      url: https://staging.soroban-cookbook.dev
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: github-pages
+          path: ./build-artifact
+
+      - name: Extract Build Artifact
+        run: |
+          mkdir -p ./build
+          tar -xf ./build-artifact/artifact.tar -C ./build
+
+      - name: Deploy Staging to gh-pages-staging branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          publish_branch: gh-pages-staging
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Deployment Summary
+        run: |
+          echo "## ✅ Deployment Complete"
+          echo ""
+          echo "**Environment**: Staging"
+          echo "**Branch**: gh-pages-staging"
+          echo "**URL**: https://staging.soroban-cookbook.dev"
+          echo "**Commit**: ${{ github.sha }}"
+  # ─── Deploy status notifications (Phase 7) ─────────────────────────────────
+  # Notifies Slack and/or Discord on deploy success or failure.
+  # Secrets are optional — steps no-op when webhooks are not configured.
+  notify:
+    name: Deploy Status Notification
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    if: always()
+    steps:
+      - name: Determine deploy outcome
+        id: status
+        run: |
+          BUILD_RESULT="${{ needs.build.result }}"
+          DEPLOY_RESULT="${{ needs.deploy.result }}"
+          PAGE_URL="${{ needs.deploy.outputs.page_url }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          echo "build_result=$BUILD_RESULT" >> "$GITHUB_OUTPUT"
+          echo "deploy_result=$DEPLOY_RESULT" >> "$GITHUB_OUTPUT"
+          echo "run_url=$RUN_URL" >> "$GITHUB_OUTPUT"
+          echo "page_url=${PAGE_URL:-n/a}" >> "$GITHUB_OUTPUT"
+
+          if [ "$BUILD_RESULT" = "success" ] && [ "$DEPLOY_RESULT" = "success" ]; then
+            echo "outcome=success" >> "$GITHUB_OUTPUT"
+            echo "slack_emoji=:white_check_mark:" >> "$GITHUB_OUTPUT"
+            echo "discord_emoji=✅" >> "$GITHUB_OUTPUT"
+            echo "color=#36A64F" >> "$GITHUB_OUTPUT"
+            echo "title=Deployment succeeded" >> "$GITHUB_OUTPUT"
+          else
+            echo "outcome=failure" >> "$GITHUB_OUTPUT"
+            echo "slack_emoji=:x:" >> "$GITHUB_OUTPUT"
+            echo "discord_emoji=❌" >> "$GITHUB_OUTPUT"
+            echo "color=#FF0000" >> "$GITHUB_OUTPUT"
+            echo "title=Deployment failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify Slack
+        # Requires secret: SLACK_WEBHOOK_URL
+        # See DEPLOYMENT.md → Deploy Status Notifications for setup
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.slack_emoji }} *${{ steps.status.outputs.title }}* — `${{ github.repository }}`",
+              "attachments": [
+                {
+                  "color": "${{ steps.status.outputs.color }}",
+                  "fields": [
+                    {
+                      "title": "Outcome",
+                      "value": "${{ steps.status.outputs.outcome }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.ref_name }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Build",
+                      "value": "${{ steps.status.outputs.build_result }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Deploy",
+                      "value": "${{ steps.status.outputs.deploy_result }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit",
+                      "value": "${{ github.sha }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Actor",
+                      "value": "${{ github.actor }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Site URL",
+                      "value": "${{ steps.status.outputs.page_url }}"
+                    },
+                    {
+                      "title": "Run URL",
+                      "value": "${{ steps.status.outputs.run_url }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Notify Discord
+        # Requires secret: DISCORD_WEBHOOK_URL
+        # See DEPLOYMENT.md → Deploy Status Notifications for setup
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          OUTCOME: ${{ steps.status.outputs.outcome }}
+          TITLE: ${{ steps.status.outputs.title }}
+          EMOJI: ${{ steps.status.outputs.discord_emoji }}
+          COLOR: ${{ steps.status.outputs.color }}
+          BUILD_RESULT: ${{ steps.status.outputs.build_result }}
+          DEPLOY_RESULT: ${{ steps.status.outputs.deploy_result }}
+          PAGE_URL: ${{ steps.status.outputs.page_url }}
+          RUN_URL: ${{ steps.status.outputs.run_url }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not configured; skipping Discord notification"
+            exit 0
+          fi
+
+          # Convert #RRGGBB to Discord embed integer color
+          COLOR_INT=$((16#${COLOR#\#}))
+
+          payload=$(jq -n \
+            --arg content "$EMOJI **$TITLE** — \`$REPO\`" \
+            --arg title "$TITLE" \
+            --argjson color "$COLOR_INT" \
+            --arg outcome "$OUTCOME" \
+            --arg branch "$BRANCH" \
+            --arg build "$BUILD_RESULT" \
+            --arg deploy "$DEPLOY_RESULT" \
+            --arg commit "$SHA" \
+            --arg actor "$ACTOR" \
+            --arg page "$PAGE_URL" \
+            --arg run "$RUN_URL" \
+            '{
+              content: $content,
+              embeds: [{
+                title: $title,
+                color: $color,
+                fields: [
+                  {name: "Outcome", value: $outcome, inline: true},
+                  {name: "Branch", value: $branch, inline: true},
+                  {name: "Build", value: $build, inline: true},
+                  {name: "Deploy", value: $deploy, inline: true},
+                  {name: "Commit", value: $commit, inline: true},
+                  {name: "Actor", value: $actor, inline: true},
+                  {name: "Site URL", value: $page},
+                  {name: "Run URL", value: $run}
+                ]
+              }]
+            }')
+
+          curl -sS -f -X POST \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "$DISCORD_WEBHOOK_URL"
+
+          echo "Discord notification sent ($OUTCOME)"
+
+      - name: Confirm (no webhooks configured)
+        if: ${{ secrets.SLACK_WEBHOOK_URL == '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "ℹ️  No deploy notification webhooks configured."
+            echo "Add SLACK_WEBHOOK_URL and/or DISCORD_WEBHOOK_URL under Settings → Secrets → Actions."
+            echo "See DEPLOYMENT.md → Deploy Status Notifications."
+          else
+            echo "Discord webhook is configured; Slack webhook is not."
+          fi

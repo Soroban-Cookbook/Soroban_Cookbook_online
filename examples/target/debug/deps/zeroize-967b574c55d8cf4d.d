@@ -1,0 +1,11 @@
+/home/vahalla/Desktop/Soroban_Cookbook_online/examples/target/debug/deps/zeroize-967b574c55d8cf4d.d: /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/x86.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/barrier.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/stack.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/../README.md
+
+/home/vahalla/Desktop/Soroban_Cookbook_online/examples/target/debug/deps/libzeroize-967b574c55d8cf4d.rlib: /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/x86.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/barrier.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/stack.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/../README.md
+
+/home/vahalla/Desktop/Soroban_Cookbook_online/examples/target/debug/deps/libzeroize-967b574c55d8cf4d.rmeta: /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/x86.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/barrier.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/stack.rs /home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/../README.md
+
+/home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/lib.rs:
+/home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/x86.rs:
+/home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/barrier.rs:
+/home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/stack.rs:
+/home/vahalla/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zeroize-1.9.0/src/../README.md:

@@ -1,6 +1,16 @@
+---
+time: 20
+sidebar_position: 1
+title: Setup on Linux
+description: Set up your Soroban development environment on Linux — complete guide for Ubuntu, Debian, and other distributions.
+---
+
 # Linux Environment Setup
 
 Set up your Soroban development environment on Linux to start building smart contracts. This guide covers Ubuntu/Debian-based distributions with notes for other Linux distros.
+
+<PrerequisitesChecker />
+
 
 ## Prerequisites
 
@@ -26,17 +36,20 @@ Before you begin, ensure you have:
 First, update your package manager to ensure you have the latest package lists:
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt update
 sudo apt upgrade -y
 ```
 
 **Fedora/RHEL/CentOS:**
+
 ```bash
 sudo dnf update -y
 ```
 
 **Arch Linux:**
+
 ```bash
 sudo pacman -Syu
 ```
@@ -46,21 +59,25 @@ sudo pacman -Syu
 You'll need essential build tools and libraries to compile Rust and Soroban CLI.
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt install -y build-essential pkg-config libssl-dev curl git
 ```
 
 **Fedora/RHEL/CentOS:**
+
 ```bash
 sudo dnf install -y gcc gcc-c++ make pkg-config openssl-devel curl git
 ```
 
 **Arch Linux:**
+
 ```bash
 sudo pacman -S base-devel openssl curl git
 ```
 
 **Alpine Linux:**
+
 ```bash
 apk add --no-cache build-base openssl-dev curl git
 ```
@@ -82,6 +99,7 @@ source $HOME/.cargo/env
 ```
 
 **Note:** For non-interactive installations (e.g., in scripts), use:
+
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ```
@@ -170,6 +188,7 @@ Use this checklist to confirm your environment is ready:
 **Problem:** `Permission denied` when running installation commands
 
 **Solution:**
+
 ```bash
 # For curl/rustup installation, ensure you have write permissions to home directory
 ls -la ~/.cargo
@@ -186,6 +205,7 @@ sudo apt install package-name
 **Problem:** `command not found: soroban` or `command not found: rustc`
 
 **Solution:**
+
 ```bash
 # Ensure Cargo bin directory is in your PATH
 echo $PATH | grep ".cargo/bin"
@@ -206,6 +226,7 @@ source ~/.bashrc  # or source ~/.zshrc
 **Problem:** `SSL: CERTIFICATE_VERIFY_FAILED` when downloading Rust
 
 **Solution:**
+
 ```bash
 # Update CA certificates
 sudo apt install -y ca-certificates  # Ubuntu/Debian
@@ -220,6 +241,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 **Problem:** `cargo install soroban-cli` takes too long or times out
 
 **Solution:**
+
 ```bash
 # Increase the timeout and use verbose output
 cargo install --locked soroban-cli -v
@@ -236,6 +258,7 @@ cargo install --locked soroban-cli --version 20.0.0
 **Problem:** Error like `error: linker 'cc' not found`
 
 **Solution:**
+
 ```bash
 # Reinstall build tools
 sudo apt install -y build-essential  # Ubuntu/Debian
@@ -248,6 +271,7 @@ sudo pacman -S base-devel  # Arch Linux
 **Problem:** `No space left on device` during installation
 
 **Solution:**
+
 ```bash
 # Check available disk space
 df -h
@@ -303,14 +327,14 @@ rustup toolchain uninstall <toolchain-name>
 Now that your Linux environment is ready:
 
 1. [Create your first contract](./first-contract.md)
-2. [Learn core concepts](../concepts/overview.md)
+2. [Learn core concepts](../concepts/overview)
 3. [Deploy to testnet](./deploy-testnet.md)
-4. [Explore patterns](../patterns/overview.md)
+4. [Explore patterns](../patterns/overview)
 
 ## Additional Resources
 
 - [Rust Installation Guide](https://www.rust-lang.org/tools/install)
-- [Soroban Official Documentation](https://developers.stellar.org/docs/smart-contracts)
+- [Soroban Official Documentation](https://developers.stellar.org/docs/build/smart-contracts)
 - [Stellar Discord Community](https://discord.gg/stellardev)
 - [Linux Package Management Guide](https://wiki.archlinux.org/title/Pacman/Rosetta)
 
@@ -318,7 +342,7 @@ Now that your Linux environment is ready:
 
 If you encounter issues not covered in this guide:
 
-1. Check the [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
+1. Check the [Soroban Documentation](https://developers.stellar.org/docs/build/smart-contracts)
 2. Ask in the [Stellar Discord](https://discord.gg/stellardev)
-3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban-Cookbook-/issues)
+3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues)
 4. Create a new issue with detailed error messages and your Linux distribution info

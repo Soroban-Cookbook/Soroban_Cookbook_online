@@ -1,0 +1,23 @@
+.banner {
+  position: sticky;
+  top: var(--ifm-navbar-height, 3.75rem);
+  z-index: 150;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  padding: 0.65rem 1.25rem;
+  background: var(--ifm-color-warning-contrast-background, #fff7ed);
+  color: var(--ifm-color-warning-contrast-foreground, #9a3412);
+  border-bottom: 1px solid var(--ifm-color-warning-dark, #fdba74);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.title {
+  font-weight: 700;
+}
+
+.detail {
+  opacity: 0.95;
+}

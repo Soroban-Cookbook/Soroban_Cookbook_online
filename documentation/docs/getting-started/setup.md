@@ -1,10 +1,20 @@
+---
+time: 5
+sidebar_position: 1
+title: Environment Setup
+description: Set up your Soroban development environment — install Rust, Soroban CLI, and configure your system for smart contract development.
+---
+
 # Environment Setup
 
-Set up your Soroban development environment to start building smart contracts.
+For platform-specific instructions, see [Linux Environment Setup](/docs/getting-started/setup-linux) or [Windows Environment Setup](/docs/getting-started/setup-windows).
+
+<PrerequisitesChecker />
 
 ## Prerequisites
 
 Before you begin, ensure you have:
+
 
 - **Rust** - Latest stable version
 - **Soroban CLI** - Command-line interface for Soroban
@@ -61,8 +71,8 @@ You should see the Soroban CLI help output.
 Now that your environment is ready:
 
 1. [Create your first contract](./first-contract.md)
-2. [Learn core concepts](../concepts/overview.md)
-3. [Explore patterns](../patterns/overview.md)
+2. [Learn core concepts](../concepts/overview)
+3. [Explore patterns](../patterns/overview)
 
 ## Troubleshooting
 
@@ -83,4 +93,55 @@ Now that your environment is ready:
 **Need Help?**
 
 - [Stellar Discord](https://discord.gg/stellardev)
-- [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
+- [Soroban Documentation](https://developers.stellar.org/docs/build/smart-contracts)
+
+## Frequently Asked Questions
+
+### How do I install Rust for Soroban development?
+You can install Rust by running:
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+And verify with `rustc --version`.
+
+### How do I install the Soroban CLI?
+You can install it via Cargo:
+```bash
+cargo install --locked soroban-cli
+```
+
+### Why do I need the wasm32-unknown-unknown target?
+Soroban smart contracts are compiled to WebAssembly (WASM). The `wasm32-unknown-unknown` target tells the Rust compiler to target WASM bytecode instead of native machine code.
+
+<script type="application/ld+json">
+{JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I install Rust for Soroban development?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can install Rust by running curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh and verify it with rustc --version."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install the Soroban CLI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can install it by running cargo install --locked soroban-cli."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why do I need the wasm32-unknown-unknown target?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Soroban smart contracts are compiled to WebAssembly (WASM). The wasm32-unknown-unknown target tells the Rust compiler to target WASM bytecode instead of native machine code."
+      }
+    }
+  ]
+})}
+</script>

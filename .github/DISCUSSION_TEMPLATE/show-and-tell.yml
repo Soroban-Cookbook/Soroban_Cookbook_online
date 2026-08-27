@@ -1,0 +1,23 @@
+title: "[Show and Tell] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Show and Tell!
+        Share what you've built, a project you're working on, or something cool you discovered.
+
+  - type: input
+    id: project_name
+    attributes:
+      label: "Project / Discovery Name"
+      description: "What are you sharing?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: "Description"
+      description: "Tell us all about it! Include links, screenshots, or code snippets."
+    validations:
+      required: true

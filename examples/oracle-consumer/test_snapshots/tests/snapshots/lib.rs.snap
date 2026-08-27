@@ -1,0 +1,17 @@
+---
+source: examples/oracle-consumer/src/lib.rs
+expression: test_results
+---
+# Oracle Consumer Test Results
+
+This file stores test snapshots for the oracle consumer pattern.
+
+## Tests
+
+- test_oracle_init: ✓ Initializes oracle consumer with oracle address and max age
+- test_get_price: ✓ Fetches prices from oracle contract
+- test_get_price_data: ✓ Retrieves detailed price data with decimals and timestamp
+- test_calculate_value: ✓ Calculates asset values based on oracle prices
+- test_get_prices_multiple: ✓ Fetches multiple prices in single call
+- test_set_oracle: ✓ Updates oracle contract address
+- test_set_max_age: ✓ Updates maximum data age threshold

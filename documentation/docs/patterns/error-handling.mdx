@@ -1,8 +1,27 @@
 ---
+time: 20
 sidebar_position: 4
 title: Error Handling
 description: Error taxonomy, custom error patterns, and user-facing clarity strategies.
 image: /img/soroban-social-card.png
+# Phase 5 (issue #333): API keyword frontmatter for code-snippet search.
+keywords:
+  - contracterror
+  - contracterror
+  - ContractError
+  - soroban_sdk
+  - contracttype
+  - panic
+  - Error
+  - Result
+  - Err
+  - error taxonomy
+  - custom error
+  - error propagation
+  - error handling
+  - validation error
+  - authorization error
+  - state error
 ---
 
 import Tabs from '@theme/Tabs';
@@ -34,6 +53,7 @@ This pattern guide defines a comprehensive error handling methodology for Soroba
 A well-defined error taxonomy categorizes errors into logical groups. This prevents overlapping error codes, aids debugging, and makes client-side handling predictable.
 
 ### Common Taxonomy Categories
+
 - **Validation Errors (100-199)**: Invalid inputs, out of bounds, incorrect formats.
 - **Authorization Errors (200-299)**: Missing signatures, unauthorized roles.
 - **State Errors (300-399)**: Invalid state transitions, uninitialized data.
@@ -52,15 +72,15 @@ pub enum Error {
     // Validation Errors (100+)
     InvalidAmount = 101,
     InvalidAddress = 102,
-    
+
     // Authorization Errors (200+)
     Unauthorized = 201,
     RoleNotFound = 202,
-    
+
     // State Errors (300+)
     AlreadyInitialized = 301,
     NotInitialized = 302,
-    
+
     // Resource Errors (400+)
     InsufficientBalance = 401,
     InsufficientAllowance = 402,
@@ -78,20 +98,20 @@ impl TokenContract {
         amount: i128,
     ) -> Result<(), Error> {
         from.require_auth();
-        
+
         if amount <= 0 {
             return Err(Error::InvalidAmount);
         }
-        
+
         let balance = env.storage().persistent().get(&from).unwrap_or(0);
         if balance < amount {
             return Err(Error::InsufficientBalance);
         }
-        
+
         // Execute transfer logic here (simplified for example)
         let new_balance = balance - amount;
         env.storage().persistent().set(&from, &new_balance);
-        
+
         Ok(())
     }
 }
@@ -111,15 +131,15 @@ mod tests {
         let env = Env::default();
         let contract_id = env.register_contract(None, TokenContract);
         let client = TokenContractClient::new(&env, &contract_id);
-        
+
         let alice = Address::generate(&env);
         let bob = Address::generate(&env);
         env.mock_all_auths();
-        
+
         // Test Validation Error (100-199 range)
         let result = client.try_transfer(&alice, &bob, &-10);
         assert_eq!(result, Err(Ok(Error::InvalidAmount)));
-        
+
         // Test Resource Error (400-499 range)
         let result = client.try_transfer(&alice, &bob, &100);
         assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
@@ -137,7 +157,8 @@ mod tests {
 Using the `?` operator allows you to gracefully propagate errors up the call stack. This pattern advocates breaking complex operations into smaller, isolated functions that validate conditions or calculate state and return a `Result`.
 
 <PatternCallout variant="info" title="Why Propagate?">
-Propagating errors rather than panicking ensures that your contract gracefully halts and provides exact error reasons to the caller, preventing unknown execution states.
+  Propagating errors rather than panicking ensures that your contract gracefully halts and provides
+  exact error reasons to the caller, preventing unknown execution states.
 </PatternCallout>
 
 <Tabs>
@@ -161,21 +182,21 @@ pub struct WorkflowContract;
 impl WorkflowContract {
     pub fn complex_workflow(env: Env, user: Address, value: i128) -> Result<(), WorkflowError> {
         user.require_auth();
-        
+
         // Strategy: Delegate and propagate errors using '?'
         Self::validate_input(&env, value)?;
         Self::process_data(&env, &user, value)?;
-        
+
         Ok(())
     }
-    
+
     fn validate_input(_env: &Env, value: i128) -> Result<(), WorkflowError> {
         if value < 0 {
             return Err(WorkflowError::InvalidInput);
         }
         Ok(())
     }
-    
+
     fn process_data(env: &Env, user: &Address, value: i128) -> Result<(), WorkflowError> {
         // Business logic that could fail
         if value == 42 {
@@ -201,14 +222,14 @@ mod tests {
         let env = Env::default();
         let contract_id = env.register_contract(None, WorkflowContract);
         let client = WorkflowContractClient::new(&env, &contract_id);
-        
+
         let user = Address::generate(&env);
         env.mock_all_auths();
-        
+
         // The error naturally propagates from validate_input up to the contract entrypoint
         let result_validation = client.try_complex_workflow(&user, &-5);
         assert_eq!(result_validation, Err(Ok(WorkflowError::InvalidInput)));
-        
+
         // The error propagates from process_data up to the contract entrypoint
         let result_processing = client.try_complex_workflow(&user, &42);
         assert_eq!(result_processing, Err(Ok(WorkflowError::ProcessingFailed)));
@@ -241,7 +262,8 @@ Remember that if a contract returns an error, the transaction rolls back, and an
 <PatternSection id="related" title="Related patterns">
 
 - [Error Recovery](/docs/patterns/error-recovery) — strategies for degraded modes and fallback execution.
+- [Error Handling concepts](/docs/concepts/error-handling) — Result types and error taxonomy
 - [Authorization Concepts](/docs/concepts/authorization) — detailed auth handling and its related error paths.
-- [Testing Best Practices](/docs/concepts/testing) — more strategies for testing failure scenarios.
+- [Testing Errors Guide](/docs/getting-started/testing-errors) — more strategies for testing failure scenarios.
 
 </PatternSection>

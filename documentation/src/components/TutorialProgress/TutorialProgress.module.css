@@ -1,0 +1,104 @@
+.progress {
+  margin-bottom: 2rem;
+}
+
+.track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.fill {
+  height: 100%;
+  background: var(--ifm-color-primary);
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.step {
+  margin: 0;
+}
+
+.stepButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--ifm-border-color);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.stepButton:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+.stepButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.stepMarker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  background: color-mix(in srgb, var(--ifm-color-emphasis-300) 60%, transparent);
+  flex-shrink: 0;
+}
+
+.current .stepMarker {
+  background: var(--ifm-color-primary);
+  color: var(--ifm-color-primary-contrast-foreground, #fff);
+}
+
+.complete .stepMarker {
+  background: var(--ifm-color-success, #2e8555);
+  color: #fff;
+}
+
+.current {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.complete {
+  opacity: 0.85;
+}
+
+.stepLabel {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .stepLabel {
+    display: none;
+  }
+
+  .stepButton {
+    padding: 0.35rem;
+  }
+}

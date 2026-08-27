@@ -1,0 +1,253 @@
+---
+sidebar_position: 12
+title: Escrow — Basic
+description: Two-party escrow with buyer, seller, and arbiter roles. Covers deposit, conditional release, and arbiter-controlled refund.
+tags: [escrow, defi, intermediate]
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Escrow — Basic
+
+A production-ready two-party escrow contract with an arbiter for dispute resolution.
+
+## Overview
+
+The escrow pattern is one of the most fundamental DeFi primitives. A **buyer** locks
+tokens inside the contract; a **seller** can only receive those tokens once the buyer
+(or arbiter) releases them. If a dispute arises, the **arbiter** can either release
+to the seller or refund the buyer.
+
+```
+[Created] ──deposit──▶ [Funded]
+[Funded]  ──release──▶ [Released]  ← buyer or arbiter
+[Funded]  ──refund───▶ [Refunded]  ← arbiter only
+```
+
+### Roles
+
+| Role | Can | Cannot |
+|------|-----|--------|
+| **Buyer** | Deposit funds, release to seller | Refund themselves |
+| **Seller** | Receive released funds | Trigger any state change |
+| **Arbiter** | Release to seller, refund buyer | Nothing else |
+
+## Contract
+
+<Tabs>
+<TabItem value="contract" label="escrow_basic/src/lib.rs">
+
+```rust
+#![no_std]
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, token, Address, Env};
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Buyer,
+    Seller,
+    Arbiter,
+    Token,
+    Amount,
+    State,
+}
+
+#[contracttype]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EscrowState {
+    Created,
+    Funded,
+    Released,
+    Refunded,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    AlreadyInitialised = 1,
+    NotInitialised     = 2,
+    InvalidAmount      = 3,
+    NotFunded          = 4,
+    UnauthorisedRelease = 5,
+    UnauthorisedRefund  = 6,
+    AlreadySettled     = 7,
+}
+
+#[contract]
+pub struct EscrowBasic;
+
+#[contractimpl]
+impl EscrowBasic {
+    /// Set up the escrow — no funds move yet.
+    pub fn initialise(
+        env: Env,
+        buyer: Address,
+        seller: Address,
+        arbiter: Address,
+        token: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
+        if env.storage().persistent().has(&DataKey::State) {
+            return Err(Error::AlreadyInitialised);
+        }
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        env.storage().persistent().set(&DataKey::Buyer, &buyer);
+        env.storage().persistent().set(&DataKey::Seller, &seller);
+        env.storage().persistent().set(&DataKey::Arbiter, &arbiter);
+        env.storage().persistent().set(&DataKey::Token, &token);
+        env.storage().persistent().set(&DataKey::Amount, &amount);
+        env.storage().persistent().set(&DataKey::State, &EscrowState::Created);
+        Ok(())
+    }
+
+    /// Buyer deposits funds. Moves state to Funded.
+    pub fn deposit(env: Env) -> Result<(), Error> {
+        let state: EscrowState = env.storage().persistent()
+            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+        if state != EscrowState::Created {
+            return Err(Error::AlreadySettled);
+        }
+        let buyer: Address = env.storage().persistent()
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+        buyer.require_auth();
+        let token: Address = env.storage().persistent()
+            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+        let amount: i128 = env.storage().persistent()
+            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+        token::Client::new(&env, &token)
+            .transfer(&buyer, &env.current_contract_address(), &amount);
+        env.storage().persistent().set(&DataKey::State, &EscrowState::Funded);
+        Ok(())
+    }
+
+    /// Release funds to seller. Caller must be buyer or arbiter.
+    pub fn release(env: Env, caller: Address) -> Result<(), Error> {
+        caller.require_auth();
+        let state: EscrowState = env.storage().persistent()
+            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+        if state != EscrowState::Funded {
+            return Err(Error::NotFunded);
+        }
+        let buyer: Address = env.storage().persistent()
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+        let arbiter: Address = env.storage().persistent()
+            .get(&DataKey::Arbiter).ok_or(Error::NotInitialised)?;
+        if caller != buyer && caller != arbiter {
+            return Err(Error::UnauthorisedRelease);
+        }
+        let seller: Address = env.storage().persistent()
+            .get(&DataKey::Seller).ok_or(Error::NotInitialised)?;
+        let token: Address = env.storage().persistent()
+            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+        let amount: i128 = env.storage().persistent()
+            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+        token::Client::new(&env, &token)
+            .transfer(&env.current_contract_address(), &seller, &amount);
+        env.storage().persistent().set(&DataKey::State, &EscrowState::Released);
+        Ok(())
+    }
+
+    /// Refund buyer. Caller must be arbiter.
+    pub fn refund(env: Env, caller: Address) -> Result<(), Error> {
+        caller.require_auth();
+        let state: EscrowState = env.storage().persistent()
+            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+        if state != EscrowState::Funded {
+            return Err(Error::NotFunded);
+        }
+        let arbiter: Address = env.storage().persistent()
+            .get(&DataKey::Arbiter).ok_or(Error::NotInitialised)?;
+        if caller != arbiter {
+            return Err(Error::UnauthorisedRefund);
+        }
+        let buyer: Address = env.storage().persistent()
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+        let token: Address = env.storage().persistent()
+            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+        let amount: i128 = env.storage().persistent()
+            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+        token::Client::new(&env, &token)
+            .transfer(&env.current_contract_address(), &buyer, &amount);
+        env.storage().persistent().set(&DataKey::State, &EscrowState::Refunded);
+        Ok(())
+    }
+
+    pub fn get_state(env: Env) -> Option<EscrowState> {
+        env.storage().persistent().get(&DataKey::State)
+    }
+
+    pub fn get_amount(env: Env) -> Option<i128> {
+        env.storage().persistent().get(&DataKey::Amount)
+    }
+}
+```
+
+</TabItem>
+<TabItem value="toml" label="Cargo.toml">
+
+```toml
+[package]
+name = "escrow-basic"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+
+[dev-dependencies]
+soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true
+```
+
+</TabItem>
+</Tabs>
+
+## Key design decisions
+
+### Why does `deposit` take no arguments?
+
+All parameters (buyer, seller, arbiter, token, amount) are stored during
+`initialise`. This keeps `deposit` simple and prevents parameters being
+swapped at deposit time.
+
+### Why can't the buyer refund themselves?
+
+This is intentional. If the buyer could refund unilaterally they could abuse
+the escrow as a free option — deposit, wait, and refund if the deal is no
+longer favourable. The arbiter acts as the tiebreaker.
+
+### Persistent storage
+
+All state uses `persistent` storage (not `instance` or `temporary`). This
+means entries survive TTL expiry when extended, which is important for escrows
+that may sit idle for weeks.
+
+## Security considerations
+
+- **Reentrancy**: Soroban's execution model prevents reentrancy — each contract
+  invocation is atomic and cross-contract calls resolve synchronously.
+- **Integer overflow**: `overflow-checks = true` in the release profile catches
+  arithmetic overflows at runtime.
+- **Access control**: Every state-changing function validates the caller against
+  stored role addresses. `require_auth()` enforces on-chain authorisation.
+
+## Related patterns
+
+- [Timelock Vault](./timelock-vault) — time-locked release without an arbiter
+- [Token Transfer](./token-standards) — SEP-41 token interaction basics

@@ -186,3 +186,30 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Loading Section */
+.loadingSection {
+  padding: 4rem 0;
+}
+
+.loadingContainer {
+  background: var(--ifm-background-surface-color);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-border-color);
+}
+
+.skeletonGroup {
+  margin-top: 1rem;
+}
+
+.loadingIndicator {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loadingText {
+  color: var(--ifm-color-emphasis-700);
+}

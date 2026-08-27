@@ -1,0 +1,227 @@
+name: Alert System
+
+on:
+  # Fire after every CI run on main so failures are caught immediately
+  workflow_run:
+    workflows:
+      - CI
+      - "CD - Deploy to GitHub Pages"
+    types:
+      - completed
+    branches:
+      - main
+
+  # Uptime probe: runs on a schedule independent of code pushes
+  schedule:
+    # Every 30 minutes, 24 × 7
+    - cron: '*/30 * * * *'
+
+  # Allow manual test-fire from the Actions tab
+  workflow_dispatch:
+    inputs:
+      test_alert:
+        description: 'Send a test alert to verify the integration'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  # ─── CI / CD failure alerts ────────────────────────────────────────────────
+  notify-failure:
+    name: Notify on CI/CD failure
+    runs-on: ubuntu-latest
+    # Only run when triggered by a workflow_run event AND that run failed
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - name: Build Slack failure payload
+        id: payload
+        run: |
+          cat <<'EOF' > payload.json
+          {
+            "text": ":red_circle: *CI/CD failure* on `${{ github.event.workflow_run.head_branch }}`",
+            "attachments": [
+              {
+                "color": "#FF0000",
+                "fields": [
+                  {
+                    "title": "Workflow",
+                    "value": "${{ github.event.workflow_run.name }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Branch",
+                    "value": "${{ github.event.workflow_run.head_branch }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Triggered by",
+                    "value": "${{ github.event.workflow_run.triggering_actor.login }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Commit",
+                    "value": "${{ github.event.workflow_run.head_sha }}",
+                    "short": true
+                  },
+                  {
+                    "title": "Run URL",
+                    "value": "${{ github.event.workflow_run.html_url }}"
+                  }
+                ]
+              }
+            ]
+          }
+          EOF
+
+      - name: Send Slack alert
+        # Requires secret: SLACK_WEBHOOK_URL
+        # See DEPLOYMENT.md → Alert System → Setup for instructions
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload-file-path: payload.json
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  notify-recovery:
+    name: Notify on CI/CD recovery
+    runs-on: ubuntu-latest
+    # Only run when triggered by a workflow_run event AND that run succeeded
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Send Slack recovery message
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload: |
+            {
+              "text": ":large_green_circle: *CI/CD recovered* — `${{ github.event.workflow_run.name }}` passed on `${{ github.event.workflow_run.head_branch }}`",
+              "attachments": [
+                {
+                  "color": "#36A64F",
+                  "fields": [
+                    {
+                      "title": "Run URL",
+                      "value": "${{ github.event.workflow_run.html_url }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ─── Uptime probe ──────────────────────────────────────────────────────────
+  uptime-check:
+    name: Uptime probe
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    outputs:
+      site_up: ${{ steps.probe.outputs.site_up }}
+      status_code: ${{ steps.probe.outputs.status_code }}
+    steps:
+      - name: Probe site
+        id: probe
+        run: |
+          SITE_URL="${{ vars.SITE_URL || 'https://soroban-cookbook.dev' }}"
+          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" \
+            --max-time 15 \
+            --retry 3 \
+            --retry-delay 5 \
+            "$SITE_URL")
+
+          echo "status_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ]; then
+            echo "site_up=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Site is UP — HTTP $HTTP_CODE"
+          else
+            echo "site_up=false" >> "$GITHUB_OUTPUT"
+            echo "❌ Site is DOWN — HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Alert on downtime
+        if: failure() && ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload: |
+            {
+              "text": ":rotating_light: *Site DOWN* — ${{ vars.SITE_URL || 'https://soroban-cookbook.dev' }} returned HTTP `${{ steps.probe.outputs.status_code }}`",
+              "attachments": [
+                {
+                  "color": "#FF0000",
+                  "fields": [
+                    {
+                      "title": "URL",
+                      "value": "${{ vars.SITE_URL || 'https://soroban-cookbook.dev' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "HTTP status",
+                      "value": "${{ steps.probe.outputs.status_code }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Check run",
+                      "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ─── Manual test alert ─────────────────────────────────────────────────────
+  test-alert:
+    name: Send test alert
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.test_alert == 'true'
+    steps:
+      - name: Send test Slack message
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload: |
+            {
+              "text": ":white_check_mark: *Test alert* — Soroban Cookbook alert system is configured correctly.",
+              "attachments": [
+                {
+                  "color": "#36A64F",
+                  "fields": [
+                    {
+                      "title": "Triggered by",
+                      "value": "${{ github.actor }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Repository",
+                      "value": "${{ github.repository }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Confirm (no webhook configured)
+        if: ${{ secrets.SLACK_WEBHOOK_URL == '' }}
+        run: |
+          echo "⚠️  SLACK_WEBHOOK_URL secret is not set."
+          echo "Add it under Settings → Secrets → Actions and re-run this workflow."
+          exit 1

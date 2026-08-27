@@ -1,0 +1,138 @@
+/**
+ * VideoPlayer component styling
+ * Handles responsive video embedding with 16:9 aspect ratio
+ */
+
+.container {
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-background-color, #ffffff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/**
+ * Responsive wrapper with 16:9 aspect ratio
+ * Uses padding-bottom trick for maintaining aspect ratio
+ */
+.wrapper {
+  position: relative;
+  width: 100%;
+  /* Default 16:9 aspect ratio */
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.wrapper.ratio16x9 {
+  padding-bottom: 56.25%;
+}
+
+.wrapper.ratio4x3 {
+  padding-bottom: 75%;
+}
+
+.wrapper.ratio1x1 {
+  padding-bottom: 100%;
+}
+
+.wrapper.ratio21x9 {
+  padding-bottom: 42.857%;
+}
+
+.iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 4px;
+}
+
+/* Accessibility features */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  color: #999;
+  font-size: 14px;
+  z-index: 1;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f3f4f6;
+  color: #dc2626;
+  font-size: 14px;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 2rem;
+}
+
+/* Caption/Description */
+.caption {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--ifm-text-color-secondary, #6b7280);
+  background: var(--ifm-background-surface-color, #f9fafb);
+  border-top: 1px solid var(--ifm-border-color, #e5e7eb);
+  line-height: 1.5;
+}
+
+.caption strong {
+  color: var(--ifm-heading-color, #1f2937);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    margin: 1rem 0;
+    border-radius: 6px;
+  }
+
+  .iframe {
+    border-radius: 2px;
+  }
+
+  .error {
+    padding: 1rem;
+    font-size: 12px;
+  }
+
+  .caption {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .error {
+    background: rgba(31, 41, 55, 0.8);
+    color: #fca5a5;
+  }
+
+  .caption {
+    background: var(--ifm-background-surface-color, #1f2937);
+  }
+}
