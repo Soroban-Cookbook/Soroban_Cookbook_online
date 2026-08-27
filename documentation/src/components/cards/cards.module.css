@@ -169,7 +169,7 @@
 
 .patternCard {
   border-top: 3px solid #f59e0b !important;
-  background: var(--pattern-card-bg, #fffdf5) !important;
+  background: #ffffff !important;
 }
 
 [data-theme='dark'] .patternCard {
@@ -187,7 +187,7 @@
 .patternIcon {
   display: flex;
   align-items: center;
-  color: #78350f;
+  color: #1c1917;
 }
 
 .patternBadge {
@@ -195,7 +195,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #78350f;
+  color: #1c1917;
   font-family: var(--ifm-font-family-monospace);
 }
 
@@ -204,7 +204,7 @@
   padding: 2px 10px;
   border-radius: 99px;
   background: rgba(245, 158, 11, 0.12);
-  color: #78350f;
+  color: #1c1917;
   font-weight: 600;
   font-family: var(--ifm-font-family-monospace);
 }
@@ -246,7 +246,7 @@
   font-size: 12px;
   font-weight: 700;
   font-family: var(--ifm-font-family-monospace);
-  color: #78350f;
+  color: #1c1917;
   transition: opacity 0.15s;
 }
 
