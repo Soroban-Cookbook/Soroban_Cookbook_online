@@ -82,7 +82,7 @@
 
 .cardDescription {
   font-size: 0.875rem;
-  color: var(--ifm-color-gray-600, #888);
+  color: #4b5563;
   margin-bottom: 1.25rem;
   flex-grow: 1;
   line-height: 1.5;
@@ -97,7 +97,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 0.75rem;
-  color: var(--ifm-color-gray-500, #666);
+  color: #4b5563;
   border-top: 1px solid var(--ifm-hr-border-color);
   padding-top: 0.75rem;
 }

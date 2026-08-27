@@ -110,13 +110,13 @@ let total = balance.checked_add(deposit).expect("Overflow");
 
 Use this checklist before every deployment:
 
-- [ ] **Authorization:** All sensitive functions use `require_auth()`.
-- [ ] **Arithmetic:** All math uses `checked_*` methods; no risk of overflow/underflow.
-- [ ] **State Changes:** Internal state is updated _before_ any external contract calls.
-- [ ] **Input Sanitization:** All user inputs (amounts, addresses, metadata) are validated.
-- [ ] **Storage Limits:** No unbounded loops or storage growth that could cause DoS.
-- [ ] **Events:** Sensitive operations (admin changes, large transfers) emit descriptive events.
-- [ ] **Error Handling:** Errors are explicit (using `Result` and custom error enums).
+- **Authorization:** All sensitive functions use `require_auth()`.
+- **Arithmetic:** All math uses `checked_*` methods; no risk of overflow/underflow.
+- **State Changes:** Internal state is updated _before_ any external contract calls.
+- **Input Sanitization:** All user inputs (amounts, addresses, metadata) are validated.
+- **Storage Limits:** No unbounded loops or storage growth that could cause DoS.
+- **Events:** Sensitive operations (admin changes, large transfers) emit descriptive events.
+- **Error Handling:** Errors are explicit (using `Result` and custom error enums).
 
 For token contracts (mint, transfer, allowances, vaults, wrappers), complete the dedicated [Token Pattern Security Audit](/docs/security/token-audit) checklist before deployment.
 

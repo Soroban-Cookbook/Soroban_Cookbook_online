@@ -63,7 +63,8 @@
 
   /* Sidebar */
   --ifm-menu-color: #374151;
-  --ifm-menu-color-active: #2e8555;
+  /* Darker than primary so active links pass 4.5:1 on Infima's #f2f2f2 active bg */
+  --ifm-menu-color-active: #1b5e3a;
   --ifm-menu-color-background-hover: rgba(46, 133, 85, 0.08);
 
   /* Footer */
@@ -801,4 +802,16 @@ html {
   .theme-doc-sidebar-container a.scroll-spy-active {
     transition: none;
   }
+}
+
+/* ── In-text link distinguishability (WCAG 1.4.1 / axe link-in-text-block) ── */
+.markdown a,
+.theme-doc-markdown a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.markdown a:hover,
+.theme-doc-markdown a:hover {
+  text-decoration-thickness: 2px;
 }

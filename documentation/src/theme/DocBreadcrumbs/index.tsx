@@ -138,8 +138,9 @@ export default function DocBreadcrumbs(): React.JSX.Element | null {
   return (
     <>
       {/* Full breadcrumbs — visible on desktop via CSS media query.
-          Hidden from accessibility tree on viewports where it's display:none. */}
-      <div className={styles.fullViewport} aria-hidden="true">
+          display:none on mobile removes this from the a11y tree; do not set
+          aria-hidden here (it would leave focusable links inside a hidden tree). */}
+      <div className={styles.fullViewport}>
         <BreadcrumbsNav breadcrumbs={items} />
       </div>
 

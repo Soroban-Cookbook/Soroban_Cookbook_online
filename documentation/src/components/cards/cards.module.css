@@ -187,7 +187,7 @@
 .patternIcon {
   display: flex;
   align-items: center;
-  color: #b45309;
+  color: #78350f;
 }
 
 .patternBadge {
@@ -195,7 +195,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #b45309;
+  color: #78350f;
   font-family: var(--ifm-font-family-monospace);
 }
 
@@ -204,7 +204,7 @@
   padding: 2px 10px;
   border-radius: 99px;
   background: rgba(245, 158, 11, 0.12);
-  color: #b45309;
+  color: #78350f;
   font-weight: 600;
   font-family: var(--ifm-font-family-monospace);
 }
@@ -246,7 +246,7 @@
   font-size: 12px;
   font-weight: 700;
   font-family: var(--ifm-font-family-monospace);
-  color: #f59e0b;
+  color: #78350f;
   transition: opacity 0.15s;
 }
 

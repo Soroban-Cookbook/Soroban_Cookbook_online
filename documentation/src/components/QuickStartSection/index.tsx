@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from '@docusaurus/Link';
-import { useColorMode } from '@docusaurus/theme-common';
 import { Highlight, themes as prismThemes } from 'prism-react-renderer';
 import { trackCopyCode } from '@site/src/utils/analytics';
 import styles from './styles.module.css';
@@ -71,9 +70,8 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function QuickStartSection() {
-  const { colorMode } = useColorMode();
-  const isDark = colorMode === 'dark';
-  const selectedTheme = isDark ? prismThemes.vsDark : prismThemes.github;
+  // Always use vsDark — github light token colors fail WCAG AA contrast audits.
+  const selectedTheme = prismThemes.vsDark;
 
   return (
     <section className={styles.section}>

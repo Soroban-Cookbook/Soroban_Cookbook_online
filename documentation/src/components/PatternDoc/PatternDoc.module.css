@@ -25,7 +25,8 @@
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--ifm-color-primary);
+  /* Dark green on tinted primary bg — keeps ≥4.5:1 contrast */
+  color: #14532d;
   background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 28%, transparent);
 }
@@ -35,11 +36,12 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.85;
+  color: #14532d;
 }
 
 .estimatedTimeLabel {
   white-space: nowrap;
+  color: #14532d;
 }
 
 .metaTitle {
@@ -60,17 +62,17 @@
 
 .badgebeginner {
   background: rgba(34, 197, 94, 0.15);
-  color: rgb(22, 163, 74);
+  color: #047857;
 }
 
 .badgeintermediate {
   background: rgba(234, 179, 8, 0.18);
-  color: rgb(161, 98, 7);
+  color: #78350f;
 }
 
 .badgeadvanced {
   background: rgba(239, 68, 68, 0.12);
-  color: rgb(185, 28, 28);
+  color: #991b1b;
 }
 
 .metaGrid {
