@@ -17,7 +17,10 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json,md}\"",
-    "format:write": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\""
+    "format:write": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\"",
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",
@@ -37,17 +40,25 @@
     "@docusaurus/tsconfig": "3.9.2",
     "@docusaurus/types": "3.9.2",
     "@eslint/js": "^9.39.3",
+    "@testing-library/dom": "^9.3.3",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.5.1",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
+    "@vitest/ui": "^1.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "eslint": "^9.39.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^15.0.0",
+    "jsdom": "^23.0.0",
     "prettier": "^3.8.1",
     "sharp": "^0.34.5",
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
   },
   "browserslist": {
     "production": [
