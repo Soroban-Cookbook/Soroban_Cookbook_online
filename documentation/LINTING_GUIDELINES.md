@@ -10,7 +10,7 @@ This project uses ESLint and Prettier to maintain code quality and consistency a
 
 **Included:**
 - `src/` - React components and TypeScript files (*.ts, *.tsx)
-- `scripts/` - Build and utility scripts (*.js, *.ts)
+- `scripts/` - Build and utility scripts (*.js, *.ts, *.mjs)
 - `docusaurus.config.ts` - Main Docusaurus configuration
 - `lib/` - Library modules (*.ts)
 
@@ -24,7 +24,7 @@ This project uses ESLint and Prettier to maintain code quality and consistency a
 
 **Included:**
 - `src/**/*.{ts,tsx,css,json,md}`
-- `scripts/**/*.{js,ts}`
+- `scripts/**/*.{js,ts,mjs}`
 - `docusaurus.config.ts`
 - Root-level config/docs files: `*.{ts,js,json,md}`
 
@@ -113,6 +113,7 @@ Excludes:
 
 ### scripts/
 - ✅ generate-icons.js - Linted and formatted
+- ✅ generate-content-registry.mjs - Linted and formatted (.mjs support)
 - ✅ generate-icons.sh - Excluded (shell script)
 
 ### Configuration Files
@@ -256,6 +257,7 @@ All must pass before merge.
 |--------------|------|--------|-------|
 | src/**/*.ts* | ✅ | ✅ | React components |
 | scripts/**/*.js | ✅ | ✅ | Build scripts |
+| scripts/**/*.mjs | ✅ | ✅ | ES modules |
 | docusaurus.config.ts | ✅ | ✅ | App config |
 | *.sh | ❌ | ❌ | Shell scripts |
 | *.config.js | ❌ | ❌ | Config pattern |
