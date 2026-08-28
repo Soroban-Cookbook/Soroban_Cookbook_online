@@ -2,6 +2,8 @@
 name = "hello-world"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract that stores and returns a greeting message from instance storage."
+keywords = ["soroban", "example", "hello-world"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

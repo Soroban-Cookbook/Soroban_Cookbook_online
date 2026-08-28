@@ -2,6 +2,8 @@
 name = "token-transfer"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract implementing a minimal token with balance tracking and transfers."
+keywords = ["soroban", "example", "token-transfer"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

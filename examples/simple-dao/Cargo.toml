@@ -2,6 +2,8 @@
 name = "simple-dao"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract implementing a simple DAO with proposals, voting, and execution."
+keywords = ["soroban", "example", "dao"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

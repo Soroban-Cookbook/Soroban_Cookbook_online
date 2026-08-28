@@ -2,6 +2,8 @@
 name = "simple-voting"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract implementing a simple proposal voting system with yes/no choices."
+keywords = ["soroban", "example", "voting"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

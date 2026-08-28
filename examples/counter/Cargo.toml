@@ -2,6 +2,8 @@
 name = "counter"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract that maintains an incrementable counter stored in instance storage."
+keywords = ["soroban", "example", "counter"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

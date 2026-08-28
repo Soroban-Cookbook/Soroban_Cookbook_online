@@ -2,6 +2,8 @@
 name = "upgradeable"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract demonstrating admin-controlled upgradeable contract patterns."
+keywords = ["soroban", "example", "upgradeable"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
