@@ -24,6 +24,7 @@ clawback
 CLI
 clickjacking
 clippy
+linkedProjects
 codegen
 collateralization
 Collateralization
@@ -42,6 +43,7 @@ Deque
 deserialises
 desync
 distros
+dtolnay
 Docusaurus
 DSN
 easyops
@@ -126,6 +128,7 @@ Rust
 rustc
 RUSTFLAGS
 rustup
+rust-analyzer
 sandboxed
 SCCs
 SDEX
@@ -143,6 +146,7 @@ SYJYDZT
 testutils
 Testutils
 timelock
+timelocked
 Timelock
 tlsv
 Toml
@@ -158,6 +162,7 @@ unreviewed
 unstaking
 unvalidated
 USERPROFILE
+wasm32v1
 WCAG
 WebAssembly
 wght

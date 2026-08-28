@@ -7,101 +7,125 @@ description: Overview of essential tools, IDE extensions, testing frameworks, an
 
 # Development Tools
 
-This guide provides an overview of the essential tools needed for Soroban smart contract development, including command-line interfaces, IDE extensions, debugging utilities, testing frameworks, and deployment/monitoring tools.
+This guide covers the tools this cookbook actually uses: the Stellar CLI, rust-analyzer, the repository Rust toolchain, and the WASM target required to compile examples.
 
-## Soroban CLI
+OS install steps: [Linux](./setup-linux.md), [macOS](./setup-macos.md), [Windows](./setup-windows.md). Compile with [Building and Compilation](./building-and-compilation.md).
 
-The [Soroban CLI](https://developers.stellar.org/docs/tools/developer-tools/cli/soroban-cli) is the primary tool for building, testing, and deploying Soroban smart contracts.
+## Repository toolchain
 
-### Key Features
-- **Project Initialization**: Easily scaffold new projects (`soroban contract init`).
-- **Compilation**: Compile Rust code into WebAssembly (`soroban contract build`).
-- **Deployment**: Deploy contracts to local, testnet, or mainnet networks (`soroban contract deploy`).
-- **Invocation**: Interact with deployed contracts directly from the terminal (`soroban contract invoke`).
+This repository **does not currently ship** a `rust-toolchain` or `rust-toolchain.toml` file. GitHub Actions installs **Rust stable** with the `wasm32-unknown-unknown` target (`dtolnay/rust-toolchain@stable` in `.github/workflows/ci.yml`). Example crates use **edition 2021** and **soroban-sdk 27.0.3**.
 
-**Usage Example:**
+Use rustup's latest stable toolchain. Do not add a toolchain pin unless maintainers add one to the repo.
+
+## WASM target (`wasm32-unknown-unknown`)
+
+Cookbook examples, CI, and `scripts/test-examples.sh` compile for **`wasm32-unknown-unknown`**. Install and verify it the same way on every OS:
+
 ```bash
-# Build the contract
-soroban contract build
-
-# Deploy to Testnet
-soroban contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/contract.wasm \
-  --source admin \
-  --network testnet
+rustup target add wasm32-unknown-unknown
+rustup target list --installed
 ```
 
-## IDE Extensions and Plugins
+`rustup target list --installed` must include `wasm32-unknown-unknown`. The full catalog (`rustup target list`) should show `wasm32-unknown-unknown (installed)`.
 
-For the best development experience, we recommend using [Visual Studio Code (VS Code)](https://code.visualstudio.com/) with the following extensions:
+## Stellar CLI
+
+The current CLI binary is **`stellar`**. The older `soroban` name is the same product line: **`soroban contract build` is now `stellar contract build`**.
+
+Install (matches [Building and Compilation](./building-and-compilation.md)):
+
+```bash
+cargo install --locked stellar-cli --features opt
+stellar --version
+```
+
+### Key commands used in this cookbook
+
+- **Project initialization**: `stellar contract init`
+- **Compilation**: `stellar contract build` (optimizes WASM by default; `--package` and `--out-dir` are supported)
+- **Interface**: `stellar contract info interface` (`stellar contract inspect` is deprecated)
+- **Deployment / invoke**: `stellar contract deploy`, `stellar contract invoke`
+
+**Usage example** (cookbook Hello World crate):
+
+```bash
+cd examples
+stellar contract build --package hello-world
+stellar contract info interface \
+  --wasm target/wasm32-unknown-unknown/release/hello_world.wasm
+```
+
+Do not put private keys or seed phrases in CLI examples or in this repository.
+
+Official install reference: [Install the Stellar CLI](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup#install-the-stellar-cli).
+
+## rust-analyzer
+
+[rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) is the language server for Rust. It is **essential** for editing cookbook examples.
+
+This repo's Cargo **workspace** is `examples/Cargo.toml`, not the git root. If you open the whole cookbook in VS Code, link that workspace:
+
+```json
+{
+  "rust-analyzer.linkedProjects": ["examples/Cargo.toml"]
+}
+```
+
+Confirm `soroban_sdk` resolves (no `can't find crate` errors), then run:
+
+```bash
+cd examples
+cargo test --package hello-world
+```
 
 | Extension | Purpose | Recommendation |
 |-----------|---------|----------------|
-| [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) | Advanced code completion, linting, and go-to-definition for Rust | **Essential** |
-| [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) | Native debugging for Rust | Highly Recommended |
-| [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) | Syntax highlighting for `Cargo.toml` files | Recommended |
-| [Error Lens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) | Inline display of errors and warnings | Recommended |
+| [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) | Completion, linting, go-to-definition | **Essential** |
+| [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) | Native debugging for Rust | Highly recommended |
+| [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) | Syntax highlighting for `Cargo.toml` | Recommended |
+| [Error Lens](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens) | Inline errors and warnings | Recommended |
 
-## Debugging Tools
+If rust-analyzer does not start: check `which rustc` / `which cargo` in the editor terminal, then `"terminal.integrated.inheritEnv": true` in VS Code.
 
-When things don't work as expected, you need the right tools to identify the issue:
+## Debugging tools
 
-- **Cargo Toolchain**: Use `cargo check` and `cargo clippy` to catch syntax and logic errors early.
-- **Soroban CLI Inspect**: Use `soroban contract inspect` to view contract metadata and storage.
-- **Detailed Logs**: Append the `--verbose` flag during CLI invocations to get extended logs and stack traces.
+- **Cargo**: `cargo check`, `cargo clippy`, `cargo test`
+- **Contract interface**: `stellar contract info interface --wasm <path>`
+- **Verbose CLI**: `--verbose` on Stellar CLI commands when diagnosing network or build failures
 
-For a deeper dive into debugging workflows and techniques, please see our comprehensive [Debugging Guide](./debugging.md).
+See the [Debugging Guide](./debugging.md).
 
-## Testing Frameworks
+## Testing frameworks
 
-Soroban integrates directly with standard Rust testing infrastructure.
+Soroban uses standard Rust tests. Cookbook crates put tests in `src/lib.rs` (or `src/test.rs`) under `#[cfg(test)]`. Hello World tests are `test_default_greeting` and `test_custom_greeting` in [`examples/hello-world/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/hello-world/src/lib.rs).
 
-- **Cargo Test**: The built-in testing framework for Rust. Write unit tests directly in your contract files and run them using `cargo test`.
-- **Soroban Env Mocking**: The SDK provides mocking utilities (e.g., `env.mock_all_auths()`) to simulate signatures, authorization, and time during tests.
-
-**Usage Example:**
 ```bash
-# Run all tests in the project
-cargo test
-
-# Run tests with detailed console output
-cargo test -- --nocapture
+cd examples
+cargo test --package hello-world
 ```
 
-For more details, refer to the [Contract Testing Guide](./contract-testing.md).
+See the [Contract Testing Guide](./contract-testing.md).
 
-## Deployment Tools
+## Deployment and monitoring
 
-After developing and testing your contract, you have several options for deployment:
+- **Stellar CLI** — deploy and invoke after [testnet](./deploy-testnet.md) validation. Mainnet requires the [safety checklist](./deploy-mainnet.md#required-reading--safety-checklist).
+- **Stellar Laboratory** — [laboratory.stellar.org](https://laboratory.stellar.org/)
+- **Freighter** — [freighter.app](https://www.freighter.app/)
+- **Stellar Expert** — [stellar.expert](https://stellar.expert/)
+- **Stellar RPC** — [RPC docs](https://developers.stellar.org/docs/data/rpc/api-reference)
 
-- **Soroban CLI**: As mentioned above, the primary tool for deploying to any network.
-- **Stellar Laboratory**: The [Stellar Laboratory](https://laboratory.stellar.org/) is a web-based tool for creating, signing, and submitting transactions on the Stellar network. It's excellent for manual testing and network interaction.
-- **Freighter Wallet**: For browser-based dApps, [Freighter](https://www.freighter.app/) is a non-custodial wallet extension that allows users to securely sign deployment or invocation transactions.
+## Quick recommendations
 
-## Monitoring Tools
+| Task | Recommended tool |
+|------|------------------|
+| **Code editing** | VS Code + rust-analyzer (`examples/Cargo.toml`) |
+| **Compilation** | `stellar contract build` or `cargo build --target wasm32-unknown-unknown --release` |
+| **Local testing** | `cargo test` |
+| **Deployment** | Stellar CLI (testnet first) |
+| **Monitoring** | Stellar Expert |
 
-Monitoring your contracts post-deployment is crucial. Use network explorers to track transactions, events, and contract state.
+### Next steps
 
-| Tool | Description | Best For |
-|------|-------------|----------|
-| [Stellar Expert](https://stellar.expert/) | A comprehensive block explorer and analytics platform for Stellar and Soroban. | Tracking transaction status and contract balances. |
-| [Soroban Explorer](https://soroban.stellar.org/) | Official block explorer tailored specifically for smart contract deployments and invocations. | Viewing contract interactions and deployed code. |
-| [Stellar RPC](https://developers.stellar.org/docs/data/rpc/api-reference) | Query network data programmatically via standard RPC endpoints. | Building dApp front-ends and automated monitoring. |
-
-## Quick Recommendations Table
-
-| Task | Recommended Tool | Alternative |
-|------|------------------|-------------|
-| **Code Editing** | VS Code + rust-analyzer | IntelliJ Rust |
-| **Compilation** | Cargo / Soroban CLI | - |
-| **Local Testing** | Cargo Test | Local Sandbox Network |
-| **Deployment** | Soroban CLI | Stellar Laboratory |
-| **Monitoring** | Stellar Expert | Custom RPC Scripts |
-
----
-
-### Next Steps
-
-Now that you're familiar with the tools, you can proceed to:
-- Review [Environment Setup](./setup.md) to ensure your tools are properly configured.
-- Start writing code in [Create Your First Contract](./first-contract.md).
+- [Environment Setup](./setup.md)
+- [Your First Contract](./first-contract.md)
+- [Building and Compilation](./building-and-compilation.md)

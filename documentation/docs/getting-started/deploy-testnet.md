@@ -220,14 +220,15 @@ This shows:
 - Function parameters and return types
 - Authorization requirements
 
-Example output:
+Example output for the cookbook [`hello-world`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/hello-world) crate:
 
 ```
-Contract: CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4
-
 Functions:
-  hello(to: Symbol) -> Symbol
+  hello() -> String
+  set_message(message: String) -> ()
 ```
+
+`hello` takes no `to` argument. The older `hello(to: Symbol)` signature does not match this repository.
 
 ## Step 6: Interact with Your Contract
 
@@ -240,14 +241,16 @@ soroban contract invoke \
   --id $CONTRACT_ID \
   --source my-testnet-account \
   --network testnet \
-  -- hello --to World
+  -- hello
 ```
 
-Expected output:
+Expected output for `examples/hello-world` (default instance storage):
 
 ```
-"Hello"
+"Hello, Soroban!"
 ```
+
+To change the greeting, invoke `set_message` then call `hello` again. Do not pass `--to`; that argument is not part of this contract.
 
 ### Invoke a State-Modifying Function
 

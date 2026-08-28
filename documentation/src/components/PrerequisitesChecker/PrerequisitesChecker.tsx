@@ -14,24 +14,24 @@ export interface PrerequisiteItem {
 export const DEFAULT_PREREQUISITES: PrerequisiteItem[] = [
   {
     id: 'rust',
-    name: 'Rust (v1.75+)',
-    description: 'Rust compiler and Cargo package manager for smart contract development.',
+    name: 'Rust (stable)',
+    description: 'Rust compiler and Cargo package manager for smart contract development. This cookbook has no rust-toolchain.toml; CI uses stable.',
     verifyCommand: 'rustc --version && cargo --version',
     guideUrl: '/docs/getting-started/setup#1-install-rust',
   },
   {
-    id: 'soroban-cli',
-    name: 'Soroban CLI',
-    description: 'Command-line tool to build, simulate, and deploy Soroban contracts.',
-    verifyCommand: 'soroban --version',
-    guideUrl: '/docs/getting-started/setup#2-install-soroban-cli',
+    id: 'stellar-cli',
+    name: 'Stellar CLI',
+    description: 'Command-line tool to build, simulate, and deploy Soroban contracts (`stellar`). Replaces the older `soroban` binary name.',
+    verifyCommand: 'stellar --version',
+    guideUrl: '/docs/getting-started/setup#2-install-stellar-cli',
   },
   {
     id: 'wasm-target',
     name: 'WASM Target (wasm32-unknown-unknown)',
-    description: 'WebAssembly target allowing Rust to compile contracts to WASM.',
-    verifyCommand: 'rustup target list | grep "wasm32-unknown-unknown (installed)"',
-    guideUrl: '/docs/getting-started/setup#3-configure-target',
+    description: 'WebAssembly target used by this repository examples, CI, and scripts/test-examples.sh.',
+    verifyCommand: 'rustup target list --installed',
+    guideUrl: '/docs/getting-started/setup#3-add-the-wasm-target-required',
   },
   {
     id: 'git',
@@ -42,8 +42,8 @@ export const DEFAULT_PREREQUISITES: PrerequisiteItem[] = [
   },
   {
     id: 'code-editor',
-    name: 'Code Editor (VS Code / Rust Analyzer)',
-    description: 'Editor configured with rust-analyzer for syntax highlighting and autocomplete.',
+    name: 'Code Editor (VS Code / rust-analyzer)',
+    description: 'Editor configured with rust-analyzer. Link examples/Cargo.toml when opening this repository.',
     optional: true,
   },
 ];
