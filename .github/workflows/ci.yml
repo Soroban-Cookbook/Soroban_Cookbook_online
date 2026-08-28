@@ -373,10 +373,20 @@ jobs:
           path: documentation/playwright-report
           retention-days: 7
 
+  check-snippet-drift:
+    name: Snippet Drift Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for drifted src= snippets
+        run: bash scripts/check-snippet-drift.sh
+
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, e2e-console, e2e-smoke]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, e2e-console, e2e-smoke, check-snippet-drift]
     if: always()
     steps:
       - name: Check job statuses
@@ -411,5 +421,9 @@ jobs:
           fi
           if [ "${{ needs.test-examples.result }}" != "success" ]; then
             echo "⚠️  Code example tests failed (non-blocking)"
+          fi
+          if [ "${{ needs.check-snippet-drift.result }}" != "success" ]; then
+            echo "❌ Snippet drift check failed"
+            exit 1
           fi
           echo "✅ All critical CI checks passed"
