@@ -1,9 +1,9 @@
 /**
  * Theme Initialization Script
- * 
+ *
  * This script runs immediately to prevent flash of incorrect theme (FOIT).
  * It should be included in the <head> of the document.
- * 
+ *
  * How it works:
  * 1. Checks localStorage for saved theme preference
  * 2. Falls back to system preference (prefers-color-scheme)
@@ -11,16 +11,14 @@
  * 4. Prevents flash of wrong theme
  */
 
-(function() {
+(function () {
   'use strict';
 
   const THEME_KEY = 'theme';
   const THEME_ATTRIBUTE = 'data-theme';
 
   function getSystemTheme() {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
   function getStoredTheme() {
@@ -33,14 +31,11 @@
 
   function applyTheme(theme) {
     document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
-    
+
     // Update meta theme-color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute(
-        'content',
-        theme === 'dark' ? '#1e1e2e' : '#ffffff'
-      );
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#1e1e2e' : '#ffffff');
     }
   }
 
@@ -52,7 +47,7 @@
   applyTheme(theme);
 
   // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
     // Only update if no stored preference
     if (!getStoredTheme()) {
       applyTheme(e.matches ? 'dark' : 'light');

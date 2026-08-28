@@ -1,0 +1,100 @@
+/**
+ * CodeSnippet component styling
+ * Handles layout and presentation of code blocks with comment toggle and download
+ */
+
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-pre-background, #1a1a1a);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  background: var(--ifm-code-background, #282c34);
+  border-bottom: 1px solid var(--ifm-code-border-color, #3f3f3f);
+  gap: 8px;
+}
+
+.toggleButton,
+.downloadButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--ifm-button-background-color, #0891b2);
+  color: var(--ifm-button-color, #ffffff);
+  border: 1px solid var(--ifm-button-border-color, #0891b2);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleButton:hover,
+.downloadButton:hover {
+  background: var(--ifm-button-background-color-hover, #0e7490);
+  border-color: var(--ifm-button-border-color-hover, #0e7490);
+}
+
+.toggleButton:active,
+.downloadButton:active {
+  transform: scale(0.98);
+}
+
+.toggleButton.hidden {
+  background: var(--ifm-button-background-color-secondary, #6b7280);
+  border-color: var(--ifm-button-border-color-secondary, #6b7280);
+}
+
+.downloadButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.downloadButton:disabled:hover {
+  background: var(--ifm-button-background-color, #0891b2);
+  border-color: var(--ifm-button-border-color, #0891b2);
+}
+
+.icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+.codeBlock {
+  overflow-x: auto;
+  padding: 12px;
+  font-family: var(--ifm-font-family-monospace, 'Monaco', 'Menlo', 'Ubuntu Mono', monospace);
+  font-size: var(--ifm-code-font-size, 13px);
+  line-height: 1.5;
+  color: var(--ifm-code-color, #f8f8f2);
+}
+
+.codeBlock code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+/* Hide comments section label when comments are hidden */
+.commentStatus {
+  padding: 0 12px 4px 12px;
+  font-size: 11px;
+  color: var(--ifm-code-comment-color, #888);
+  font-style: italic;
+}
+
+.commentStatus.hidden {
+  display: none;
+}

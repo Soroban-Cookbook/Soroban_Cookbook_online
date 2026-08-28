@@ -1,5 +1,5 @@
 /**
- * Font Loading Strategy
+ * Font Loading Strategy — Optimized for Mobile Performance
  *
  * Self-hosted via @fontsource-variable packages (woff2, variable fonts).
  * - font-display: swap  → text stays visible during load (no FOIT), minimal CLS
@@ -8,6 +8,12 @@
  *
  * Subsets loaded: latin only (covers all docs content, keeps payload small).
  * Variable axes: wght (Inter: 100–900, JetBrains Mono: 100–800).
+ *
+ * Mobile Optimizations:
+ * - Preloaded in docusaurus.config.ts headTags for critical rendering path
+ * - Minimal font weight axis loaded (wght only, no other axes)
+ * - WOFF2 format only (modern browsers, ~30% smaller than WOFF)
+ * - font-display: swap prevents text from being invisible during load
  */
 
 /* ── Inter Variable (sans-serif) ─────────────────────────────────────────── */

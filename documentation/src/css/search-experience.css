@@ -1,6 +1,7 @@
 /**
  * Search (/search) — local Lunr plugin from @easyops-cn/docusaurus-search-local.
  * Uses stable DOM hooks: main container, search input, and result articles.
+ * Enhanced with advanced filter UI and keyboard navigation support.
  */
 
 main .container.margin-vert--lg {
@@ -22,6 +23,7 @@ main .container.margin-vert--lg input[name='q'] {
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
+  width: 100%;
 }
 
 main .container.margin-vert--lg input[type='search']:focus,
@@ -31,11 +33,39 @@ main .container.margin-vert--lg input[name='q']:focus {
   box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.25);
 }
 
+/* Search input wrapper for layout */
+main .container.margin-vert--lg form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Filter section */
+main .container.margin-vert--lg [class*='FilterContainer'] {
+  margin: 0;
+}
+
+/* Result meta info */
+main .container.margin-vert--lg .search-meta {
+  font-size: 0.85rem;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-color-emphasis-100);
+}
+
 /* Result rows: plugin renders <article> per hit */
 main .container.margin-vert--lg section article {
   padding: 1rem 0;
   border-bottom: 1px solid var(--ifm-border-color);
   border-radius: 0;
+  transition: background-color 0.15s ease;
+}
+
+main .container.margin-vert--lg section article:hover {
+  background-color: var(--ifm-color-emphasis-100);
+  border-radius: var(--ifm-global-radius);
 }
 
 main .container.margin-vert--lg section article:last-child {
@@ -52,19 +82,221 @@ main .container.margin-vert--lg section article a {
   text-decoration: none;
 }
 
-main .container.margin-vert--lg section article a:hover {
+main .container.margin-vert--lg section article a:hover,
+main .container.margin-vert--lg section article a:focus,
+main .container.margin-vert--lg section article a:focus-visible {
   text-decoration: underline;
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 4px;
 }
 
-/* Filter row (docs context) */
+/* Result metadata display */
+main .container.margin-vert--lg section article .result-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+main .container.margin-vert--lg section article .result-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-content-secondary);
+  border-radius: 0.25rem;
+}
+
+/* Filter row (docs context) — deprecated, kept for backward compatibility */
 main .container.margin-vert--lg select[name='search-context'] {
   border-radius: var(--ifm-global-radius);
   background: var(--ifm-background-color);
   color: var(--ifm-font-color-base);
 }
 
+/* Keyboard navigation indicator */
+main .container.margin-vert--lg section article[data-focused='true'] {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: -1px;
+}
+
 @media screen and (max-width: 996px) {
   main .container.margin-vert--lg .row {
     flex-direction: column;
+  }
+
+  main .container.margin-vert--lg {
+    padding: 0 1rem;
+  }
+}
+
+/* ============================================================
+   MOBILE FULL-SCREEN SEARCH OVERLAY — Issue #181
+   Activates below the md breakpoint (768px).
+   Mirrors the motion tokens and z-index conventions used
+   in mobile-menu.css for a consistent feel.
+   ============================================================ */
+
+/* ── 1. Navbar search input — 44px touch target on mobile ────────────────── */
+@media (max-width: 767px) {
+  .navbar__search-input {
+    min-height: 44px;
+    font-size: 1rem; /* prevent iOS auto-zoom (must be ≥ 16px logical) */
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ── 2. Full-screen overlay backdrop ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  /*
+   * .search-overlay-active is toggled on <body> (or a wrapper) when the
+   * navbar search field is focused on mobile.  A small JS snippet or
+   * Docusaurus swizzle can add/remove the class; the CSS does the rest.
+   */
+  .search-overlay-active::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    z-index: var(--z-modal-backdrop, 400);
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity var(--sb-motion-duration-slow, 320ms)
+      var(--sb-motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+  }
+
+  /* Fade out when the class is removed */
+  body:not(.search-overlay-active)::before {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* ── 3. Docusaurus navbar autocomplete panel — full-width on mobile ──────── */
+@media (max-width: 767px) {
+  /* The local-search plugin renders results inside the navbar as a dropdown */
+  .navbar .dropdownMenu,
+  .navbar [class*='searchResultsContainer'],
+  .navbar [class*='dropdown'] > ul,
+  .navbar__search + * {
+    position: fixed !important;
+    top: var(--ifm-navbar-height, 60px);
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: calc(100dvh - var(--ifm-navbar-height, 60px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: var(--z-modal, 500);
+    border-radius: 0;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+    background: var(--ifm-background-color);
+    padding: 0.5rem 0;
+    /* Slide in from top */
+    transform: translateY(0);
+    transition: transform var(--sb-motion-duration-slow, 320ms)
+      var(--sb-motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+  }
+
+  /* Each search-result item — comfortable touch target */
+  .navbar .dropdownMenu li,
+  .navbar [class*='searchResultsContainer'] li,
+  .navbar [class*='dropdown'] > ul > li {
+    padding: 0;
+  }
+
+  .navbar .dropdownMenu a,
+  .navbar [class*='searchResultsContainer'] a,
+  .navbar [class*='dropdown'] > ul > li > a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--ifm-font-color-base);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ifm-border-color);
+    /* Prevent text from running off-screen */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .navbar .dropdownMenu a:hover,
+  .navbar [class*='searchResultsContainer'] a:hover,
+  .navbar [class*='dropdown'] > ul > li > a:hover {
+    background: var(--ifm-menu-color-background-hover);
+    text-decoration: none;
+  }
+
+  .navbar .dropdownMenu a:last-child,
+  .navbar [class*='searchResultsContainer'] a:last-child,
+  .navbar [class*='dropdown'] > ul > li:last-child > a {
+    border-bottom: none;
+  }
+}
+
+/* ── 4. /search page — tighten layout at 375 px ─────────────────────────── */
+@media (max-width: 479px) {
+  main .container.margin-vert--lg {
+    /* Cancel any fixed max-width so the page uses full viewport width */
+    max-width: 100% !important;
+    padding-inline: 1rem;
+    box-sizing: border-box;
+  }
+
+  main .container.margin-vert--lg > h1 {
+    font-size: 1.375rem;
+  }
+
+  main .container.margin-vert--lg input[type='search'],
+  main .container.margin-vert--lg input[name='q'] {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1rem; /* ≥ 16px prevents iOS auto-zoom */
+    padding: 0.75rem 0.875rem;
+  }
+
+  main .container.margin-vert--lg select[name='search-context'] {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1rem;
+    padding: 0.625rem 0.875rem;
+    min-height: 44px;
+  }
+
+  main .container.margin-vert--lg section article {
+    /* Remove any side overflow */
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  main .container.margin-vert--lg section article h2 {
+    font-size: 1rem;
+    overflow-wrap: break-word;
+  }
+
+  main .container.margin-vert--lg section article a {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+}
+
+/* ── 5. Reduced-motion fallback ──────────────────────────────────────────── */
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .navbar .dropdownMenu,
+  .navbar [class*='searchResultsContainer'],
+  .navbar [class*='dropdown'] > ul,
+  .navbar__search + * {
+    transition: none;
+  }
+
+  .search-overlay-active::before {
+    transition: none;
   }
 }

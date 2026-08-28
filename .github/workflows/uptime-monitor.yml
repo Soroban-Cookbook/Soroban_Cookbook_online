@@ -1,0 +1,197 @@
+name: Uptime Monitor
+
+on:
+  schedule:
+    # Check every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to check (defaults to production site)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://soroban-cookbook.dev' }}
+
+jobs:
+  check-endpoints:
+    name: Check endpoints
+    runs-on: ubuntu-latest
+    outputs:
+      all_up: ${{ steps.aggregate.outputs.all_up }}
+      uptime_pct: ${{ steps.aggregate.outputs.uptime_pct }}
+      total_checks: ${{ steps.aggregate.outputs.total_checks }}
+    strategy:
+      matrix:
+        endpoint:
+          - path: /
+            label: Homepage
+          - path: /docs/intro
+            label: Docs index
+          - path: /docs/category/getting-started
+            label: Getting Started
+      fail-fast: false
+
+    steps:
+      - name: Check ${{ matrix.endpoint.label }} (${{ matrix.endpoint.path }})
+        id: probe
+        continue-on-error: true
+        run: |
+          URL="${{ github.event.inputs.url || env.SITE_URL }}${{ matrix.endpoint.path }}"
+          START_MS=$(date +%s%3N)
+
+          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" \
+            --max-time 15 \
+            --retry 2 \
+            --retry-delay 3 \
+            "$URL")
+
+          END_MS=$(date +%s%3N)
+          RESPONSE_MS=$(( END_MS - START_MS ))
+
+          echo "endpoint=${{ matrix.endpoint.path }}" >> "$GITHUB_OUTPUT"
+          echo "label=${{ matrix.endpoint.label }}" >> "$GITHUB_OUTPUT"
+          echo "status_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+          echo "response_ms=$RESPONSE_MS" >> "$GITHUB_OUTPUT"
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ] && [ "$HTTP_CODE" -ne 429 ]; then
+            echo "up=true" >> "$GITHUB_OUTPUT"
+            echo "✅ ${{ matrix.endpoint.label }} — $HTTP_CODE (${RESPONSE_MS}ms)"
+          elif [ "$HTTP_CODE" = 429 ]; then
+            echo "up=true" >> "$GITHUB_OUTPUT"
+            echo "⚠️ ${{ matrix.endpoint.label }} — $HTTP_CODE rate limited (still up)"
+          else
+            echo "up=false" >> "$GITHUB_OUTPUT"
+            echo "❌ ${{ matrix.endpoint.label }} — $HTTP_CODE"
+          fi
+
+      - name: Alert on endpoint failure
+        if: steps.probe.outputs.up == 'false' && secrets.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload: |
+            {
+              "text": ":rotating_light: *Endpoint DOWN* — `${{ matrix.endpoint.label }}` on ${{ github.event.inputs.url || env.SITE_URL }}${{ matrix.endpoint.path }}",
+              "attachments": [{
+                "color": "#FF0000",
+                "fields": [
+                  {"title": "Endpoint", "value": "${{ matrix.endpoint.path }}", "short": true},
+                  {"title": "HTTP status", "value": "${{ steps.probe.outputs.status_code }}", "short": true},
+                  {"title": "URL", "value": "${{ github.event.inputs.url || env.SITE_URL }}"},
+                  {"title": "Check run", "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  aggregate:
+    name: Aggregate results
+    needs: check-endpoints
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect matrix results
+        id: aggregate
+        run: |
+          ALL_UP=true
+          CHECKS_JSON='['
+          FIRST=true
+
+          for endpoint in "/" "/docs/intro" "/docs/category/getting-started"; do
+            LABEL=""
+            STATUS=""
+            MS=""
+
+            case "$endpoint" in
+              "/") LABEL="Homepage";;
+              "/docs/intro") LABEL="Docs index";;
+              "/docs/category/getting-started") LABEL="Getting Started";;
+            esac
+
+            # We need to use needs context from the matrix
+            # The matrix results are in needs.check-endpoints.outputs
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              CHECKS_JSON+=','
+            fi
+            CHECKS_JSON+='{"endpoint":"'"$endpoint"'","label":"'"$LABEL"'"}'
+          done
+          CHECKS_JSON+=']'
+
+          echo "all_up=$ALL_UP" >> "$GITHUB_OUTPUT"
+          echo "checks=$CHECKS_JSON" >> "$GITHUB_OUTPUT"
+
+      - name: Notify recovery after downtime
+        if: secrets.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload: |
+            {
+              "text": ":large_green_circle: *Uptime check passed* — All endpoints on ${{ github.event.inputs.url || env.SITE_URL }} are responding normally."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  ssl-check:
+    name: SSL certificate check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check SSL expiry
+        id: ssl
+        continue-on-error: true
+        run: |
+          DOMAIN=$(echo "${{ env.SITE_URL }}" | sed -E 's|https?://||' | sed 's|/.*||')
+
+          EXPIRY_DATE=$(echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN":443 2>/dev/null \
+            | openssl x509 -noout -enddate 2>/dev/null \
+            | cut -d= -f2)
+
+          if [ -z "$EXPIRY_DATE" ]; then
+            echo "Could not retrieve SSL certificate for $DOMAIN"
+            exit 1
+          fi
+
+          EXPIRY_EPOCH=$(date -d "$EXPIRY_DATE" +%s 2>/dev/null)
+          NOW_EPOCH=$(date +%s)
+          DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+
+          echo "days_left=$DAYS_LEFT" >> "$GITHUB_OUTPUT"
+          echo "expiry_date=$EXPIRY_DATE" >> "$GITHUB_OUTPUT"
+          echo "domain=$DOMAIN" >> "$GITHUB_OUTPUT"
+
+          if [ "$DAYS_LEFT" -le 7 ]; then
+            echo "⚠️  SSL certificate for $DOMAIN expires in $DAYS_LEFT days ($EXPIRY_DATE)"
+          elif [ "$DAYS_LEFT" -le 30 ]; then
+            echo "ℹ️  SSL certificate for $DOMAIN expires in $DAYS_LEFT days ($EXPIRY_DATE)"
+          else
+            echo "✅ SSL certificate for $DOMAIN valid for $DAYS_LEFT days ($EXPIRY_DATE)"
+          fi
+
+      - name: Alert on SSL expiry (≤7 days)
+        if: steps.ssl.outputs.days_left != '' && steps.ssl.outputs.days_left <= 7 && secrets.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          payload: |
+            {
+              "text": ":lock: *SSL certificate expiring soon* — `${{ steps.ssl.outputs.domain }}` expires in `${{ steps.ssl.outputs.days_left }}` days (${{ steps.ssl.outputs.expiry_date }})",
+              "attachments": [{
+                "color": "#FFA500",
+                "fields": [
+                  {"title": "Domain", "value": "${{ steps.ssl.outputs.domain }}", "short": true},
+                  {"title": "Days to expiry", "value": "${{ steps.ssl.outputs.days_left }}", "short": true},
+                  {"title": "Expiry date", "value": "${{ steps.ssl.outputs.expiry_date }}"}
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

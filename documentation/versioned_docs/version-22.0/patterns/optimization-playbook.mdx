@@ -1,0 +1,172 @@
+---
+time: 25
+sidebar_position: 5
+title: Contract Optimization Playbook
+description: A systematic guide to profiling, benchmarking, and optimizing Soroban smart contracts for gas and performance.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
+import { Alert } from '@site/src/components/Alert';
+
+## Overview
+
+In Soroban, performance isn't just about speed—it's about **predictability and cost**. Every operation (CPU instructions, memory allocation, and ledger access) consumes resources that are metered and capped. This playbook provides a repeatable, measurable workflow for optimizing your contracts.
+
+<Callout variant="info" title="The Three Pillars of Cost">
+  1. **CPU Instructions:** The computational complexity of your logic. 2. **RAM Usage:** The memory
+  peak during execution. 3. **Storage (Footprint):** The size and frequency of ledger reads and
+  writes.
+</Callout>
+
+## The Optimization Loop
+
+Optimization should never be "blind." Follow this cycle to ensure your efforts are targeted and effective:
+
+1.  **Measure (Baseline):** Use `soroban contract simulate` to capture current resource usage.
+2.  **Analyze:** Identify the bottleneck (e.g., is it high CPU or large storage reads?).
+3.  **Refactor:** Apply a specific optimization technique.
+4.  **Verify:** Re-measure and compare the delta.
+
+### Capturing a Baseline
+
+Run your contract function through the CLI simulator to see the raw costs:
+
+```bash
+soroban contract invoke \
+  --id <CONTRACT_ID> \
+  --source-account <ACCOUNT> \
+  --network <NETWORK> \
+  -- \
+  <FUNCTION_NAME> \
+  --arg1 <VALUE>
+```
+
+Look for the `Events` or `Simulation` output, which includes:
+
+- `cpu_insns`: Total CPU instructions.
+- `mem_limit`: Peak memory usage.
+- `ledger_reads`: Number of entries read.
+- `ledger_writes`: Number of entries written.
+
+## Benchmark Methodology
+
+To create reproducible results, you must control your environment.
+
+- **Stable Ledger State:** Always run benchmarks against a known, pre-populated state.
+- **Release Profile:** Always build your contract with `cargo build --release` before measuring.
+- **Warm vs. Cold Cache:** Note that the first time an entry is read, it costs more than subsequent reads in the same transaction.
+
+## Performance Anti-Patterns
+
+### 1. The "Linear Scan" Trap
+
+**Problem:** Iterating through a `Vec` stored in a single storage key to find or update an item. This is O(n) and becomes exponentially more expensive as the collection grows.
+
+<Tabs>
+  <TabItem value="before" label="Before (O(n))" default>
+
+```rust illustrative
+#[contracttype]
+pub struct Registry {
+    pub users: Vec<Address>,
+}
+
+// Every time you add a user, you read the WHOLE list,
+// append, and write the WHOLE list back.
+pub fn add_user(env: Env, user: Address) {
+    let mut registry: Registry = env.storage().instance().get(&DataKey::Reg).unwrap();
+    if !registry.users.contains(&user) {
+        registry.users.push_back(user);
+        env.storage().instance().set(&DataKey::Reg, &registry);
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="after" label="After (O(1))">
+
+```rust illustrative
+// Use separate keys for each user.
+pub fn add_user(env: Env, user: Address) {
+    let key = DataKey::User(user.clone());
+    if !env.storage().persistent().has(&key) {
+        env.storage().persistent().set(&key, &true);
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+**Impact:** Switching to individual keys reduces `cpu_insns` and `ledger_read_bytes` linearly with the size of the collection.
+
+### 2. Read/Write Amplification (God Structs)
+
+**Problem:** Storing all contract state in one large "monolithic" struct. Updating a single boolean requires reading and writing the entire 1KB+ object.
+
+<Alert variant="warning" title="Cost of Monoliths">
+  Reading a 2KB struct costs twice as much gas as reading a 1KB struct, even if you only need 1 byte
+  of data from it.
+</Alert>
+
+**Optimization:** Split the struct into "hot" (frequently updated) and "cold" (read-only or rarely updated) storage keys.
+
+### 3. Redundant Deserialization
+
+**Problem:** Accessing `env.storage()` multiple times for the same value in a single function call.
+
+```rust illustrative
+// ❌ BAD: Multiple reads
+pub fn do_something(env: Env) {
+    let admin = env.storage().instance().get::<_, Address>(&DataKey::Admin).unwrap();
+    // ... logic ...
+    let admin_again = env.storage().instance().get::<_, Address>(&DataKey::Admin).unwrap();
+}
+
+// ✅ GOOD: Read once, pass around
+pub fn do_something(env: Env) {
+    let admin = env.storage().instance().get::<_, Address>(&DataKey::Admin).unwrap();
+    Self::internal_logic(&admin);
+}
+```
+
+## Advanced Techniques
+
+### Bit-Packing
+
+If you need to store multiple flags or small numbers, pack them into a single `u64` or `u128` to save on storage bytes.
+
+### Strategic Storage Selection
+
+- **Instance Storage:** Best for global config (read on every invocation).
+- **Persistent Storage:** Best for user balances (long-lived, expensive).
+- **Temporary Storage:** Best for oracles or sequence numbers (cheap, but must be bumped).
+
+## Measurable Improvements Checklist
+
+When submitting an optimization PR, include a "Before & After" table:
+
+| Metric               | Before    | After   | Change |
+| :------------------- | :-------- | :------ | :----- |
+| **CPU Instructions** | 1,200,000 | 450,000 | -62.5% |
+| **Mem Limit**        | 512 KB    | 256 KB  | -50%   |
+| **Wasm Size**        | 12 KB     | 9 KB    | -25%   |
+| **Ledger Reads**     | 5         | 2       | -60%   |
+
+## Summary Checklist
+
+- [ ] I have established a baseline using `soroban contract simulate`.
+- [ ] I am building with `--release` for all measurements.
+- [ ] I have eliminated O(n) storage patterns (linear scans).
+- [ ] I have split large structs to reduce read/write amplification.
+- [ ] I have verified the improvement with a follow-up simulation.
+
+## Related Topics
+
+- [Gas and Resource Management](/docs/concepts/gas-and-resources) — cost drivers this playbook optimizes
+- [Storage Patterns](/docs/concepts/storage)
+- [Designing Custom Types](/docs/patterns/custom-types)
+- [Security Fundamentals](/docs/security/fundamentals)

@@ -1,0 +1,105 @@
+---
+sidebar_position: 12
+title: Reentrancy Guard Pattern
+description: Prevent reentrancy attacks in Soroban smart contracts using mutex lock state flags.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="reentrancy-guard"
+  difficulty="intermediate"
+  category="Security"
+  status="stable"
+  lastReviewed="July 2026"
+/>
+
+## Overview
+
+Reentrancy occurs when an external cross-contract call or token transfer callback allows an untrusted callee contract to re-enter a state-changing function on the calling contract before its first execution finishes.
+
+This pattern demonstrates how to implement a **Reentrancy Guard** in Soroban using a mutex flag stored in contract instance storage.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust and `soroban-sdk` version 22+
+- Familiarity with cross-contract calls (`contractclient`)
+- Understanding of the **Checks-Effects-Interactions** security pattern
+
+</PatternSection>
+
+<PatternSection id="goals" title="Goals">
+
+- Prevent malicious contracts from re-entering sensitive state-modifying functions.
+- Demonstrate a non-reentrant mutex flag using instance storage.
+- Provide full test coverage simulating a cross-contract reentrancy attack.
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+### Mutex Lock Pattern
+
+When a function executes external calls (e.g., notifying external receiver contracts or transferring tokens), set a lock flag `DataKey::Locked = true` before the external call, and reset `DataKey::Locked = false` upon completion.
+
+```rust
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Balance(Address),
+    Locked,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    ReentrancyDetected = 1,
+    InsufficientBalance = 2,
+    InvalidAmount = 3,
+}
+
+#[contractimpl]
+impl ReentrancyGuardVault {
+    pub fn withdraw(
+        env: Env,
+        user: Address,
+        amount: i128,
+        receiver: Address,
+    ) -> Result<(), Error> {
+        user.require_auth();
+
+        // 1. Check Mutex Lock
+        if env.storage().instance().get(&DataKey::Locked).unwrap_or(false) {
+            return Err(Error::ReentrancyDetected);
+        }
+
+        // 2. Set Mutex Lock
+        env.storage().instance().set(&DataKey::Locked, &true);
+
+        let user_balance = Self::balance(env.clone(), user.clone());
+        if user_balance < amount {
+            env.storage().instance().set(&DataKey::Locked, &false);
+            return Err(Error::InsufficientBalance);
+        }
+
+        // 3. External Call / Interaction
+        let client = ReceiverClient::new(&env, &receiver);
+        client.on_withdraw(&env.current_contract_address(), &amount);
+
+        // 4. Update Internal State
+        env.storage().persistent().set(&DataKey::Balance(user.clone()), &(user_balance - amount));
+
+        // 5. Release Mutex Lock
+        env.storage().instance().set(&DataKey::Locked, &false);
+
+        Ok(())
+    }
+}
+```
+
+See the full tested implementation in [`examples/reentrancy-guard`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/reentrancy-guard).
+
+</PatternSection>

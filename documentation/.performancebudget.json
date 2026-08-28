@@ -1,0 +1,66 @@
+{
+  "resourceSizes": [
+    {
+      "resourceType": "script",
+      "budget": 280,
+      "description": "JS budget (kB) — lazy-split below-fold chunks reduce initial parse"
+    },
+    {
+      "resourceType": "style",
+      "budget": 50,
+      "description": "CSS budget (kB)"
+    },
+    {
+      "resourceType": "image",
+      "budget": 200,
+      "description": "Image budget (kB)"
+    },
+    {
+      "resourceType": "font",
+      "budget": 50,
+      "description": "Font budget (kB) — variable woff2 subsets only"
+    },
+    {
+      "resourceType": "total",
+      "budget": 580,
+      "description": "Total page weight budget (kB)"
+    }
+  ],
+  "resourceBudgets": [
+    {
+      "resourceType": "script",
+      "budget": 280
+    },
+    {
+      "resourceType": "style",
+      "budget": 50
+    }
+  ],
+  "timingBudgets": [
+    {
+      "metric": "first-contentful-paint",
+      "budget": 1500,
+      "description": "FCP budget (ms, mobile throttled)"
+    },
+    {
+      "metric": "largest-contentful-paint",
+      "budget": 2500,
+      "description": "LCP budget (ms, mobile throttled) — target < 2.5 s (Good threshold)"
+    },
+    {
+      "metric": "time-to-interactive",
+      "budget": 3500,
+      "description": "TTI budget (ms, mobile throttled)"
+    },
+    {
+      "metric": "cumulative-layout-shift",
+      "budget": 0.1,
+      "description": "CLS budget — Good threshold per Web Vitals"
+    },
+    {
+      "metric": "total-blocking-time",
+      "budget": 200,
+      "description": "TBT budget (ms) — proxy for FID/INP on mobile"
+    }
+  ]
+}

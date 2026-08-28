@@ -1,0 +1,381 @@
+---
+time: 25
+sidebar_position: 5
+title: Token Snapshot
+description: Create immutable point-in-time balance snapshots for governance voting, dividend distribution, and audit trails — with flash-loan resistance and claim tracking.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="token-snapshot"
+  difficulty="intermediate"
+  category="Governance"
+  status="stable"
+  lastReviewed="July 2026"
+/>
+
+## Overview
+
+This pattern extends a basic token contract with **point-in-time balance snapshots** — an essential primitive for governance voting, dividend distribution, and audit trails. Each snapshot captures every holder's balance at a specific ledger sequence, making it impossible for flash-loan attackers or late buyers to influence historical voting power.
+
+The contract also includes a **claim-tracking** mechanism that prevents double-claiming rewards or votes from the same snapshot.
+
+<PatternCallout variant="info" title="When to use">
+
+Use this pattern when you need to determine voting power, compute pro-rata dividends, or verify ownership at a past point in time without trusting off-chain data alone.  For token mechanics (mint / transfer / balance), see the [Basic Token](/docs/patterns/basic-token) pattern first.
+
+</PatternCallout>
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed ([setup guide](/docs/getting-started/setup))
+- Familiarity with Soroban storage, events, and `Address` types
+- Understanding of the [Basic Token](/docs/patterns/basic-token) pattern
+- Read [Snapshot Balances](/docs/security/token-audit#28-snapshot-balances-governance--dividends) security considerations
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+The contract wraps token operations (mint, transfer, balance) with snapshot infrastructure.  A linear holder registry tracks every address that ever received tokens, and each snapshot iterates that set to persist balances under snapshot-scoped keys.
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+```rust
+#![no_std]
+
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env};
+
+// ── storage keys ──────────────────────────────────────────────────────────
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Balance(Address),
+    IsHolder(Address),
+    Holder(u32),
+    SnapshotMeta(u32),
+    SnapshotBalance(u32, Address),
+    SnapshotClaimed(u32, Address),
+}
+
+// ── snapshot metadata ─────────────────────────────────────────────────────
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SnapshotMeta {
+    pub ledger: u32,
+    pub total_supply: i128,
+}
+
+// ── errors ────────────────────────────────────────────────────────────────
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    AlreadyInitialized = 1,
+    NotInitialized = 2,
+    Unauthorized = 3,
+    InvalidAmount = 4,
+    InsufficientBalance = 5,
+    SelfTransfer = 6,
+    SnapshotNotFound = 7,
+    AlreadyClaimed = 8,
+    InvalidSnapshotId = 9,
+}
+
+#[contract]
+pub struct TokenSnapshot;
+
+#[contractimpl]
+impl TokenSnapshot {
+    // Initialize with admin, mint, transfer, balance — see full source.
+
+    /// Create a new balance snapshot.  Iterates over every known holder,
+    /// records their current balance, and emits a `snapshot_created` event.
+    pub fn create_snapshot(env: Env) -> Result<u32, Error> {
+        let admin = Self::require_admin(&env)?;
+        admin.require_auth();
+
+        let snapshot_id: u32 = env.storage().instance()
+            .get(&"SnapshotCounter").unwrap_or(1);
+        let ledger = env.ledger().sequence();
+
+        // Walk all holders and persist snapshot-scoped balances
+        let holder_count: u32 = env.storage().instance()
+            .get(&"HolderCounter").unwrap_or(0);
+        let mut total_supply: i128 = 0;
+
+        for i in 0..holder_count {
+            let holder: Address = env.storage().persistent()
+                .get(&DataKey::Holder(i)).unwrap();
+            let bal: i128 = env.storage().persistent()
+                .get(&DataKey::Balance(holder.clone())).unwrap_or(0);
+            total_supply += bal;
+            env.storage().persistent()
+                .set(&DataKey::SnapshotBalance(snapshot_id, holder), &bal);
+        }
+
+        env.storage().persistent().set(
+            &DataKey::SnapshotMeta(snapshot_id),
+            &SnapshotMeta { ledger, total_supply },
+        );
+
+        // Bump snapshot counter
+        env.storage().instance()
+            .set(&"SnapshotCounter", &(snapshot_id + 1));
+
+        // Emit event for off-chain indexers
+        env.events().publish(
+            (symbol_short!("snapshot"), snapshot_id),
+            (ledger, total_supply),
+        );
+
+        Ok(snapshot_id)
+    }
+
+    /// Query the balance of `address` at `snapshot_id`.
+    pub fn balance_at(env: Env, address: Address, snapshot_id: u32) -> Result<i128, Error> {
+        if snapshot_id == 0 { return Err(Error::InvalidSnapshotId); }
+        Self::require_snapshot(&env, snapshot_id)?;
+        Ok(env.storage().persistent()
+            .get(&DataKey::SnapshotBalance(snapshot_id, address))
+            .unwrap_or(0))
+    }
+
+    /// Total supply recorded in `snapshot_id`.
+    pub fn total_supply_at(env: Env, snapshot_id: u32) -> Result<i128, Error> { /* … */ }
+
+    /// Ledger sequence at snapshot time.
+    pub fn snapshot_ledger(env: Env, snapshot_id: u32) -> Result<u32, Error> { /* … */ }
+
+    /// Mark that an address has claimed from a snapshot (double-claim guard).
+    pub fn mark_claimed(env: Env, address: Address, snapshot_id: u32) -> Result<(), Error> { /* … */ }
+
+    /// Check whether an address already claimed from `snapshot_id`.
+    pub fn has_claimed(env: Env, address: Address, snapshot_id: u32) -> Result<bool, Error> { /* … */ }
+}
+```
+
+See the [full source on GitHub](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/token-snapshot/src/lib.rs) for the complete implementation including token operations and holder tracking.
+
+  </TabItem>
+  <TabItem value="test" label="Running Tests">
+
+```bash
+cd examples/token-snapshot
+cargo test
+```
+
+The test suite covers:
+
+- Snapshot creation captures correct balances for multiple holders
+- Snapshots are immutable — transfers after snapshot don't change historical balances
+- Multiple sequential snapshots reflect different state
+- Events are emitted with snapshot metadata
+- Claim tracking prevents double-claims per (snapshot, address) pair
+- Invalid snapshot IDs and non-existent snapshots return proper errors
+- Zero/negative amounts and self-transfers are rejected
+
+</TabItem>
+</Tabs>
+
+</PatternSection>
+
+<PatternSection id="key-concepts" title="Key Concepts">
+
+### Holder registry
+
+The contract maintains a linear, insert-only registry of every address that has ever held tokens.  When minting or transferring to a new address, the contract checks the `IsHolder(Address)` membership flag and assigns a new slot if needed.  Old holders are never removed, so a holder who fully exits still appears in future snapshots with a balance of 0.
+
+### Snapshot-scoped storage
+
+Each snapshot stores balances under the key `SnapshotBalance(snapshot_id, address)`.  This keeps snapshot data isolated from current balances; mutating a balance after snapshot creation never corrupts historical data.
+
+### Immutable after creation
+
+Once `create_snapshot` returns, the snapshot data cannot be altered.  There is no `delete_snapshot` or `update_snapshot` function.  This gives downstream governance and dividend contracts a trustless guarantee that voting power cannot be retroactively inflated.
+
+### Claim tracking
+
+The `mark_claimed` / `has_claimed` mechanism provides on-chain double-claim prevention.  A governance contract would call `mark_claimed(voter, snapshot_id)` after recording a vote; a dividend contract would call it after sending reward tokens.  Replaying the same snapshot for the same address returns `AlreadyClaimed`.
+
+</PatternSection>
+
+<PatternSection id="flash-loan-resistance" title="Flash-Loan Resistance">
+
+### The problem
+
+An attacker takes a flash loan, temporarily inflates their balance, triggers a snapshot, votes/dividends with the inflated balance, repays the loan — all in one transaction.
+
+### How this contract mitigates it
+
+1. **Snapshot ID is unpredictable.**  The snapshot ID is only assigned inside `create_snapshot` and emitted as an event.  A downstream governance contract that requires the snapshot to have been created **before** the proposal was submitted means the attacker cannot know which snapshot ID to target in advance.
+
+2. **Separate transaction requirement.**  Even if an attacker calls `create_snapshot` and votes in the same transaction, well-designed governance contracts require snapshots to be created `N` ledgers before the voting period starts (enforced via `snapshot_ledger()`).
+
+3. **Combine with staking.**  For maximum security, require tokens to be staked for at least one full epoch before they count toward snapshot voting power.  See [Staking with Reward Distribution](/docs/patterns/staking) for an epoch-based staking contract you can compose with snapshots.
+
+**Recommended pattern for governance:**
+
+```
+1. Proposal created (ledger N)
+2. Wait for snapshot created at ledger N-X  (X ≥ proposal creation ledger)
+3. Voting opens — voters call mark_claimed with snapshot_id
+4. Double-votes rejected because has_claimed returns true
+```
+
+</PatternSection>
+
+<PatternSection id="off-chain-indexing" title="Off-Chain Indexer Integration">
+
+For contracts with thousands of holders, iterating all holders on-chain during `create_snapshot` can be expensive.  The contract emits a `snapshot_created` event so off-chain indexers can reconstruct snapshots without placing load on the ledger.
+
+### Event structure
+
+Each `create_snapshot` call emits:
+
+| Topic | Data |
+|-------|------|
+| `("snapshot", snapshot_id)` | `(ledger_sequence, total_supply)` |
+
+### Indexer recipe
+
+1. **Listen** for `snapshot_created` events on the contract address.
+2. **Enumerate holders** by calling `snapshot_holder_count()` and `snapshot_holder_at(i)` for `i` in `0..count`.
+3. **Resolve balances** by calling `balance_at(holder, snapshot_id)` for each holder.
+4. **Store** the reconstructed snapshot in your database `(snapshot_id, holder, balance)`.
+5. **Monitor claims** by polling `has_claimed(address, snapshot_id)` or listening for downstream governance events.
+
+### Event watcher example (pseudocode)
+
+```javascript
+// Subscribe to contract events via Horizon / RPC
+const events = await server.getEvents({
+  contractIds: [CONTRACT_ID],
+  topics: [["snapshot", "*"]],
+  startLedger: lastProcessedLedger,
+});
+
+for (const event of events) {
+  const snapshotId = event.topic[1];
+  const [ledger, totalSupply] = event.value;
+
+  // Resolve all holder balances via Soroban RPC
+  const holderCount = await contract.snapshot_holder_count();
+  for (let i = 0; i < holderCount; i++) {
+    const holder = await contract.snapshot_holder_at(i);
+    const balance = await contract.balance_at(holder, snapshotId);
+    await db.insertSnapshotBalance(snapshotId, holder, balance);
+  }
+}
+```
+
+For production indexers, batch RPC calls and use a ledger cursor to avoid reprocessing.
+
+</PatternSection>
+
+<PatternSection id="security" title="Security Considerations">
+
+1. **Gas scaling.**  `create_snapshot` iterates all holders.  For contracts with more than a few hundred holders, prefer the off-chain indexer approach and keep `create_snapshot` lightweight (just emit the event and increment the counter).
+
+2. **Holder registry never shrinks.**  Addresses that transfer out all their tokens remain in the registry.  Balances at future snapshots will record 0 for those addresses.  This is acceptable for governance (zero voting power is harmless) but consider the storage cost.
+
+3. **Admin trust.**  The admin controls `mint` and `create_snapshot`.  For decentralized governance, transfer admin to a DAO or multi-sig after bootstrapping.
+
+4. **Snapshot ordering.**  A snapshot captures **current** balances, not future ones.  Ensure your governance timeline enforces that snapshots precede voting periods by at least one ledger.
+
+5. **Claim enforcement.**  `mark_claimed` is a voluntary mechanism.  Downstream contracts must call it; the snapshot contract does not enforce it automatically.  Audit your governance contract to ensure `mark_claimed` is called in every voting/claim path.
+
+</PatternSection>
+
+<PatternSection id="related-patterns" title="Related Patterns">
+
+- [Basic Token](/docs/patterns/basic-token) — Foundation: mint, transfer, balance operations
+- [Staking with Reward Distribution](/docs/patterns/staking) — Compose staking epochs with snapshots for weighted voting
+- [Governance Security](/docs/security/governance) — Voting-specific security considerations
+- [Token Pattern Security Audit](/docs/security/token-audit) — Snapshot balance checklist (§2.8)
+- [Events](/docs/concepts/events) — Emitting and consuming contract events
+
+</PatternSection>
+
+<PatternSection id="deployment" title="Deployment Guide">
+
+### Build the Contract
+
+```bash
+cd examples/token-snapshot
+cargo build --target wasm32-unknown-unknown --release
+```
+
+The compiled WASM binary is at `target/wasm32-unknown-unknown/release/token_snapshot.wasm`.
+
+### Deploy to Testnet
+
+1. **Generate or use an existing identity:**
+   ```bash
+   soroban keys generate snapshot-admin
+   ```
+
+2. **Fund the account** via the [Stellar Testnet Faucet](https://laboratory.stellar.org/?network=testnet#account-creator).
+
+3. **Deploy:**
+   ```bash
+   soroban contract deploy \
+     --wasm target/wasm32-unknown-unknown/release/token_snapshot.wasm \
+     --network testnet \
+     --source snapshot-admin
+   ```
+   This returns a contract ID (e.g., `CDEF...`).
+
+4. **Initialize:**
+   ```bash
+   soroban contract invoke \
+     --id CDEF... \
+     --network testnet \
+     --source snapshot-admin \
+     -- initialize \
+     --admin $(soroban keys address snapshot-admin)
+   ```
+
+5. **Mint tokens:**
+   ```bash
+   soroban contract invoke \
+     --id CDEF... \
+     --network testnet \
+     --source snapshot-admin \
+     -- mint \
+     --to GBBD...recipient \
+     --amount 1000
+   ```
+
+6. **Create snapshot:**
+   ```bash
+   soroban contract invoke \
+     --id CDEF... \
+     --network testnet \
+     --source snapshot-admin \
+     -- create_snapshot
+   ```
+   Returns a snapshot ID (e.g., `1`).
+
+7. **Query historical balance:**
+   ```bash
+   soroban contract invoke \
+     --id CDEF... \
+     --network testnet \
+     --source snapshot-admin \
+     -- balance_at \
+     --address GBBD...recipient \
+     --snapshot_id 1
+   ```
+
+For mainnet deployment, see the [Deploy to Mainnet](/docs/getting-started/deploy-mainnet) guide.
+
+</PatternSection>

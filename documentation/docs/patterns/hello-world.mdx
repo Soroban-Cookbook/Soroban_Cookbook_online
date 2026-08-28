@@ -1,4 +1,5 @@
 ---
+time: 10
 sidebar_position: 2
 title: Hello World Storage
 description: Minimal Soroban contract with instance storage — pattern template example.
@@ -7,6 +8,8 @@ image: /img/soroban-social-card.png
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { CodeSnippet } from '@site/src/components/CodeSnippet';
+import { PatternCustomizer } from '@site/src/components/PatternCustomizer';
 
 <PatternMeta
   slug="hello-world"
@@ -38,11 +41,15 @@ Use this pattern to verify tooling, ledger integration, and storage before layer
 
 </PatternCallout>
 
-<Tabs>
-  <TabItem value="contract" label="Contract" default>
-
-```rust
-#![no_std]
+<CodeSnippet
+  collapseAt={12}
+  tabs={[
+    {
+      label: 'Contract',
+      fileName: 'hello-world/src/lib.rs',
+      language: 'rust',
+      highlightLines: [1, 7, 8],
+      code: `#![no_std]
 use soroban_sdk::{contract, contractimpl, Env, String};
 
 #[contract]
@@ -55,14 +62,14 @@ impl HelloWorld {
             String::from_str(&env, "Hello, Soroban!"),
         )
     }
-}
-```
-
-  </TabItem>
-  <TabItem value="test" label="Test">
-
-```rust
-use soroban_sdk::{testutils::Storage, Env, String};
+}`,
+    },
+    {
+      label: 'Test',
+      fileName: 'hello-world/src/test.rs',
+      language: 'rust',
+      highlightLines: [1, 5, 7],
+      code: `use soroban_sdk::{testutils::Storage, Env, String};
 
 #[test]
 fn hello_default() {
@@ -70,11 +77,77 @@ fn hello_default() {
     let contract_id = env.register(HelloWorld, ());
     let client = HelloWorldClient::new(&env, &contract_id);
     assert_eq!(client.hello(), String::from_str(&env, "Hello, Soroban!"));
-}
-```
+}`,
+    },
+  ]}
+/>
 
-  </TabItem>
-</Tabs>
+<PatternCallout variant="info" title="Code with Comments">
+
+The example below demonstrates the new comment toggle feature. Click "Hide comments" to see the code without detailed annotations:
+
+</PatternCallout>
+
+<CodeSnippet
+  code={`#![no_std]
+use soroban_sdk::{contract, contractimpl, Env, String};
+
+// Define the contract struct that will hold the implementation
+#[contract]
+pub struct HelloWorld;
+
+// Implement contract functionality
+#[contractimpl]
+impl HelloWorld {
+    // Main entry point: returns a greeting message from storage
+    pub fn hello(env: Env) -> String {
+        // Retrieve the stored message from instance storage
+        // If not found, return default greeting
+        env.storage().instance().get(&String::from_str(&env, "msg")).unwrap_or(
+            String::from_str(&env, "Hello, Soroban!"),
+        )
+    }
+}`}
+  language="rust"
+  defaultShowComments={true}
+  filename="hello-world"
+  showDownload={true}
+/>
+
+## Try it yourself
+
+Customize the default greeting message to see how it changes the contract code:
+
+<PatternCustomizer
+  title="Customize Greeting"
+  description="Change the default greeting message that the contract returns when no value is stored."
+  fields={[
+    {
+      name: 'greeting',
+      label: 'Default Greeting',
+      type: 'text',
+      value: 'Hello, Soroban!',
+      defaultValue: 'Hello, Soroban!',
+      placeholder: 'Enter your greeting message',
+      description: 'This text will be returned when no message is stored in contract storage',
+    },
+  ]}
+  codeTemplate={`#![no_std]
+use soroban_sdk::{contract, contractimpl, Env, String};
+
+#[contract]
+pub struct HelloWorld;
+
+#[contractimpl]
+impl HelloWorld {
+    pub fn hello(env: Env) -> String {
+        env.storage().instance().get(&String::from_str(&env, "msg")).unwrap_or(
+            String::from_str(&env, "{{greeting}}"),
+        )
+    }
+}`}
+  language="rust"
+/>
 
 </PatternSection>
 

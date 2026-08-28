@@ -124,18 +124,18 @@
     'JetBrains Mono Variable', 'JetBrains Mono Fallback', 'Fira Code', 'Consolas', 'Monaco',
     'Courier New', monospace;
 
-  /* Font Sizes */
-  --font-size-xs: 0.75rem; /* 12px */
-  --font-size-sm: 0.875rem; /* 14px */
-  --font-size-base: 1rem; /* 16px */
-  --font-size-lg: 1.125rem; /* 18px */
-  --font-size-xl: 1.25rem; /* 20px */
-  --font-size-2xl: 1.5rem; /* 24px */
-  --font-size-3xl: 1.875rem; /* 30px */
-  --font-size-4xl: 2.25rem; /* 36px */
-  --font-size-5xl: 3rem; /* 48px */
-  --font-size-6xl: 3.75rem; /* 60px */
-  --font-size-7xl: 4.5rem; /* 72px */
+  /* Font Sizes — mobile-safe clamp values preserve readability and honor user font-size preferences */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.1vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.2vw, 1rem);
+  --font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1rem + 0.25vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.125rem + 0.25vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 1.25rem + 0.5vw, 1.75rem);
+  --font-size-3xl: clamp(1.875rem, 1.5rem + 0.75vw, 2.25rem);
+  --font-size-4xl: clamp(2.25rem, 2rem + 0.75vw, 2.75rem);
+  --font-size-5xl: clamp(3rem, 2.5rem + 1vw, 3.5rem);
+  --font-size-6xl: clamp(3.75rem, 3rem + 1.25vw, 4.5rem);
+  --font-size-7xl: clamp(4.5rem, 3.75rem + 1.5vw, 5.5rem);
 
   /* Font Weights */
   --font-weight-light: 300;

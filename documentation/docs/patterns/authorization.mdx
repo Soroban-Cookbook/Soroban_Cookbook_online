@@ -1,8 +1,32 @@
 ---
+time: 25
 sidebar_position: 5
 title: Authorization & Access Control Patterns
 description: Practical patterns for authorization, roles, and capability boundaries in Soroban contracts.
 image: /img/soroban-social-card.png
+# Phase 5 (issue #333): API keyword frontmatter for code-snippet search.
+# These identifiers appear in the code blocks below and are surfaced by the
+# search index alongside prose, allowing developers to find this page by
+# typing function names or SDK symbols directly.
+keywords:
+  - require_auth
+  - require_auth_for_args
+  - Address
+  - Address::require_auth
+  - soroban_sdk
+  - access control
+  - RBAC
+  - role-based access
+  - capability-based access
+  - has_role
+  - require_role
+  - authorization
+  - env.invoker
+  - mock_all_auths
+  - env.mock_all_auths
+  - privileged_action
+  - set_admin
+  - owner_of
 ---
 
 import Tabs from '@theme/Tabs';
@@ -42,6 +66,8 @@ This guide describes secure authorization and access-control patterns for Soroba
 
 Store a small, explicit mapping from an `Address` to role identifiers. Check role membership at the edge of functions that modify sensitive state.
 
+See the tested [`access-control` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control) for a complete role-based access control (RBAC) implementation: a `Role` enum (`Admin`, `Manager`, `User`), role assignments held in `env.storage().persistent()`, and a reusable `has_role`/`require_role` check used to guard restricted entry points.
+
 ### Capability-based access
 
 Give callers limited capabilities (tokens, allowances, or dedicated contract entries) instead of broad, single-administrator accounts. Capabilities can be revoked or rotated without changing primary keys.
@@ -61,7 +87,7 @@ Keep privileged operations narrow and minimize the number of privileged addresse
 
 #### Insecure: implicit or scattered checks
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Env, Address};
 
@@ -95,7 +121,7 @@ This pattern fails if initialization is incorrect, or if other methods forget th
 
 #### Secure: explicit role mapping and `require_auth()`
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Address, Env};
 
@@ -200,6 +226,7 @@ mod tests {
 
 <PatternSection id="further-reading" title="Further reading">
 
-- Core concepts: see the [Authorization concept](/docs/concepts/authorization.md) page for signer primitives and examples.
+- Core concepts: see the [Authorization concept](/docs/concepts/authorization) page for signer primitives and examples.
+- [Security Fundamentals](/docs/security/fundamentals) — access control checklist
 
 </PatternSection>

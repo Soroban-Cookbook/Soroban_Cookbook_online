@@ -81,7 +81,7 @@ jobs:
         # Requires secret: SLACK_WEBHOOK_URL
         # See DEPLOYMENT.md → Alert System → Setup for instructions
         if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           payload-file-path: payload.json
         env:
@@ -98,7 +98,7 @@ jobs:
     steps:
       - name: Send Slack recovery message
         if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           payload: |
             {
@@ -151,7 +151,7 @@ jobs:
 
       - name: Alert on downtime
         if: failure() && ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           payload: |
             {
@@ -192,7 +192,7 @@ jobs:
     steps:
       - name: Send test Slack message
         if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v4.0.0
         with:
           payload: |
             {

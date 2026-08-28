@@ -1,0 +1,302 @@
+---
+time: 20
+sidebar_position: 6
+title: Contract Factory
+description: Deploy multiple contract instances from a factory contract
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Contract Factory Pattern
+
+The **contract factory** pattern enables dynamic deployment of multiple contract instances from a single factory contract. This is useful for creating standardized contracts at runtime without manual deployment.
+
+## Overview
+
+A factory contract acts as a centralized deployer that can:
+- Deploy child contract instances on-demand
+- Track all deployed instances
+- Initialize child contracts with custom parameters
+- Manage the lifecycle of multiple contracts
+
+## Use Cases
+
+- **Token Issuance**: Deploy a new token contract for each asset
+- **User Accounts**: Create individual contract instances for user-specific logic
+- **Multi-tenancy**: Deploy isolated instances for different organizations
+- **Pool Management**: Create liquidity pools dynamically
+- **Marketplace**: Deploy individual shop contracts from a marketplace factory
+
+## Architecture
+
+The factory pattern typically consists of:
+
+1. **Factory Contract**: Manages deployment and tracking
+2. **Child Contract**: The template contract that gets deployed multiple times
+3. **Registry**: Maintains a list of deployed instances
+
+```
+Factory Contract
+├── deploy_child(name)
+├── get_deployed_children()
+└── child_count()
+
+Child Contract (Template)
+├── init(name)
+├── get_name()
+└── get_info()
+```
+
+## Implementation
+
+### Child Contract
+
+The child contract is the template that will be deployed multiple times:
+
+```rust
+#[contract]
+pub struct ChildContract;
+
+#[contractimpl]
+impl ChildContract {
+    pub fn init(env: Env, name: Symbol) {
+        env.storage().instance().set(&symbol_short!("name"), &name);
+    }
+
+    pub fn get_name(env: Env) -> Symbol {
+        env.storage()
+            .instance()
+            .get(&symbol_short!("name"))
+            .unwrap_or(Symbol::new(&env, "unnamed"))
+    }
+
+    pub fn get_info(env: Env) -> (Symbol, Address) {
+        let name = env
+            .storage()
+            .instance()
+            .get(&symbol_short!("name"))
+            .unwrap_or(Symbol::new(&env, "unnamed"));
+        let contract_id = env.current_contract_address();
+        (name, contract_id)
+    }
+}
+```
+
+### Factory Contract
+
+The factory deploys and tracks child instances:
+
+```rust
+#[contract]
+pub struct ContractFactory;
+
+#[contractimpl]
+impl ContractFactory {
+    pub fn deploy_child(env: Env, name: Symbol) -> Address {
+        // Get child contract code
+        let child_code = env.deployer().get_programm_id(&symbol_short!("child"));
+
+        // Generate unique salt for deterministic deployment
+        let salt = env.storage().temporary().get::<(), u64>(&()).unwrap_or(0);
+        env.storage()
+            .temporary()
+            .set(&(), &(salt + 1));
+
+        let salt_bytes = salt.to_le_bytes().to_vec();
+
+        // Deploy new instance
+        let child_address = env
+            .deployer()
+            .deploy_contract(
+                &salt_bytes,
+                &child_code,
+                Address::from_contract_id(&env.current_contract_address())
+            );
+
+        // Track deployed contract
+        let mut deployed: Vec<Address> = env
+            .storage()
+            .persistent()
+            .get(&symbol_short!("deployed"))
+            .unwrap_or_else(|| vec![&env]);
+
+        deployed.push_back(child_address.clone());
+        env.storage()
+            .persistent()
+            .set(&symbol_short!("deployed"), &deployed);
+
+        child_address
+    }
+
+    pub fn get_deployed_children(env: Env) -> Vec<Address> {
+        env.storage()
+            .persistent()
+            .get(&symbol_short!("deployed"))
+            .unwrap_or_else(|| vec![&env])
+    }
+
+    pub fn child_count(env: Env) -> u32 {
+        let deployed: Vec<Address> = env
+            .storage()
+            .persistent()
+            .get(&symbol_short!("deployed"))
+            .unwrap_or_else(|| vec![&env]);
+        deployed.len() as u32
+    }
+}
+```
+
+## Testing
+
+The factory pattern includes comprehensive tests:
+
+```rust
+#[test]
+fn test_factory_deploy_multiple_children() {
+    let env = Env::default();
+    let factory_contract_id = env.register_contract(None, ContractFactory);
+    let factory_client = ContractFactoryClient::new(&env, &factory_contract_id);
+
+    // Deploy multiple children
+    let child1 = factory_client.deploy_child(&Symbol::new(&env, "child-1"));
+    let child2 = factory_client.deploy_child(&Symbol::new(&env, "child-2"));
+    let child3 = factory_client.deploy_child(&Symbol::new(&env, "child-3"));
+
+    // Verify all are tracked
+    assert_eq!(factory_client.child_count(), 3);
+
+    let deployed = factory_client.get_deployed_children();
+    assert_eq!(deployed.len(), 3);
+    assert!(deployed.contains(&child1));
+    assert!(deployed.contains(&child2));
+    assert!(deployed.contains(&child3));
+}
+```
+
+## Key Considerations
+
+### Salt Generation
+
+Use unique salts to ensure different deployment addresses:
+
+```rust
+let salt = env.storage().temporary().get::<(), u64>(&()).unwrap_or(0);
+let salt_bytes = salt.to_le_bytes().to_vec();
+```
+
+### Storage Optimization
+
+- **Persistent storage**: For tracking important metadata
+- **Temporary storage**: For non-critical counters
+- **Instance storage**: For child contract-specific data
+
+### Child Contract Initialization
+
+Always initialize child contracts with necessary parameters:
+
+```rust
+client.init(&name);
+```
+
+### Tracking
+
+Maintain a registry of deployed instances for:
+- Verification
+- Monitoring
+- Upgrade coordination
+- Access control
+
+## Common Patterns
+
+### Initialization with Parameters
+
+Pass parameters when deploying:
+
+```rust
+pub fn deploy_child_with_params(
+    env: Env,
+    name: Symbol,
+    owner: Address,
+    config: Config,
+) -> Address {
+    // Deploy
+    let child_address = /* deployment logic */;
+
+    // Initialize with parameters
+    let client = ChildContractClient::new(&env, &child_address);
+    client.init(&name);
+    // ... set owner, config, etc
+
+    child_address
+}
+```
+
+### Access Control
+
+Restrict who can deploy:
+
+```rust
+pub fn deploy_child(env: Env, name: Symbol) -> Address {
+    let caller = env.invoker();
+    let authorized: Address = env.storage()
+        .persistent()
+        .get(&symbol_short!("admin"))
+        .expect("Admin not set");
+
+    require_auth(&caller);
+    require!(caller == authorized, Error::NotAuthorized);
+
+    // Deploy logic...
+}
+```
+
+### Child Registry
+
+Retrieve specific child contracts:
+
+```rust
+pub fn get_child_by_index(env: Env, index: u32) -> Address {
+    let deployed: Vec<Address> = env
+        .storage()
+        .persistent()
+        .get(&symbol_short!("deployed"))
+        .unwrap_or_else(|| vec![&env]);
+
+    deployed.get(index as usize)
+}
+```
+
+## Best Practices
+
+1. **Unique Salts**: Ensure each deployment uses a unique salt
+2. **Initialization**: Always initialize child contracts properly
+3. **Tracking**: Maintain a registry of deployed instances
+4. **Access Control**: Restrict deployment permissions if needed
+5. **Testing**: Test deployment, tracking, and retrieval
+6. **Documentation**: Document child contract interfaces clearly
+
+## Limitations
+
+- Each deployed contract consumes ledger space
+- Storage entries have TTL and may expire
+- Large registries can cause performance issues
+- Child contracts are independent after deployment
+
+## Example Files
+
+- **Factory**: `examples/contract-factory/src/lib.rs`
+- **Tests**: Included in the contract file
+- **Cargo.toml**: `examples/contract-factory/Cargo.toml`
+
+## Related Patterns
+
+- [Authorization](./authorization.mdx)
+- [Error Handling](./error-handling.mdx)
+- [Custom Types](./custom-types.mdx)
+
+## Resources
+
+- [Soroban Deployer Docs](https://developers.stellar.org/docs/smart-contracts/deploying)
+- [Contract Lifecycle](https://developers.stellar.org/docs/smart-contracts/contract-lifecycle)
+- [Storage Layers](https://developers.stellar.org/docs/smart-contracts/storage)

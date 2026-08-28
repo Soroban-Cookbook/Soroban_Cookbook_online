@@ -83,6 +83,20 @@ for dir in "${EXAMPLE_DIRS[@]}"; do
     fi
   fi
 
+  # Contract factory requires child Wasm to be built before running tests.
+  if [ "$name" = "contract-factory" ] && [ -f "$dir/child/Cargo.toml" ]; then
+    log_info "Building child Wasm for '${name}' …"
+    if ! cargo build --manifest-path "$dir/child/Cargo.toml" \
+        --target wasm32-unknown-unknown --release \
+        --target-dir "$dir/child/target" 2>&1; then
+      log_fail "'${name}' — child Wasm build FAILED"
+      (( FAIL++ )) || true
+      FAILED_EXAMPLES+=("$name")
+      echo ""
+      continue
+    fi
+  fi
+
   if cargo test --manifest-path "$dir/Cargo.toml" 2>&1; then
     log_pass "'${name}' — all tests passed"
     (( PASS++ )) || true

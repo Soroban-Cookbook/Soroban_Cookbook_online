@@ -230,7 +230,7 @@ We also have a [Pull Request Template](.github/pull_request_template.md) to help
 ## 📚 Resources
 
 - [Soroban Cookbook GitHub](https://github.com/Soroban-Cookbook/Soroban-Cookbook-)
-- [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
+- [Soroban Documentation](http://web.archive.org/web/20240623060346/https://developers.stellar.org/docs/smart-contracts)
 - [Stellar Developer Portal](https://developers.stellar.org/)
 - [Stellar Discord](https://discord.gg/stellardev)
 - [Docusaurus Docs](https://docusaurus.io/docs)

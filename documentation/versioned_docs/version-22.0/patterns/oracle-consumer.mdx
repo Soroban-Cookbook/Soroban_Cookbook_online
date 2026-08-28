@@ -1,0 +1,448 @@
+---
+time: 20
+sidebar_position: 7
+title: Oracle Consumer
+description: Read external price feeds and data from oracle contracts
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Oracle Consumer Pattern
+
+The **oracle consumer** pattern enables smart contracts to read external data (price feeds, asset prices, etc.) from trusted oracle contracts through cross-contract invocation.
+
+## Overview
+
+An oracle consumer contract:
+- Reads data from an external oracle contract
+- Validates data freshness and accuracy
+- Uses prices for calculations (value estimation, collateral checks)
+- Handles oracle failures gracefully
+- Maintains configurable trust parameters
+
+## Use Cases
+
+- **DEX/AMM**: Price feeds for token swaps and liquidity pools
+- **Lending Protocols**: Collateral valuation and liquidation pricing
+- **Staking**: Asset price feeds for reward calculations
+- **Insurance**: Event triggers based on oracle data
+- **Derivatives**: Price feeds for options and futures
+
+## Architecture
+
+```
+┌─────────────────────────────┐
+│  Oracle Consumer Contract   │
+├─────────────────────────────┤
+│ get_price(asset)            │
+│ get_price_data(asset)       │
+│ calculate_value(asset, amt) │
+│ validate_freshness()        │
+└──────────┬──────────────────┘
+           │ Cross-Contract Call
+           │
+┌──────────▼──────────────────┐
+│   Oracle Contract           │
+├─────────────────────────────┤
+│ price_feeds (persistent)    │
+│ last_update (timestamp)     │
+│ update_prices()             │
+└─────────────────────────────┘
+```
+
+## Data Flow
+
+1. **Query**: Consumer asks oracle for price of asset
+2. **Fetch**: Oracle looks up price from data store
+3. **Return**: Oracle returns price with metadata (decimals, timestamp)
+4. **Validate**: Consumer checks freshness and accuracy
+5. **Use**: Consumer uses validated price for calculations
+
+## Trust Model
+
+### Trust Assumptions
+
+- **Oracle Contract**: Deployed by trusted party
+- **Data Accuracy**: Oracle is incentivized to provide accurate prices
+- **Timeliness**: Oracle updates prices regularly
+- **Integrity**: Oracle cannot be tampered with
+
+### Risk Mitigation
+
+- **Freshness Checks**: Reject stale data beyond max_age
+- **Price Bounds**: Reject prices outside reasonable ranges
+- **Multiple Oracles**: Average prices from multiple sources
+- **Circuit Breakers**: Pause operations if prices are unusual
+
+## Implementation
+
+### Consumer Contract
+
+```rust
+#[contract]
+pub struct OracleConsumer;
+
+#[contractimpl]
+impl OracleConsumer {
+    /// Initialize with oracle address and data freshness requirement
+    pub fn init(env: Env, oracle_address: Address, max_age_secs: u64) {
+        env.storage()
+            .instance()
+            .set(&symbol_short!("oracle"), &oracle_address);
+        env.storage()
+            .instance()
+            .set(&symbol_short!("max_age"), &max_age_secs);
+    }
+
+    /// Fetch price from oracle with validation
+    pub fn get_price(env: Env, asset: Symbol) -> Result<i128, OracleError> {
+        let oracle = env.storage()
+            .instance()
+            .get(&symbol_short!("oracle"))
+            .expect("Oracle not initialized");
+
+        // Call oracle contract
+        let price_data: Vec<i128> = env
+            .invoke_contract(
+                &oracle,
+                &symbol_short!("get_price"),
+                soroban_sdk::vec![&env, asset.into_val(&env)],
+            )
+            .map_err(|_| OracleError::InvalidOracle)?;
+
+        // Validate response format
+        if price_data.len() < 3 {
+            return Err(OracleError::InvalidPrice);
+        }
+
+        let price = price_data.get_unchecked(0);
+        let timestamp = price_data.get_unchecked(2) as u64;
+
+        // Validate price is positive
+        if price <= 0 {
+            return Err(OracleError::InvalidPrice);
+        }
+
+        // Check data freshness
+        let max_age = env.storage()
+            .instance()
+            .get(&symbol_short!("max_age"))
+            .unwrap_or(3600);
+
+        let current_time = env.ledger().timestamp();
+        let age = current_time.checked_sub(timestamp)
+            .ok_or(OracleError::StaleData)?;
+
+        if age > max_age {
+            return Err(OracleError::StaleData);
+        }
+
+        Ok(price)
+    }
+
+    /// Calculate value of amount based on oracle price
+    pub fn calculate_value(
+        env: Env,
+        asset: Symbol,
+        amount: i128,
+    ) -> Result<i128, OracleError> {
+        let (price, decimals, _) = self.get_price_data(env, asset)?;
+
+        // value = (amount * price) / 10^decimals
+        let value = amount
+            .checked_mul(price)
+            .ok_or(OracleError::InvalidPrice)?
+            .checked_div(10_i128.pow(decimals))
+            .ok_or(OracleError::InvalidPrice)?;
+
+        Ok(value)
+    }
+}
+```
+
+### Error Handling
+
+```rust
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[repr(u32)]
+pub enum OracleError {
+    StaleData = 1,        // Data too old
+    InvalidOracle = 2,    // Oracle call failed
+    InvalidPrice = 3,     // Price is invalid
+    Unauthorized = 4,     // Not authorized
+}
+```
+
+## Testing
+
+The oracle consumer includes comprehensive tests with a mock oracle:
+
+```rust
+#[contract]
+pub struct MockOracle;
+
+#[contractimpl]
+impl MockOracle {
+    pub fn get_price(env: Env, asset: Symbol) -> Vec<i128> {
+        // Return: [price, decimals, timestamp]
+        soroban_sdk::vec![
+            &env,
+            1_000_000,                              // $1.00
+            6,                                      // 6 decimals
+            env.ledger().timestamp() as i128, // current time
+        ]
+    }
+}
+
+#[test]
+fn test_get_price() {
+    let env = Env::default();
+    let consumer_id = env.register_contract(None, OracleConsumer);
+    let oracle_id = env.register_contract(None, MockOracle);
+    let client = OracleConsumerClient::new(&env, &consumer_id);
+
+    client.init(&oracle_id, &3600);
+
+    let price = client.get_price(&Symbol::new(&env, "USD")).unwrap();
+    assert_eq!(price, 1_000_000);
+}
+
+#[test]
+fn test_stale_data_rejection() {
+    let env = Env::default();
+    // ... setup ...
+
+    // Advance time beyond max_age
+    env.ledger_mut().set_timestamp(old_timestamp + 7200);
+
+    let result = client.get_price(&Symbol::new(&env, "USD"));
+    assert_eq!(result, Err(OracleError::StaleData));
+}
+```
+
+## Best Practices
+
+### 1. Data Freshness
+
+Always validate timestamp and reject stale data:
+
+```rust
+let max_age = 3600; // 1 hour
+let age = current_time - timestamp;
+if age > max_age {
+    return Err(OracleError::StaleData);
+}
+```
+
+### 2. Price Bounds
+
+Reject prices outside reasonable ranges:
+
+```rust
+// BTC price between $10k and $100k
+if price < 10_000_000_000 || price > 100_000_000_000 {
+    return Err(OracleError::InvalidPrice);
+}
+```
+
+### 3. Multiple Sources
+
+Use multiple oracles to prevent single point of failure:
+
+```rust
+pub fn get_median_price(env: Env, asset: Symbol) -> Result<i128, OracleError> {
+    let mut prices = Vec::new();
+    
+    for oracle_addr in self.get_oracles(&env)? {
+        if let Ok(price) = self.fetch_from_oracle(&env, &oracle_addr, &asset) {
+            prices.push(price);
+        }
+    }
+
+    if prices.is_empty() {
+        return Err(OracleError::InvalidOracle);
+    }
+
+    // Return median to handle outliers
+    prices.sort();
+    Ok(prices[prices.len() / 2])
+}
+```
+
+### 4. Error Recovery
+
+Handle oracle failures gracefully:
+
+```rust
+pub fn get_price_or_cached(
+    env: Env,
+    asset: Symbol,
+) -> Result<i128, OracleError> {
+    // Try fresh price
+    match self.get_price(&env, &asset) {
+        Ok(price) => {
+            // Cache for fallback
+            self.cache_price(&env, &asset, price)?;
+            Ok(price)
+        }
+        Err(_) => {
+            // Fall back to cached price if oracle fails
+            self.get_cached_price(&env, &asset)
+        }
+    }
+}
+```
+
+### 5. Access Control
+
+Restrict configuration changes to authorized addresses:
+
+```rust
+pub fn set_oracle(env: Env, new_oracle: Address) {
+    let admin: Address = env.storage()
+        .instance()
+        .get(&symbol_short!("admin"))
+        .expect("Admin not set");
+
+    require_auth(&admin);
+    
+    env.storage()
+        .instance()
+        .set(&symbol_short!("oracle"), &new_oracle);
+}
+```
+
+## Common Patterns
+
+### Price Normalization
+
+Handle different decimal places:
+
+```rust
+pub fn normalize_price(price: i128, decimals: u32, target_decimals: u32) -> i128 {
+    if decimals > target_decimals {
+        price / 10_i128.pow(decimals - target_decimals)
+    } else {
+        price * 10_i128.pow(target_decimals - decimals)
+    }
+}
+```
+
+### Value Calculation
+
+Calculate asset value from price and amount:
+
+```rust
+pub fn calculate_usd_value(
+    price: i128,        // Price in USD
+    decimals: u32,      // Price decimals
+    amount: i128,       // Amount of asset
+    amount_decimals: u32, // Asset decimals
+) -> Result<i128, OracleError> {
+    // Normalize to same decimal place
+    let price_normalized = normalize_price(price, decimals, amount_decimals);
+    
+    // value = amount * price / 10^decimals
+    let value = amount
+        .checked_mul(price_normalized)
+        .ok_or(OracleError::InvalidPrice)?
+        .checked_div(10_i128.pow(amount_decimals))
+        .ok_or(OracleError::InvalidPrice)?;
+
+    Ok(value)
+}
+```
+
+### Circuit Breaker
+
+Pause operations if price changes dramatically:
+
+```rust
+pub fn check_circuit_breaker(
+    env: Env,
+    asset: Symbol,
+    new_price: i128,
+) -> Result<(), OracleError> {
+    let old_price = self.get_cached_price(&env, &asset)?;
+    
+    // Allow max 20% price change
+    let max_deviation = old_price / 5;
+    let deviation = (new_price as i128 - old_price).abs();
+    
+    if deviation > max_deviation {
+        return Err(OracleError::PriceDeviation);
+    }
+    
+    Ok(())
+}
+```
+
+## Security Considerations
+
+### Freshness Attacks
+
+**Risk**: Oracle goes offline, contract uses stale prices
+
+**Mitigation**:
+- Set reasonable max_age (typically 1 hour)
+- Monitor oracle update frequency
+- Use circuit breakers for unusual price changes
+- Fall back to cached prices
+
+### Manipulation Attacks
+
+**Risk**: Oracle provides false prices
+
+**Mitigation**:
+- Use multiple independent oracle sources
+- Verify oracle is properly incentivized/bonded
+- Implement price bounds checking
+- Monitor for suspicious patterns
+
+### Contract Injection
+
+**Risk**: Malicious oracle contract returns crafted data
+
+**Mitigation**:
+- Whitelist oracle addresses
+- Validate response format and types
+- Use safe math (checked_mul, checked_div)
+- Test with multiple data scenarios
+
+### Denial of Service
+
+**Risk**: Oracle takes excessive gas or fails unexpectedly
+
+**Mitigation**:
+- Set gas limits on oracle calls
+- Implement timeouts
+- Use try/catch for failure scenarios
+- Fall back to cached prices
+
+## Limitations
+
+- **Trust Dependency**: Consumer trusts oracle's data accuracy
+- **Availability**: Relies on oracle being online
+- **Latency**: Data is never completely real-time
+- **Cost**: Oracle calls consume gas
+- **Manipulation**: Oracles can be attacked or compromised
+
+## Example Files
+
+- **Consumer**: `examples/oracle-consumer/src/lib.rs`
+- **Tests**: Mock oracle included in contract file
+- **Cargo.toml**: `examples/oracle-consumer/Cargo.toml`
+
+## Related Patterns
+
+- [Cross-Contract Invocation](../concepts/cross-contract-invocation.md)
+- [Error Handling](./error-handling.mdx)
+- [Authorization](./authorization.mdx)
+
+## Resources
+
+- [Soroban Cross-Contract Calls](https://developers.stellar.org/docs/smart-contracts/cross-contract)
+- [Oracle Design Patterns](https://ethereum.org/en/developers/docs/smart-contracts/anatomy/#delegatecall-1)
+- [Price Feed Security](https://docs.chain.link/any-api/best-practices)
+- [Ledger State](https://developers.stellar.org/docs/smart-contracts/ledger-state)

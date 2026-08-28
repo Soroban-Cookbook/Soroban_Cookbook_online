@@ -68,7 +68,6 @@ export default function PatternCard({
         <pre
           id={`code-${contractName}`}
           className={styles.patternCode}
-          tabIndex={0}
           aria-label={`Code example for ${contractName}`}>
           <code>{code}</code>
         </pre>

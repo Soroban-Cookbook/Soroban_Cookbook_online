@@ -1,0 +1,27 @@
+.banner {
+  position: fixed;
+  top: calc(var(--ifm-navbar-height, 3.75rem) + 0.75rem);
+  right: 1rem;
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--ifm-background-surface-color, #fff);
+  border: 1px solid var(--ifm-color-emphasis-300, #d4d4d8);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+  pointer-events: none;
+}
+
+.label {
+  font-size: 0.875rem;
+  color: var(--ifm-color-content-secondary, #52525b);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner :global(.spinner-loader) {
+    animation: none;
+  }
+}

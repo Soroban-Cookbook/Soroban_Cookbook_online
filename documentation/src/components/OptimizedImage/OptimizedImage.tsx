@@ -1,4 +1,6 @@
 import React from 'react';
+import clsx from 'clsx';
+import styles from './OptimizedImage.module.css';
 
 interface OptimizedImageProps {
   src: string;
@@ -12,6 +14,15 @@ interface OptimizedImageProps {
   webpSrc?: string;
 }
 
+const MIME_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  avif: 'image/avif',
+};
+
 export default function OptimizedImage({
   src,
   alt,
@@ -20,34 +31,27 @@ export default function OptimizedImage({
   className,
   loading = 'lazy',
   decoding = 'async',
-  webpSrc,
+  webpSrc: webpSrcProp,
 }: OptimizedImageProps) {
-  if (webpSrc) {
-    return (
-      <picture className={className}>
-        <source srcSet={webpSrc} type="image/webp" />
-        <source srcSet={src} type={`image/${src.split('.').pop()}`} />
-        <img
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          loading={loading}
-          decoding={decoding}
-        />
-      </picture>
-    );
-  }
+  const ext = src.split('.').pop()?.toLowerCase() ?? '';
+  const isRaster = /\.(jpg|jpeg|png)$/i.test(src);
+  const webpSrc = webpSrcProp ?? (isRaster ? src.replace(/\.(jpg|jpeg|png)$/i, '.webp') : null);
+  const mimeType = MIME_TYPES[ext] ?? `image/${ext}`;
+  const safeAlt = alt && alt.trim().length > 0 ? alt : 'Soroban documentation illustration';
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      loading={loading}
-      decoding={decoding}
-    />
+    <picture className={clsx(styles.picture, className)}>
+      {webpSrc && <source srcSet={webpSrc} type="image/webp" />}
+      <source srcSet={src} type={mimeType} />
+      <img
+        src={src}
+        alt={safeAlt}
+        width={width}
+        height={height}
+        loading={loading}
+        decoding={decoding}
+        className={styles.img}
+      />
+    </picture>
   );
 }

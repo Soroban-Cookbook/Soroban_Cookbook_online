@@ -4,13 +4,19 @@ description: A practical guide to secure and maintainable cross-contract calls i
 sidebar_position: 7
 ---
 
-# Cross-Contract Invocation
-
 Soroban contracts can call functions on other on-chain contracts. This is the mechanism that enables composable applications: a lending protocol can invoke a token contract, a router can delegate to a price oracle, and an aggregator can orchestrate multiple DeFi primitives in a single transaction.
 
 This guide explains how cross-contract calls work, where they can go wrong, and how to write and test them safely.
 
 ## How cross-contract calls work
+
+```mermaid
+flowchart LR
+    A["Contract A (Caller)"]
+    B["Contract B (Callee)"]
+    A -->|invoke_contract / typed client| B
+    B -->|return value / panic| A
+```
 
 When contract **A** calls contract **B**, Soroban executes the call inside the same transaction and the same resource budget. The host injects a new execution frame for contract B, passing the arguments and returning a result (or propagating a panic). The key properties:
 
@@ -49,6 +55,20 @@ impl Vault {
 ```
 
 The `TokenClient::new(&env, &token_id)` call binds the client to a specific contract address. From that point the call looks like a normal Rust method call; the SDK serialises arguments, dispatches the invocation to the host, and deserialises the return value.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Vault
+    participant Token
+
+    User->>Vault: deposit(token_id, sender, amount)
+    Vault->>User: require_auth()
+    User-->>Vault: auth approved
+    Vault->>Token: transfer(sender, vault, amount)
+    Token-->>Vault: ok
+    Vault-->>User: ok
+```
 
 ## Invocation patterns
 
@@ -97,6 +117,21 @@ self_client.some_function(&arg);
 > **Caution:** calling yourself can create unintended re-entrancy. Prefer explicit helper functions unless the authorisation model requires a self-invocation.
 
 ## Dependency boundaries
+
+```mermaid
+flowchart TD
+    subgraph App[Application Layer]
+        Vault["Vault Contract"]
+        Router["Router Contract"]
+    end
+    subgraph Infra[Infrastructure Layer]
+        Token["Token Contract"]
+        Oracle["Oracle Contract"]
+    end
+    Vault --> Token
+    Router --> Oracle
+    Router --> Token
+```
 
 A well-designed contract system treats cross-contract dependencies like external APIs:
 
@@ -159,6 +194,7 @@ match oracle.try_price(&asset) {
 ```
 
 Use `try_*` when:
+
 - The callee is external and you cannot guarantee it is always available.
 - You want to implement a fallback (e.g. secondary oracle).
 - The callee's error is recoverable in your business logic.
@@ -209,14 +245,14 @@ Use `sub_invocations` in `require_auth_for_args` to bound what operations a call
 
 ## Security considerations
 
-| Risk | Mitigation |
-|---|---|
-| Callee can drain caller's funds via reentrancy | Finish all storage writes before calling external contracts |
-| Attacker substitutes malicious callee address | Guard address-update functions with `require_auth`; validate the callee interface |
-| Budget exhaustion from deep call chains | Profile budget usage; cap recursion depth |
-| Panicking callee aborts your transaction | Use `try_*` methods for non-critical external calls |
-| Dynamic invocations bypass type safety | Prefer typed clients; treat dynamic calls as untrusted data |
-| Callee upgrade changes behaviour | Subscribe to upgrade events or pin a specific contract hash |
+| Risk                                           | Mitigation                                                                        |
+| ---------------------------------------------- | --------------------------------------------------------------------------------- |
+| Callee can drain caller's funds via reentrancy | Finish all storage writes before calling external contracts                       |
+| Attacker substitutes malicious callee address  | Guard address-update functions with `require_auth`; validate the callee interface |
+| Budget exhaustion from deep call chains        | Profile budget usage; cap recursion depth                                         |
+| Panicking callee aborts your transaction       | Use `try_*` methods for non-critical external calls                               |
+| Dynamic invocations bypass type safety         | Prefer typed clients; treat dynamic calls as untrusted data                       |
+| Callee upgrade changes behaviour               | Subscribe to upgrade events or pin a specific contract hash                       |
 
 ## Testing cross-contract calls
 

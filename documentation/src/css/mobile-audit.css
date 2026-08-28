@@ -1,0 +1,211 @@
+/**
+ * Mobile Responsiveness Audit Fixes — Issue #135
+ * -----------------------------------------------
+ * Audit performed at three reference widths: 375 px (mobile), 768 px (tablet),
+ * 1280 px (desktop). This file documents and fixes the overflow/layout issues
+ * found during the audit.
+ *
+ * AUDIT SUMMARY — July 2026
+ * =========================
+ * ✅ breakpoints.css:  Container + grid system already mobile-first.
+ * ✅ mobile-menu.css:  Sidebar slide-in, backdrop, 44px touch targets — OK.
+ * ✅ index.module.css: Title drops to 2.2rem at ≤768px — OK.
+ *
+ * Issues found and fixed in this file:
+ * ──────────────────────────────────────────────────────────────────────────────
+ * BUG-1 [375px] Tables overflow viewport horizontally — no wrapping container.
+ * BUG-2 [375px] Pre/code blocks can overflow viewport if content is very long.
+ * BUG-3 [375px] Hero title 3.4rem still clips on 320px (older small phones).
+ * BUG-4 [375px] Images without explicit width can overflow containers.
+ * BUG-5 [375px] Inline <kbd> / <code> wraps awkwardly in sentence text.
+ * BUG-6 [768px] Two-column feature grid gap too large relative to tile width.
+ * ──────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BUG-1: Table horizontal overflow
+   Docusaurus renders <table> inside .markdown which has no overflow guard.
+   Wrapping in a scrollable container prevents the page from scrolling
+   horizontally when a table is wider than the viewport.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Scrollable wrapper for all markdown tables */
+.markdown table,
+.theme-doc-markdown table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth momentum scroll on iOS */
+  max-width: 100%;
+  /* Keep table layout intact inside the scrollable block */
+  border-collapse: collapse;
+}
+
+/* Ensure table cells don't shrink too aggressively */
+@media (max-width: 767px) {
+  .markdown table th,
+  .markdown table td,
+  .theme-doc-markdown table th,
+  .theme-doc-markdown table td {
+    /* Prevent cells from becoming unreadably narrow */
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  /* Exception: allow wrapping in description/note columns */
+  .markdown table td:last-child,
+  .theme-doc-markdown table td:last-child {
+    white-space: normal;
+    min-width: 140px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BUG-2: Code / pre block overflow
+   Long code lines in <pre> blocks (Prism) can push the block wider than the
+   viewport. Docusaurus already sets overflow-x: auto on .prism-code; this
+   reinforces the rule for all pre elements, including non-Prism ones.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Prevent code inside mdx admonitions from overflowing */
+.admonition pre,
+.theme-admonition pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BUG-3: Hero title clips on very small phones (320 – 374 px)
+   index.module.css already scales to 2.2rem at ≤768px, but on 320px
+   screens that can still overflow. Use fluid clamped sizing.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 374px) {
+  /* The .title class lives in index.module.css (CSS module), so we can't
+     target it directly here without a global override. Use the h1 inside
+     the hero section as a selector. */
+  .hero h1,
+  [class*='hero'] h1 {
+    font-size: clamp(1.6rem, 7vw, 2.2rem) !important;
+    word-break: break-word;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BUG-4: Images without explicit dimensions overflow their containers
+   Any <img> that doesn't have inline width/height set can render wider than
+   its parent. Enforce max-width: 100% globally.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Docusaurus lazy-loaded images */
+.docusaurus-mt-lg img,
+.markdown img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BUG-5: Inline <kbd> / <code> doesn't wrap in body text on mobile
+   Without word-break, a long inline code string can force horizontal scroll.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  /* Allow line-break inside inline code when necessary */
+  :not(pre) > code {
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+
+  kbd {
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BUG-6: Feature grid gap is too large on narrow two-column layout (tablet)
+   At 768px the 2-column feature tiles are ~340px wide each; the inherited
+   gap from the container system can make them feel cramped.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 480px) and (max-width: 767px) {
+  /* Reduce inner grid gap between hero feature chips */
+  [class*='features'] {
+    gap: var(--space-3, 0.75rem);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   GENERAL: Prevent horizontal scroll from any element with negative margins
+   or explicit widths wider than the viewport.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Guard the document body against any accidental overflow-x */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* Ensure the main layout wrapper also clips overflow */
+#__docusaurus {
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   TOUCH TARGET REINFORCEMENT
+   WCAG 2.1 AA: interactive controls ≥ 44 × 44 CSS px.
+   mobile-menu.css already handles .navbar__toggle and .menu__caret.
+   These rules cover additional interactive elements site-wide.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 996px) {
+  /* Pagination arrows (Docusaurus doc footer) */
+  .pagination-nav__link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Theme toggle button */
+  .navbar__items button[class*='colorModeToggle'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Search bar in mobile sidebar */
+  .navbar__search-input {
+    min-height: 44px;
+  }
+
+  /* Table-of-contents links on mobile */
+  .table-of-contents__link {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE ADMONITIONS
+   Admonition titles can overflow on very narrow screens if the icon + title
+   string is long.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .admonition-heading h5,
+  .admonition > .admonition-heading {
+    flex-wrap: wrap;
+    word-break: break-word;
+  }
+}

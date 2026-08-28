@@ -1,0 +1,148 @@
+/* docs/patterns/overview.module.css */
+
+.page {
+  min-height: 100vh;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+
+.hero {
+  padding: 3rem 1.5rem 2rem;
+  text-align: center;
+  background: var(--ifm-background-color);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.heroTitle {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+  color: var(--ifm-heading-color);
+}
+
+.heroSubtitle {
+  font-size: 1.05rem;
+  color: var(--ifm-color-content-secondary);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Content ──────────────────────────────────────────────────────────────── */
+
+.content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* ── Pattern grid ─────────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Card wrapper ─────────────────────────────────────────────────────────── */
+
+.cardWrapper {
+  display: flex;
+  flex-direction: column;
+  /* Slide-in animation — respects prefers-reduced-motion below */
+  animation: fadeUp 0.35s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardWrapper { animation: none; }
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.difficulty {
+  font-weight: 700;
+  text-transform: capitalize;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.difficulty[data-difficulty='beginner']    { color: #10b981; }
+.difficulty[data-difficulty='intermediate'] { color: #f59e0b; }
+.difficulty[data-difficulty='advanced']    { color: #ef4444; }
+
+.category {
+  font-size: 0.75rem;
+  color: var(--ifm-color-content-secondary);
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  text-transform: capitalize;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+
+.empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+.resetBtn {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-global-radius);
+  background: transparent;
+  color: var(--ifm-color-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.resetBtn:hover {
+  background: var(--ifm-color-primary);
+  color: #fff;
+}
+
+/* ── Contributing callout ─────────────────────────────────────────────────── */
+
+.contribute {
+  margin-top: 3rem;
+  padding: 1rem 1.5rem;
+  background: var(--ifm-color-emphasis-100);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 0 var(--ifm-global-radius) var(--ifm-global-radius) 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+.contribute p { margin: 0; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .content {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

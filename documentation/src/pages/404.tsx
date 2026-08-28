@@ -17,7 +17,7 @@ const recoveryLinks = [
     description: 'Explore production-ready contract patterns',
   },
   {
-    href: 'https://github.com/Soroban-Cookbook/Soroban-Cookbook-',
+    href: 'https://github.com/Soroban-Cookbook/Soroban_Cookbook_online',
     icon: '⭐',
     label: 'GitHub',
     description: 'View source and contribute',
@@ -35,7 +35,7 @@ export default function NotFound() {
           <h1 className={styles.title}>Page Not Found</h1>
           <img
             src="/img/undraw_docusaurus_mountain.svg"
-            alt="Illustration of a mountain landscape"
+            alt="Illustration of a mountain landscape displayed on the 404 page not found error screen"
             className={styles.illustration}
             width={300}
             height={250}

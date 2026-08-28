@@ -5,22 +5,9 @@ import clsx from 'clsx';
 
 export type BadgeDifficulty = 'beginner' | 'intermediate' | 'advanced';
 export type BadgeStatus =
-  | 'new'
-  | 'updated'
-  | 'coming-soon'
-  | 'deprecated'
-  | 'stable'
-  | 'experimental'
-  | 'draft';
+  'new' | 'updated' | 'coming-soon' | 'deprecated' | 'stable' | 'experimental' | 'draft';
 export type TagCategory =
-  | 'token'
-  | 'defi'
-  | 'nft'
-  | 'security'
-  | 'storage'
-  | 'auth'
-  | 'governance'
-  | 'error-handling';
+  'token' | 'defi' | 'nft' | 'security' | 'storage' | 'auth' | 'governance' | 'error-handling';
 export type BadgeSize = 'sm' | 'md' | 'lg';
 
 type BadgeVariant = BadgeDifficulty | BadgeStatus;

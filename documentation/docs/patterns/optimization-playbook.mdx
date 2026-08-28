@@ -1,6 +1,7 @@
 ---
+time: 25
 sidebar_position: 5
-title: Optimization Playbook
+title: Contract Optimization Playbook
 description: A systematic guide to profiling, benchmarking, and optimizing Soroban smart contracts for gas and performance.
 image: /img/soroban-social-card.png
 ---
@@ -9,17 +10,18 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { Callout } from '@site/src/components/Callout';
 import { Alert } from '@site/src/components/Alert';
-
-# Contract Optimization Playbook
+import { QuickNav } from '@site/src/components/QuickNav';
 
 ## Overview
+
+<QuickNav />
 
 In Soroban, performance isn't just about speed—it's about **predictability and cost**. Every operation (CPU instructions, memory allocation, and ledger access) consumes resources that are metered and capped. This playbook provides a repeatable, measurable workflow for optimizing your contracts.
 
 <Callout variant="info" title="The Three Pillars of Cost">
-1. **CPU Instructions:** The computational complexity of your logic.
-2. **RAM Usage:** The memory peak during execution.
-3. **Storage (Footprint):** The size and frequency of ledger reads and writes.
+  1. **CPU Instructions:** The computational complexity of your logic. 2. **RAM Usage:** The memory
+  peak during execution. 3. **Storage (Footprint):** The size and frequency of ledger reads and
+  writes.
 </Callout>
 
 ## The Optimization Loop
@@ -46,6 +48,7 @@ soroban contract invoke \
 ```
 
 Look for the `Events` or `Simulation` output, which includes:
+
 - `cpu_insns`: Total CPU instructions.
 - `mem_limit`: Peak memory usage.
 - `ledger_reads`: Number of entries read.
@@ -68,13 +71,13 @@ To create reproducible results, you must control your environment.
 <Tabs>
   <TabItem value="before" label="Before (O(n))" default>
 
-```rust
+```rust illustrative
 #[contracttype]
 pub struct Registry {
     pub users: Vec<Address>,
 }
 
-// Every time you add a user, you read the WHOLE list, 
+// Every time you add a user, you read the WHOLE list,
 // append, and write the WHOLE list back.
 pub fn add_user(env: Env, user: Address) {
     let mut registry: Registry = env.storage().instance().get(&DataKey::Reg).unwrap();
@@ -88,7 +91,7 @@ pub fn add_user(env: Env, user: Address) {
   </TabItem>
   <TabItem value="after" label="After (O(1))">
 
-```rust
+```rust illustrative
 // Use separate keys for each user.
 pub fn add_user(env: Env, user: Address) {
     let key = DataKey::User(user.clone());
@@ -108,7 +111,8 @@ pub fn add_user(env: Env, user: Address) {
 **Problem:** Storing all contract state in one large "monolithic" struct. Updating a single boolean requires reading and writing the entire 1KB+ object.
 
 <Alert variant="warning" title="Cost of Monoliths">
-Reading a 2KB struct costs twice as much gas as reading a 1KB struct, even if you only need 1 byte of data from it.
+  Reading a 2KB struct costs twice as much gas as reading a 1KB struct, even if you only need 1 byte
+  of data from it.
 </Alert>
 
 **Optimization:** Split the struct into "hot" (frequently updated) and "cold" (read-only or rarely updated) storage keys.
@@ -117,7 +121,7 @@ Reading a 2KB struct costs twice as much gas as reading a 1KB struct, even if yo
 
 **Problem:** Accessing `env.storage()` multiple times for the same value in a single function call.
 
-```rust
+```rust illustrative
 // ❌ BAD: Multiple reads
 pub fn do_something(env: Env) {
     let admin = env.storage().instance().get::<_, Address>(&DataKey::Admin).unwrap();
@@ -135,9 +139,11 @@ pub fn do_something(env: Env) {
 ## Advanced Techniques
 
 ### Bit-Packing
+
 If you need to store multiple flags or small numbers, pack them into a single `u64` or `u128` to save on storage bytes.
 
 ### Strategic Storage Selection
+
 - **Instance Storage:** Best for global config (read on every invocation).
 - **Persistent Storage:** Best for user balances (long-lived, expensive).
 - **Temporary Storage:** Best for oracles or sequence numbers (cheap, but must be bumped).
@@ -146,12 +152,12 @@ If you need to store multiple flags or small numbers, pack them into a single `u
 
 When submitting an optimization PR, include a "Before & After" table:
 
-| Metric | Before | After | Change |
-| :--- | :--- | :--- | :--- |
+| Metric               | Before    | After   | Change |
+| :------------------- | :-------- | :------ | :----- |
 | **CPU Instructions** | 1,200,000 | 450,000 | -62.5% |
-| **Mem Limit** | 512 KB | 256 KB | -50% |
-| **Wasm Size** | 12 KB | 9 KB | -25% |
-| **Ledger Reads** | 5 | 2 | -60% |
+| **Mem Limit**        | 512 KB    | 256 KB  | -50%   |
+| **Wasm Size**        | 12 KB     | 9 KB    | -25%   |
+| **Ledger Reads**     | 5         | 2       | -60%   |
 
 ## Summary Checklist
 
@@ -163,6 +169,7 @@ When submitting an optimization PR, include a "Before & After" table:
 
 ## Related Topics
 
-- [Storage Patterns](../concepts/storage.md)
-- [Designing Custom Types](./custom-types.mdx)
-- [Security Fundamentals](../security/fundamentals.md)
+- [Gas and Resource Management](/docs/concepts/gas-and-resources) — cost drivers this playbook optimizes
+- [Storage Patterns](/docs/concepts/storage)
+- [Designing Custom Types](/docs/patterns/custom-types)
+- [Security Fundamentals](/docs/security/fundamentals)

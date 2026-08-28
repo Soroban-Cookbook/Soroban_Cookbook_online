@@ -5,10 +5,11 @@
  * tap targets, and reduced-motion fallback for the Docusaurus
  * Infima navbar sidebar (shown below the lg breakpoint: 996px).
  *
- * Infima classes used:
+ * Infima / Docusaurus 3.x classes used:
  *   .navbar__toggle          — hamburger button
  *   .navbar-sidebar          — the slide-in panel
- *   .navbar-sidebar--show    — added by Docusaurus when open
+ *   .navbar.navbar-sidebar--show — open state on the parent <nav>
+ *                                (Docusaurus 3.x; NOT on .navbar-sidebar)
  *   .navbar-sidebar__backdrop — the dimming overlay
  *   .navbar-sidebar__item    — each nav link row
  *   .navbar__item            — top-level nav links
@@ -47,7 +48,8 @@
     z-index: var(--z-modal, 500);
   }
 
-  .navbar-sidebar--show {
+  /* Docusaurus 3.x applies navbar-sidebar--show on the parent <nav.navbar> */
+  .navbar-sidebar--show .navbar-sidebar {
     transform: translateX(0);
     transition:
       transform var(--sb-motion-duration-slow, 320ms)
@@ -68,7 +70,6 @@
     pointer-events: none;
   }
 
-  .navbar-sidebar--show ~ .navbar-sidebar__backdrop,
   .navbar-sidebar--show .navbar-sidebar__backdrop {
     opacity: 1;
     pointer-events: auto;
@@ -119,7 +120,7 @@
     transition: visibility 0s step-end;
   }
 
-  .navbar-sidebar--show {
+  .navbar-sidebar--show .navbar-sidebar {
     transition: visibility 0s step-start;
     /* No slide — just appear instantly */
     transform: translateX(0);

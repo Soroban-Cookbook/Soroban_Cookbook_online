@@ -1,0 +1,167 @@
+---
+time: 30
+sidebar_position: 6
+title: Contract Lifecycle & Upgrade Safety
+description: Authoritative guide on contract deployment phases, versioning, and upgrade safety in Soroban.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
+import { Alert } from '@site/src/components/Alert';
+
+## Overview
+
+In the world of immutable ledgers, contract upgrades are among the most sensitive operations a developer can perform. A mistake in an upgrade can result in permanent loss of state, locked funds, or protocol insolvency. This guide treats contract upgrades as high-risk, irreversible operations requiring rigorous governance and verification.
+
+<Callout variant="error" title="Safety First">
+Always simulate upgrades and migrations on a local sandbox or testnet before executing on mainnet. Once state is corrupted on-chain, recovery is often impossible.
+</Callout>
+
+## The Contract Lifecycle Model
+
+A healthy protocol moves through distinct phases, each with specific entry and exit criteria.
+
+### 1. Build & Audit (Local)
+- **Criteria:** Code is feature-complete and passes all unit/integration tests.
+- **Action:** Internal or external security audit of the Wasm bytecode and source logic.
+- **Exit:** No high-severity issues remain.
+
+### 2. Staging (Testnet)
+- **Criteria:** Deployment of the exact audited bytecode to a live network environment.
+- **Action:** Manual QA, integration testing with front-end, and "chaos testing" (e.g., simulating high load).
+- **Exit:** Contract behaves as expected in a multi-user environment.
+
+### 3. Production Deployment (Mainnet)
+- **Criteria:** Final verification of initialization arguments and governance keys.
+- **Action:** Atomic deployment and initialization.
+- **Exit:** Success events emitted; state invariants verified.
+
+### 4. Monitoring & Maintenance
+- **Criteria:** Ongoing operation.
+- **Action:** Monitoring events, transaction volume, and potential anomalies.
+- **Exit:** Identification of a bug or requirement for a feature upgrade.
+
+### 5. Deprecation
+- **Criteria:** A newer version is ready or the feature is sunset.
+- **Action:** "Sunset" phase where new deposits are disabled but withdrawals remain open.
+- **Exit:** All funds removed; storage entries deleted where possible.
+
+---
+
+## Governance & Authority
+
+Upgrades must be protected by strict access control. In Soroban, the `upgrade` function should typically require the authorization of an admin or a decentralized governance body.
+
+```rust illustrative
+#[contractimpl]
+impl MyContract {
+    pub fn upgrade(env: Env, new_wasm_hash: BytesN<32>) {
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth(); // Ensure only the authorized admin can upgrade
+
+        env.deployer().update_current_contract_wasm(new_wasm_hash);
+    }
+}
+```
+
+<Callout variant="tip" title="Governance Best Practice">
+For high-value protocols, avoid single-key admin accounts. Use a multi-signature account or a DAO with a mandatory timelock (e.g., 7 days) to allow users to exit if they disagree with a pending upgrade.
+</Callout>
+
+---
+
+## Upgrade Patterns
+
+Soroban provides native support for updating contract logic while preserving the contract ID and storage.
+
+### The Wasm Update Pattern
+The most common way to upgrade is to call `env.deployer().update_current_contract_wasm()`. This replaces the contract's executable code with the bytecode associated with the provided Wasm hash.
+
+- **Use when:** You need to fix a bug or add features without changing the contract's address.
+- **Avoid when:** You need to change the fundamental architecture or storage model in a way that is incompatible with existing state.
+
+See the tested [`upgradeable` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/upgradeable) for a complete admin-gated upgrade flow with storage preservation and integration tests.
+
+---
+
+## State Migration Patterns
+
+When you upgrade logic, you often need to evolve the data structures in storage.
+
+### 1. Lazy Migration (Recommended)
+Upgrade individual storage entries only when they are accessed. This spreads the gas cost over many transactions and avoids hitting gas limits.
+
+```rust illustrative
+#[contracttype]
+pub enum AccountState {
+    V1(AccountV1),
+    V2(AccountV2),
+}
+
+pub fn get_account_v2(env: &Env, user: Address) -> AccountV2 {
+    let state: AccountState = env.storage().persistent().get(&user).unwrap();
+    match state {
+        AccountState::V1(v1) => {
+            let upgraded = AccountV2 {
+                balance: v1.balance,
+                rewards: 0, // Initialize new field
+            };
+            // Save the upgraded state back to storage
+            env.storage().persistent().set(&user, &AccountState::V2(upgraded.clone()));
+            upgraded
+        }
+        AccountState::V2(v2) => v2,
+    }
+}
+```
+
+### 2. Eager Migration
+Perform the entire migration in a single transaction or a series of transactions.
+- **Risk:** High gas consumption. May fail if the dataset is too large.
+- **Best for:** Small, fixed-size datasets (e.g., global configuration).
+
+---
+
+## Safety Checklists
+
+### Pre-Upgrade Checklist
+- [ ] Bytecode hash of the new Wasm is verified.
+- [ ] New storage types are backward-compatible (or migration is planned).
+- [ ] Initialization logic for new fields is tested.
+- [ ] Upgrade transaction has been simulated on a Testnet fork.
+- [ ] Governance keys are active and accessible.
+
+### Post-Upgrade Verification
+- [ ] Smoke tests pass (basic deposits/withdrawals).
+- [ ] State invariants remain valid (e.g., Total Supply = sum of Balances).
+- [ ] Version markers in storage have been updated.
+- [ ] Events are being emitted correctly.
+
+---
+
+## Rollback & Recovery
+
+If an upgrade introduces a critical flaw, you must have a plan to recover.
+
+1.  **Immutable Fallback:** If the contract is truly immutable, you cannot upgrade. Your only "rollback" is to deploy a new contract and ask users to migrate.
+2.  **Logic Rollback:** Call `upgrade` again with the hash of the *previous* stable Wasm bytecode.
+3.  **Emergency Pause:** Include a "Circuit Breaker" to halt operations while you diagnose and fix a failed upgrade. See the tested [`emergency-stop` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/emergency-stop) for a minimal, admin-gated `pause()`/`unpause()` implementation with a `fail_if_paused` guard applied to operational entry points.
+
+---
+
+## Summary Checklist
+
+- [ ] I have a clearly defined lifecycle for my contract.
+- [ ] My `upgrade` function is protected by `require_auth`.
+- [ ] I have chosen between Lazy and Eager migration for state changes.
+- [ ] I have a verified rollback procedure.
+- [ ] I have completed the pre-upgrade checklist on Testnet.
+
+## Related Topics
+
+- [Security Fundamentals](/docs/security/fundamentals) — pre-upgrade security review
+- [Optimization Playbook](/docs/patterns/optimization-playbook)
+- [Designing Custom Types](/docs/patterns/custom-types)
+- [Storage Concepts](/docs/concepts/storage)

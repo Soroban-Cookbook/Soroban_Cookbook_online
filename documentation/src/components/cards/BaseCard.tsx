@@ -44,24 +44,21 @@ export default function BaseCard({
     );
   }
 
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        onClick={onClick}
+        className={clsx(styles.baseCard, styles.interactive, className)}
+        style={style}>
+        {children}
+      </button>
+    );
+  }
+
   return (
-    <div
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      aria-label={ariaLabel}
-      onClick={onClick}
-      onKeyDown={
-        onClick
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                if (e.key === ' ') e.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
-      className={clsx(styles.baseCard, isInteractive && styles.interactive, className)}
-      style={style}>
+    <div aria-label={ariaLabel} className={clsx(styles.baseCard, className)} style={style}>
       {children}
     </div>
   );

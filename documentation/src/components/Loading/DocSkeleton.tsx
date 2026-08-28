@@ -1,14 +1,16 @@
 import React from 'react';
-import { Skeleton } from './index';
+import { Skeleton } from './primitives';
+import styles from './DocSkeleton.module.css';
 
+/**
+ * Document-shaped skeleton placeholder for slow/lazy doc routes.
+ * Reserves vertical space so content swap does not cause layout shift.
+ */
 export default function DocSkeleton() {
   return (
-    <div style={{ padding: '2rem', border: '2px dashed #ccc', marginTop: '1rem' }}>
-      <p style={{ fontWeight: 'bold', color: 'red' }}>[ISSUE #35 PREVIEW MODE]</p>
-
-      {/* This will stay on screen so you can take the screenshot */}
+    <div className={styles.container} role="status" aria-busy="true" aria-label="Loading document">
       <Skeleton height="3rem" width="80%" />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+      <div className={styles.skeletonGroup}>
         <Skeleton height="1.25rem" width="100%" />
         <Skeleton height="1.25rem" width="90%" />
         <Skeleton height="1.25rem" width="95%" />

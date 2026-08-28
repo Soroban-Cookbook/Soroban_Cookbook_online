@@ -4,8 +4,6 @@ title: Responsive Breakpoint System
 description: Mobile-first responsive design guidelines, breakpoint tokens, container system, and utility classes for the Soroban Cookbook.
 ---
 
-# Responsive Breakpoint System
-
 The Soroban Cookbook uses a **mobile-first** responsive design approach. Styles are written for the smallest screen first, then progressively enhanced for larger screens using `min-width` media queries.
 
 :::info Import Required
@@ -17,6 +15,7 @@ stylesheets: [
   './src/css/breakpoints.css',
 ],
 ```
+
 :::
 
 ---
@@ -25,14 +24,14 @@ stylesheets: [
 
 We extend Infima's default breakpoint scale with an additional `2xl` tier for wide/ultrawide screens.
 
-| Token | CSS Variable | Width | Typical Device |
-|-------|-------------|-------|----------------|
-| `xs` | `--breakpoint-xs` | `0px` | Mobile portrait (default) |
-| `sm` | `--breakpoint-sm` | `480px` | Mobile landscape |
-| `md` | `--breakpoint-md` | `768px` | Tablet |
-| `lg` | `--breakpoint-lg` | `996px` | Small desktop / laptop |
-| `xl` | `--breakpoint-xl` | `1280px` | Desktop |
-| `2xl` | `--breakpoint-2xl` | `1536px` | Wide / ultrawide |
+| Token | CSS Variable       | Width    | Typical Device            |
+| ----- | ------------------ | -------- | ------------------------- |
+| `xs`  | `--breakpoint-xs`  | `0px`    | Mobile portrait (default) |
+| `sm`  | `--breakpoint-sm`  | `480px`  | Mobile landscape          |
+| `md`  | `--breakpoint-md`  | `768px`  | Tablet                    |
+| `lg`  | `--breakpoint-lg`  | `996px`  | Small desktop / laptop    |
+| `xl`  | `--breakpoint-xl`  | `1280px` | Desktop                   |
+| `2xl` | `--breakpoint-2xl` | `1536px` | Wide / ultrawide          |
 
 :::note
 `lg` at `996px` intentionally matches Infima's internal `--ifm-container-width-xl` trigger to stay compatible with Docusaurus's built-in layout system.
@@ -45,18 +44,18 @@ Because CSS custom properties cannot be used inside `@media` queries natively, u
 ```css
 /* ✅ Correct — mobile-first, min-width */
 .my-component {
-  font-size: 1rem;        /* xs: default */
+  font-size: 1rem; /* xs: default */
 }
 
 @media (min-width: 768px) {
   .my-component {
-    font-size: 1.25rem;   /* md and above */
+    font-size: 1.25rem; /* md and above */
   }
 }
 
 @media (min-width: 996px) {
   .my-component {
-    font-size: 1.5rem;    /* lg and above */
+    font-size: 1.5rem; /* lg and above */
   }
 }
 
@@ -74,11 +73,11 @@ The breakpoint tokens are available as CSS custom properties and can be read in 
 
 ```js
 const breakpoints = {
-  xs:  getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-xs'),
-  sm:  getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-sm'),
-  md:  getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-md'),
-  lg:  getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-lg'),
-  xl:  getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-xl'),
+  xs: getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-xs'),
+  sm: getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-sm'),
+  md: getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-md'),
+  lg: getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-lg'),
+  xl: getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-xl'),
   '2xl': getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-2xl'),
 };
 
@@ -92,33 +91,27 @@ const isMd = window.matchMedia('(min-width: 768px)').matches;
 
 Containers center your content and constrain its max-width at each breakpoint. All containers are full-width on mobile by default.
 
-| Class | Constrains at | Max-width |
-|-------|--------------|-----------|
-| `.container-fluid` | Never | Unlimited |
-| `.container-sm` | `480px+` | `540px` |
-| `.container-md` | `768px+` | `720px` |
-| `.container-lg` | `996px+` | `960px` |
-| `.container-xl` | `1280px+` | `1240px` |
-| `.container-2xl` | `1536px+` | `1500px` |
-| `.container` | Steps through all | All of above |
+| Class              | Constrains at     | Max-width    |
+| ------------------ | ----------------- | ------------ |
+| `.container-fluid` | Never             | Unlimited    |
+| `.container-sm`    | `480px+`          | `540px`      |
+| `.container-md`    | `768px+`          | `720px`      |
+| `.container-lg`    | `996px+`          | `960px`      |
+| `.container-xl`    | `1280px+`         | `1240px`     |
+| `.container-2xl`   | `1536px+`         | `1500px`     |
+| `.container`       | Steps through all | All of above |
 
 ### Usage
 
 ```html
 <!-- Constrains width at every breakpoint (recommended default) -->
-<div class="container">
-  ...
-</div>
+<div class="container">...</div>
 
 <!-- Always full-width, just adds horizontal padding -->
-<div class="container-fluid">
-  ...
-</div>
+<div class="container-fluid">...</div>
 
 <!-- Only constrains at lg and above -->
-<div class="container-lg">
-  ...
-</div>
+<div class="container-lg">...</div>
 ```
 
 :::tip
@@ -157,15 +150,15 @@ Columns stack on mobile and expand at wider breakpoints:
 
 ### Available Column Spans
 
-| Class | Columns spanned | Width |
-|-------|----------------|-------|
-| `.col-1` | 1 of 12 | ~8% |
-| `.col-2` | 2 of 12 | ~17% |
-| `.col-3` | 3 of 12 | 25% |
-| `.col-4` | 4 of 12 | ~33% |
-| `.col-6` | 6 of 12 | 50% |
-| `.col-8` | 8 of 12 | ~67% |
-| `.col-12` | 12 of 12 | 100% |
+| Class     | Columns spanned | Width |
+| --------- | --------------- | ----- |
+| `.col-1`  | 1 of 12         | ~8%   |
+| `.col-2`  | 2 of 12         | ~17%  |
+| `.col-3`  | 3 of 12         | 25%   |
+| `.col-4`  | 4 of 12         | ~33%  |
+| `.col-6`  | 6 of 12         | 50%   |
+| `.col-8`  | 8 of 12         | ~67%  |
+| `.col-12` | 12 of 12        | 100%  |
 
 Prefix any of these with `sm-`, `md-`, `lg-`, or `xl-` to apply only at that breakpoint and above (e.g. `.col-md-6`).
 
@@ -181,18 +174,16 @@ Hides the element on small screens, shows it on larger screens.
 
 ```html
 <!-- Hidden on mobile, visible on tablet and above -->
-<nav class="hide-md-down">
-  Desktop Navigation
-</nav>
+<nav class="hide-md-down">Desktop Navigation</nav>
 ```
 
-| Class | Hidden when |
-|-------|------------|
-| `.hide-xs-down` | `< 480px` |
-| `.hide-sm-down` | `< 768px` |
-| `.hide-md-down` | `< 996px` |
-| `.hide-lg-down` | `< 1280px` |
-| `.hide-xl-down` | `< 1536px` |
+| Class           | Hidden when |
+| --------------- | ----------- |
+| `.hide-xs-down` | `< 480px`   |
+| `.hide-sm-down` | `< 768px`   |
+| `.hide-md-down` | `< 996px`   |
+| `.hide-lg-down` | `< 1280px`  |
+| `.hide-xl-down` | `< 1536px`  |
 
 ### Hide Above a Breakpoint
 
@@ -200,36 +191,32 @@ Hides the element on large screens, shows it on smaller screens.
 
 ```html
 <!-- Visible on mobile only, hidden on tablet and above -->
-<button class="hide-md-up">
-  ☰ Mobile Menu
-</button>
+<button class="hide-md-up">☰ Mobile Menu</button>
 ```
 
-| Class | Hidden when |
-|-------|------------|
-| `.hide-sm-up` | `≥ 480px` |
-| `.hide-md-up` | `≥ 768px` |
-| `.hide-lg-up` | `≥ 996px` |
-| `.hide-xl-up` | `≥ 1280px` |
-| `.hide-2xl-up` | `≥ 1536px` |
+| Class          | Hidden when |
+| -------------- | ----------- |
+| `.hide-sm-up`  | `≥ 480px`   |
+| `.hide-md-up`  | `≥ 768px`   |
+| `.hide-lg-up`  | `≥ 996px`   |
+| `.hide-xl-up`  | `≥ 1280px`  |
+| `.hide-2xl-up` | `≥ 1536px`  |
 
 ### Show Only at a Specific Breakpoint
 
 ```html
 <!-- Only visible on tablet screens -->
-<div class="show-md-only">
-  Tablet-specific content
-</div>
+<div class="show-md-only">Tablet-specific content</div>
 ```
 
-| Class | Visible when |
-|-------|-------------|
-| `.show-xs-only` | `< 480px` |
-| `.show-sm-only` | `480px – 767px` |
-| `.show-md-only` | `768px – 995px` |
-| `.show-lg-only` | `996px – 1279px` |
-| `.show-xl-only` | `1280px – 1535px` |
-| `.show-2xl-only` | `≥ 1536px` |
+| Class            | Visible when      |
+| ---------------- | ----------------- |
+| `.show-xs-only`  | `< 480px`         |
+| `.show-sm-only`  | `480px – 767px`   |
+| `.show-md-only`  | `768px – 995px`   |
+| `.show-lg-only`  | `996px – 1279px`  |
+| `.show-xl-only`  | `1280px – 1535px` |
+| `.show-2xl-only` | `≥ 1536px`        |
 
 ---
 
@@ -240,26 +227,22 @@ Hides the element on large screens, shows it on smaller screens.
 Adds responsive vertical padding that grows on wider screens:
 
 ```html
-<section class="section-spacing">
-  ...
-</section>
+<section class="section-spacing">...</section>
 ```
 
-| Breakpoint | Padding |
-|-----------|---------|
-| Mobile (`xs`) | `2rem` (32px) |
-| Tablet (`md`) | `3rem` (48px) |
+| Breakpoint     | Padding       |
+| -------------- | ------------- |
+| Mobile (`xs`)  | `2rem` (32px) |
+| Tablet (`md`)  | `3rem` (48px) |
 | Desktop (`lg`) | `4rem` (64px) |
-| Wide (`xl`) | `5rem` (80px) |
+| Wide (`xl`)    | `5rem` (80px) |
 
 ### Responsive Gap
 
 For flex or grid children:
 
 ```html
-<div class="grid gap-responsive">
-  ...
-</div>
+<div class="grid gap-responsive">...</div>
 ```
 
 ### Spacing Scale
@@ -268,23 +251,23 @@ Use these tokens in your custom CSS for consistent spacing:
 
 ```css
 .my-component {
-  padding: var(--space-4);   /* 16px */
+  padding: var(--space-4); /* 16px */
   margin-bottom: var(--space-8); /* 32px */
 }
 ```
 
-| Token | Value |
-|-------|-------|
-| `--space-1` | 4px |
-| `--space-2` | 8px |
-| `--space-3` | 12px |
-| `--space-4` | 16px |
-| `--space-6` | 24px |
-| `--space-8` | 32px |
-| `--space-12` | 48px |
-| `--space-16` | 64px |
-| `--space-20` | 80px |
-| `--space-24` | 96px |
+| Token        | Value |
+| ------------ | ----- |
+| `--space-1`  | 4px   |
+| `--space-2`  | 8px   |
+| `--space-3`  | 12px  |
+| `--space-4`  | 16px  |
+| `--space-6`  | 24px  |
+| `--space-8`  | 32px  |
+| `--space-12` | 48px  |
+| `--space-16` | 64px  |
+| `--space-20` | 80px  |
+| `--space-24` | 96px  |
 
 ---
 
@@ -293,35 +276,31 @@ Use these tokens in your custom CSS for consistent spacing:
 ### Responsive Headings
 
 ```html
-<h1 class="heading-responsive">
-  Scales from 24px → 48px across breakpoints
-</h1>
+<h1 class="heading-responsive">Scales from 24px → 48px across breakpoints</h1>
 ```
 
-| Breakpoint | Font size |
-|-----------|-----------|
-| Mobile | `1.5rem` (24px) |
-| Tablet (`md`) | `1.875rem` (30px) |
-| Desktop (`lg`) | `2.25rem` (36px) |
-| Wide (`xl`) | `3rem` (48px) |
+| Breakpoint     | Font size         |
+| -------------- | ----------------- |
+| Mobile         | `1.5rem` (24px)   |
+| Tablet (`md`)  | `1.875rem` (30px) |
+| Desktop (`lg`) | `2.25rem` (36px)  |
+| Wide (`xl`)    | `3rem` (48px)     |
 
 ### Responsive Body Text
 
 ```html
-<p class="text-responsive">
-  Scales from 16px on mobile to 18px on desktop.
-</p>
+<p class="text-responsive">Scales from 16px on mobile to 18px on desktop.</p>
 ```
 
 ### Type Scale Tokens
 
 ```css
 .my-label {
-  font-size: var(--text-sm);   /* 14px */
+  font-size: var(--text-sm); /* 14px */
 }
 
 .my-heading {
-  font-size: var(--text-3xl);  /* 30px */
+  font-size: var(--text-3xl); /* 30px */
 }
 ```
 
@@ -359,7 +338,7 @@ Always set explicit dimensions on images to prevent Cumulative Layout Shift (CLS
 <!-- Use the img-responsive class + explicit aspect-ratio -->
 <img
   src="/img/my-image.png"
-  alt="Description"
+  alt="Example responsive diagram illustrating explicit image dimensions and aspect-ratio CSS properties"
   class="img-responsive"
   width="1200"
   height="675"
@@ -372,9 +351,7 @@ Always set explicit dimensions on images to prevent Cumulative Layout Shift (CLS
 For elements that change size at breakpoints, add `.layout-transition` to smooth the change:
 
 ```html
-<div class="container layout-transition">
-  ...
-</div>
+<div class="container layout-transition">...</div>
 ```
 
 :::caution Reduced Motion
@@ -416,3 +393,11 @@ Before submitting a PR with responsive changes, verify the following:
 - [ ] Tested with keyboard navigation
 - [ ] Tested with OS "Reduce Motion" enabled
 - [ ] `hide-*` / `show-*` utilities work as expected
+
+---
+
+## Related links
+
+- [Typography System](/docs/design-system/typography) — responsive type utilities
+- [Button System](/docs/design-system/buttons) — touch-target sizing on mobile
+- [Internal Linking Strategy](/docs/contributing/internal-linking) — doc structure conventions

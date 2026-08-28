@@ -1,0 +1,114 @@
+.container {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--ifm-hr-border-color);
+  font-family: var(--ifm-font-family-base);
+}
+
+.title {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  color: var(--ifm-heading-color);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.titleIcon {
+  font-size: 1.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--ifm-card-background-color, #1e1e2e);
+  border: 1px solid var(--ifm-hr-border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-decoration: none !important;
+  color: var(--ifm-font-color-base) !important;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--ifm-color-primary);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.category {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-color-primary);
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+  color: var(--ifm-heading-color);
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: var(--ifm-color-gray-600, #888);
+  margin-bottom: 1.25rem;
+  flex-grow: 1;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--ifm-color-gray-500, #666);
+  border-top: 1px solid var(--ifm-hr-border-color);
+  padding-top: 0.75rem;
+}
+
+.readTime {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.reason {
+  font-style: italic;
+  color: var(--ifm-color-primary-darker, #60a5fa);
+}

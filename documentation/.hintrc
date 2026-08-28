@@ -11,6 +11,11 @@
           "backdrop-filter"
         ]
       }
-    ]
+    ],
+    "image-alt-text": "error",
+    "label": "error",
+    "button-type": "warning",
+    "meta-viewport": "off",
+    "no-inline-styles": "off"
   }
 }

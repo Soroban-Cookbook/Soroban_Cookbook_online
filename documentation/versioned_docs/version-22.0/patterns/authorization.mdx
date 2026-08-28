@@ -1,0 +1,209 @@
+---
+time: 25
+sidebar_position: 5
+title: Authorization & Access Control Patterns
+description: Practical patterns for authorization, roles, and capability boundaries in Soroban contracts.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="authorization-and-access-control"
+  difficulty="intermediate"
+  category="Architecture"
+  status="stable"
+  lastReviewed="May 2026"
+/>
+
+## Overview
+
+This guide describes secure authorization and access-control patterns for Soroban smart contracts. It covers common patterns (role-based, capability-based), where to place checks, insecure anti-patterns, and guidance for testing authorization paths.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust and `cargo`
+- Soroban CLI and `soroban_sdk`
+- Familiarity with `Address` and `require_auth()` semantics
+
+</PatternSection>
+
+<PatternSection id="goals" title="Goals">
+
+- Make authorization checks explicit and auditable.
+- Keep capability boundaries small and verifiable.
+- Prefer least-privilege defaults and fail-safe behavior.
+
+</PatternSection>
+
+<PatternSection id="patterns" title="Patterns">
+
+### Role-based access
+
+Store a small, explicit mapping from an `Address` to role identifiers. Check role membership at the edge of functions that modify sensitive state.
+
+See the tested [`access-control` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control) for a complete role-based access control (RBAC) implementation: a `Role` enum (`Admin`, `Manager`, `User`), role assignments held in `env.storage().persistent()`, and a reusable `has_role`/`require_role` check used to guard restricted entry points.
+
+### Capability-based access
+
+Give callers limited capabilities (tokens, allowances, or dedicated contract entries) instead of broad, single-administrator accounts. Capabilities can be revoked or rotated without changing primary keys.
+
+### Check early, check often
+
+Perform authorization checks at public entry points (before expensive work) and re-check invariants when crossing capability boundaries.
+
+### Principle of least privilege
+
+Keep privileged operations narrow and minimize the number of privileged addresses or capabilities.
+
+</PatternSection>
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+#### Insecure: implicit or scattered checks
+
+```rust illustrative
+#![no_std]
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contract]
+pub struct Bad;
+
+#[contractimpl]
+impl Bad {
+    // Uses a single global flag and scattered checks — easy to misuse or forget.
+    pub fn set_admin(env: Env, admin: Address) {
+        // No access control here — anyone can call
+        env.storage().persistent().set(&"admin", &admin);
+    }
+
+    pub fn privileged_action(env: Env) {
+        // Check is scattered and easy to omit in other methods
+        let admin: Address = env.storage().persistent().get(&"admin").unwrap();
+        if !env.invoker().eq(&admin) {
+            panic!("unauthorized");
+        }
+        // do privileged work
+    }
+}
+```
+
+This pattern fails if initialization is incorrect, or if other methods forget the check.
+
+  </TabItem>
+
+  <TabItem value="secure" label="Contract (Secure)" >
+
+#### Secure: explicit role mapping and `require_auth()`
+
+```rust illustrative
+#![no_std]
+use soroban_sdk::{contract, contractimpl, Address, Env};
+
+#[contract]
+pub struct AccessControl;
+
+#[contractimpl]
+impl AccessControl {
+    pub fn initialize(env: Env, owner: Address) {
+        // initialization should be controlled (callable only once in practice)
+        env.storage().persistent().set(&"owner", &owner);
+    }
+
+    fn owner_of(env: &Env) -> Address {
+        env.storage().persistent().get(&"owner").unwrap()
+    }
+
+    pub fn set_admin(env: Env, admin: Address) {
+        // Require the owner to sign before changing admin
+        let owner = Self::owner_of(&env);
+        owner.require_auth();
+        env.storage().persistent().set(&"admin", &admin);
+    }
+
+    pub fn privileged_action(env: Env) {
+        let admin: Address = env.storage().persistent().get(&"admin").unwrap();
+        admin.require_auth();
+        // safely perform privileged work
+    }
+}
+```
+
+<div>
+
+Key points:
+
+- Use `Address::require_auth()` to assert caller identity.
+- Keep mapping keys explicit and minimal (`owner`, `admin`, or a small role map).
+- Prefer dedicated setter methods guarded by the highest privilege.
+
+</div>
+
+  </TabItem>
+
+  <TabItem value="test" label="Tests">
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{testutils::Address as _, Env};
+
+    #[test]
+    fn test_admin_flow() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, AccessControl);
+        let client = AccessControlClient::new(&env, &contract_id);
+
+        let owner = Address::generate(&env);
+        let alice = Address::generate(&env);
+        env.mock_all_auths();
+
+        // Initialize and set admin
+        client.initialize(&owner);
+        env.set_source_account(&owner);
+        client.set_admin(&alice);
+
+        // Admin action must be signed by admin
+        env.set_source_account(&alice);
+        client.privileged_action();
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+<PatternSection id="anti-patterns" title="Anti-patterns">
+
+- Relying on `env.invoker()` checks scattered throughout code without enforcing signing (`require_auth` is safer).
+- Granting a single address unlimited rights without revocation or rotation plan.
+- Mixing business logic and authorization checks in many places instead of centralizing them.
+
+</PatternSection>
+
+<PatternSection id="testing" title="Testing Authorization Paths">
+
+- Unit tests: assert both authorized and unauthorized callers for every public method.
+- Edge cases: test initialization, role rotation, and revocation flows.
+- Property/fuzz testing: ensure that random inputs cannot bypass checks.
+- Use `env.mock_all_auths()` carefully to ensure you still assert `require_auth()` behavior where relevant.
+
+</PatternSection>
+
+<PatternSection id="audit-and-review" title="Audit and Review">
+
+- Keep the role map small and well-documented.
+- Document the capability boundaries in the contract README.
+- Consider off-chain governance flows for role changes.
+
+</PatternSection>
+
+<PatternSection id="further-reading" title="Further reading">
+
+- Core concepts: see the [Authorization concept](/docs/concepts/authorization) page for signer primitives and examples.
+- [Security Fundamentals](/docs/security/fundamentals) — access control checklist
+
+</PatternSection>

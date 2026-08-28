@@ -1,0 +1,12 @@
+.container {
+  padding: 2rem 0;
+  min-height: 16rem;
+  margin-top: 1rem;
+}
+
+.skeletonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}

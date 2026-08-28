@@ -10,12 +10,16 @@
 /* Issue #40: Mobile menu polish */
 @import './mobile-menu.css';
 
+/* Issue #135: Mobile responsiveness audit fixes */
+@import './mobile-audit.css';
+
 /* ── Light Mode (Default) ───────────────────────────────────────────────────── */
 
 :root {
   /* Typography — wire Infima to our design-token font stacks */
   --ifm-font-family-base: var(--font-family-sans);
   --ifm-font-family-monospace: var(--font-family-mono);
+  --ifm-font-size-base: var(--font-size-base);
 
   /* Primary Colors */
   --ifm-color-primary: #2e8555;
@@ -630,6 +634,34 @@ html {
   margin-top: -1px;
 }
 
+/* ── Breadcrumbs ────────────────────────────────────────────────────────────── */
+
+/* Breadcrumb link states — wired to design tokens so they follow the theme */
+
+.breadcrumbs__link {
+  border-radius: var(--radius-sm, 4px);
+  transition:
+    background-color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease),
+    color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease);
+}
+
+.breadcrumbs__link:hover {
+  background-color: var(--ifm-color-emphasis-100, #f3f4f6);
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--ifm-font-color-base, #374151);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+[data-theme='dark'] .breadcrumbs__link:hover {
+  background-color: var(--ifm-color-emphasis-200, #334155);
+}
+
+[data-theme='dark'] .breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--ifm-font-color-base, #cbd5e1);
+}
+
 /* ── Icon System ────────────────────────────────────────────────────────────── */
 
 .icon {
@@ -733,5 +765,40 @@ html {
   .skeleton-loader,
   .spinner-loader {
     animation: none !important;
+  }
+}
+
+/* ── Scroll-Spy Sidebar Highlighting (issue #133 / Phase 4) ────────────────── */
+
+/**
+ * Applied programmatically by useScrollSpy to the <a> tag inside
+ * .theme-doc-sidebar-container that matches the currently visible heading.
+ *
+ * We deliberately piggyback on Infima's existing --ifm-menu-color-active and
+ * --ifm-menu-color-background-hover tokens so the highlight follows the
+ * project's light/dark colour scheme automatically.
+ */
+
+.theme-doc-sidebar-container a.scroll-spy-active {
+  color: var(--ifm-menu-color-active);
+  font-weight: 600;
+}
+
+/* Subtle left-border accent to make the active item visually distinct */
+.theme-doc-sidebar-container a.scroll-spy-active {
+  border-left: 3px solid var(--ifm-color-primary);
+  padding-left: calc(var(--ifm-menu-link-padding-horizontal) - 3px);
+  background-color: var(--ifm-menu-color-background-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .theme-doc-sidebar-container a.scroll-spy-active {
+    transition: none;
   }
 }

@@ -1,6 +1,7 @@
 ---
+time: 20
 sidebar_position: 3
-title: Error Recovery
+title: Error Recovery Patterns
 description: Comprehensive error handling patterns for Soroban smart contracts
 image: /img/soroban-social-card.png
 ---
@@ -9,15 +10,15 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { Callout } from '@site/src/components/Callout';
 import { Alert } from '@site/src/components/Alert';
-
-# Error Recovery Patterns
+import { CodeSnippet } from '@site/src/components/CodeSnippet';
 
 ## Overview
 
 Robust error handling is critical for production smart contracts. This guide demonstrates try-catch patterns, fallback logic, graceful degradation, transaction rollback, and comprehensive validation strategies in Soroban.
 
 <Callout variant="info" title="Why Error Recovery Matters">
-Smart contracts handle valuable assets and critical operations. Proper error handling prevents fund loss, ensures predictable behavior, and provides clear feedback when operations fail.
+  Smart contracts handle valuable assets and critical operations. Proper error handling prevents
+  fund loss, ensures predictable behavior, and provides clear feedback when operations fail.
 </Callout>
 
 ## Prerequisites
@@ -36,7 +37,7 @@ Soroban uses Rust's `Result` type for error handling, which is analogous to try-
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, contracttype, Env, Address, Symbol};
 
@@ -63,22 +64,22 @@ impl TokenContract {
     ) -> Result<(), Error> {
         // Validate authorization
         from.require_auth();
-        
+
         // Validate inputs
         Self::validate_transfer(&env, &from, &to, amount)?;
-        
+
         // Attempt transfer with error handling
         Self::execute_transfer(&env, &from, &to, amount)?;
-        
+
         // Emit success event
         env.events().publish(
             (Symbol::new(&env, "transfer"), &from, &to),
             amount,
         );
-        
+
         Ok(())
     }
-    
+
     fn validate_transfer(
         env: &Env,
         from: &Address,
@@ -89,21 +90,21 @@ impl TokenContract {
         if amount <= 0 {
             return Err(Error::InvalidAmount);
         }
-        
+
         // Validate addresses are different
         if from == to {
             return Err(Error::InvalidAmount);
         }
-        
+
         // Check balance
         let balance = Self::get_balance(env, from);
         if balance < amount {
             return Err(Error::InsufficientBalance);
         }
-        
+
         Ok(())
     }
-    
+
     fn execute_transfer(
         env: &Env,
         from: &Address,
@@ -112,14 +113,14 @@ impl TokenContract {
     ) -> Result<(), Error> {
         let from_balance = Self::get_balance(env, from);
         let to_balance = Self::get_balance(env, to);
-        
+
         // Perform atomic update
         env.storage().persistent().set(from, &(from_balance - amount));
         env.storage().persistent().set(to, &(to_balance + amount));
-        
+
         Ok(())
     }
-    
+
     fn get_balance(env: &Env, addr: &Address) -> i128 {
         env.storage()
             .persistent()
@@ -132,7 +133,7 @@ impl TokenContract {
   </TabItem>
   <TabItem value="test" label="Test">
 
-```rust
+```rust illustrative
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -143,51 +144,51 @@ mod tests {
         let env = Env::default();
         let contract_id = env.register_contract(None, TokenContract);
         let client = TokenContractClient::new(&env, &contract_id);
-        
+
         let alice = Address::generate(&env);
         let bob = Address::generate(&env);
-        
+
         // Setup initial balance
         env.storage().persistent().set(&alice, &1000_i128);
-        
+
         // Execute transfer
         env.mock_all_auths();
         let result = client.try_transfer(&alice, &bob, &100);
-        
+
         assert!(result.is_ok());
         assert_eq!(client.get_balance(&alice), 900);
         assert_eq!(client.get_balance(&bob), 100);
     }
-    
+
     #[test]
     fn test_insufficient_balance_error() {
         let env = Env::default();
         let contract_id = env.register_contract(None, TokenContract);
         let client = TokenContractClient::new(&env, &contract_id);
-        
+
         let alice = Address::generate(&env);
         let bob = Address::generate(&env);
-        
+
         env.storage().persistent().set(&alice, &50_i128);
-        
+
         env.mock_all_auths();
         let result = client.try_transfer(&alice, &bob, &100);
-        
+
         assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
     }
-    
+
     #[test]
     fn test_invalid_amount_error() {
         let env = Env::default();
         let contract_id = env.register_contract(None, TokenContract);
         let client = TokenContractClient::new(&env, &contract_id);
-        
+
         let alice = Address::generate(&env);
         let bob = Address::generate(&env);
-        
+
         env.mock_all_auths();
         let result = client.try_transfer(&alice, &bob, &-100);
-        
+
         assert_eq!(result, Err(Ok(Error::InvalidAmount)));
     }
 }
@@ -207,7 +208,7 @@ Implement fallback mechanisms when primary operations fail.
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Env, Address, Symbol};
 
@@ -249,21 +250,21 @@ impl PriceOracle {
             }
         }
     }
-    
+
     fn get_primary_price(env: &Env, asset: &Symbol) -> Result<i128, Error> {
         env.storage()
             .persistent()
             .get(&(Symbol::new(env, "primary"), asset))
             .ok_or(Error::PrimaryOracleFailed)
     }
-    
+
     fn get_secondary_price(env: &Env, asset: &Symbol) -> Result<i128, Error> {
         env.storage()
             .persistent()
             .get(&(Symbol::new(env, "secondary"), asset))
             .ok_or(Error::SecondaryOracleFailed)
     }
-    
+
     fn get_cached_price(env: &Env, asset: &Symbol) -> Option<i128> {
         env.storage()
             .temporary()
@@ -283,21 +284,21 @@ pub enum Error {
   </TabItem>
   <TabItem value="test" label="Test">
 
-```rust
+```rust illustrative
 #[test]
 fn test_fallback_to_secondary() {
     let env = Env::default();
     let contract_id = env.register_contract(None, PriceOracle);
     let client = PriceOracleClient::new(&env, &contract_id);
-    
+
     let asset = Symbol::new(&env, "XLM");
-    
+
     // Primary fails, secondary succeeds
     env.storage().persistent().set(
         &(Symbol::new(&env, "secondary"), &asset),
         &100_i128,
     );
-    
+
     let price = client.get_price_with_fallback(&asset);
     assert_eq!(price, Ok(100));
 }
@@ -307,15 +308,15 @@ fn test_fallback_to_cache() {
     let env = Env::default();
     let contract_id = env.register_contract(None, PriceOracle);
     let client = PriceOracleClient::new(&env, &contract_id);
-    
+
     let asset = Symbol::new(&env, "XLM");
-    
+
     // Both oracles fail, use cache
     env.storage().temporary().set(
         &(Symbol::new(&env, "cache"), &asset),
         &95_i128,
     );
-    
+
     let price = client.get_price_with_fallback(&asset);
     assert_eq!(price, Ok(95));
 }
@@ -325,7 +326,8 @@ fn test_fallback_to_cache() {
 </Tabs>
 
 <Alert variant="warning" title="Fallback Considerations">
-Ensure fallback data sources are reliable and up-to-date. Stale cached data can lead to incorrect contract behavior.
+  Ensure fallback data sources are reliable and up-to-date. Stale cached data can lead to incorrect
+  contract behavior.
 </Alert>
 
 ### 3. Graceful Degradation
@@ -335,7 +337,7 @@ Design contracts to continue operating with reduced functionality when errors oc
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Env, Address, Symbol};
 
@@ -352,7 +354,7 @@ impl DexContract {
         min_amount_out: i128,
     ) -> Result<SwapResult, Error> {
         user.require_auth();
-        
+
         // Try optimal routing
         match Self::try_optimal_swap(&env, &user, amount_in, min_amount_out) {
             Ok(result) => Ok(result),
@@ -367,7 +369,7 @@ impl DexContract {
             Err(e) => Err(e),
         }
     }
-    
+
     fn try_optimal_swap(
         env: &Env,
         user: &Address,
@@ -378,7 +380,7 @@ impl DexContract {
         let route = Self::calculate_optimal_route(env, amount_in)?;
         Self::execute_multi_hop_swap(env, user, &route, min_amount_out)
     }
-    
+
     fn try_direct_swap(
         env: &Env,
         user: &Address,
@@ -387,14 +389,14 @@ impl DexContract {
     ) -> Result<SwapResult, Error> {
         // Simple direct pool swap
         let amount_out = Self::calculate_direct_swap(env, amount_in)?;
-        
+
         if amount_out < min_amount_out {
             return Err(Error::SlippageTooHigh);
         }
-        
+
         Self::execute_direct_swap(env, user, amount_in, amount_out)
     }
-    
+
     fn calculate_optimal_route(
         env: &Env,
         amount_in: i128,
@@ -405,7 +407,7 @@ impl DexContract {
             .get(&Symbol::new(env, "route"))
             .ok_or(Error::OptimalRouteFailed)
     }
-    
+
     fn execute_multi_hop_swap(
         env: &Env,
         user: &Address,
@@ -418,12 +420,12 @@ impl DexContract {
             route_type: Symbol::new(env, "optimal"),
         })
     }
-    
+
     fn calculate_direct_swap(env: &Env, amount_in: i128) -> Result<i128, Error> {
         // Simple calculation
         Ok(amount_in * 95 / 100) // 5% slippage
     }
-    
+
     fn execute_direct_swap(
         env: &Env,
         user: &Address,
@@ -456,19 +458,19 @@ pub enum Error {
   </TabItem>
   <TabItem value="test" label="Test">
 
-```rust
+```rust illustrative
 #[test]
 fn test_graceful_degradation() {
     let env = Env::default();
     let contract_id = env.register_contract(None, DexContract);
     let client = DexContractClient::new(&env, &contract_id);
-    
+
     let user = Address::generate(&env);
-    
+
     // Optimal route not available, should degrade to direct
     env.mock_all_auths();
     let result = client.swap_with_degradation(&user, &1000, &900);
-    
+
     assert!(result.is_ok());
     let swap_result = result.unwrap();
     assert_eq!(swap_result.route_type, Symbol::new(&env, "direct"));
@@ -479,7 +481,8 @@ fn test_graceful_degradation() {
 </Tabs>
 
 <Callout variant="success" title="Graceful Degradation Benefits">
-Graceful degradation ensures your contract remains functional even when optimal paths fail, improving reliability and user experience.
+  Graceful degradation ensures your contract remains functional even when optimal paths fail,
+  improving reliability and user experience.
 </Callout>
 
 ### 4. Transaction Rollback
@@ -489,7 +492,7 @@ Soroban automatically rolls back state changes when a contract panics or returns
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Env, Address};
 
@@ -508,15 +511,15 @@ impl AtomicSwap {
     ) -> Result<(), Error> {
         user_a.require_auth();
         user_b.require_auth();
-        
+
         // All operations succeed or all fail (automatic rollback)
         Self::validate_balances(&env, &user_a, &user_b, amount_a, amount_b)?;
         Self::execute_swap(&env, &user_a, &user_b, amount_a, amount_b)?;
         Self::emit_swap_event(&env, &user_a, &user_b, amount_a, amount_b);
-        
+
         Ok(())
     }
-    
+
     fn validate_balances(
         env: &Env,
         user_a: &Address,
@@ -526,20 +529,20 @@ impl AtomicSwap {
     ) -> Result<(), Error> {
         let balance_a = Self::get_balance(env, user_a);
         let balance_b = Self::get_balance(env, user_b);
-        
+
         if balance_a < amount_a {
             // This error causes automatic rollback
             return Err(Error::InsufficientBalanceA);
         }
-        
+
         if balance_b < amount_b {
             // This error causes automatic rollback
             return Err(Error::InsufficientBalanceB);
         }
-        
+
         Ok(())
     }
-    
+
     fn execute_swap(
         env: &Env,
         user_a: &Address,
@@ -550,13 +553,13 @@ impl AtomicSwap {
         // These changes are atomic - all succeed or all rollback
         let balance_a = Self::get_balance(env, user_a);
         let balance_b = Self::get_balance(env, user_b);
-        
+
         env.storage().persistent().set(user_a, &(balance_a - amount_a + amount_b));
         env.storage().persistent().set(user_b, &(balance_b - amount_b + amount_a));
-        
+
         Ok(())
     }
-    
+
     fn emit_swap_event(
         env: &Env,
         user_a: &Address,
@@ -569,7 +572,7 @@ impl AtomicSwap {
             (amount_a, amount_b),
         );
     }
-    
+
     fn get_balance(env: &Env, addr: &Address) -> i128 {
         env.storage().persistent().get(addr).unwrap_or(0)
     }
@@ -586,27 +589,27 @@ pub enum Error {
   </TabItem>
   <TabItem value="test" label="Test">
 
-```rust
+```rust illustrative
 #[test]
 fn test_rollback_on_error() {
     let env = Env::default();
     let contract_id = env.register_contract(None, AtomicSwap);
     let client = AtomicSwapClient::new(&env, &contract_id);
-    
+
     let alice = Address::generate(&env);
     let bob = Address::generate(&env);
-    
+
     // Setup: Alice has 100, Bob has 50
     env.storage().persistent().set(&alice, &100_i128);
     env.storage().persistent().set(&bob, &50_i128);
-    
+
     env.mock_all_auths();
-    
+
     // Try to swap more than Bob has - should fail and rollback
     let result = client.try_atomic_swap(&alice, &bob, &50, &100);
-    
+
     assert_eq!(result, Err(Ok(Error::InsufficientBalanceB)));
-    
+
     // Verify balances unchanged (rollback worked)
     assert_eq!(client.get_balance(&alice), 100);
     assert_eq!(client.get_balance(&bob), 50);
@@ -617,17 +620,17 @@ fn test_successful_atomic_swap() {
     let env = Env::default();
     let contract_id = env.register_contract(None, AtomicSwap);
     let client = AtomicSwapClient::new(&env, &contract_id);
-    
+
     let alice = Address::generate(&env);
     let bob = Address::generate(&env);
-    
+
     env.storage().persistent().set(&alice, &100_i128);
     env.storage().persistent().set(&bob, &200_i128);
-    
+
     env.mock_all_auths();
-    
+
     let result = client.try_atomic_swap(&alice, &bob, &50, &100);
-    
+
     assert!(result.is_ok());
     assert_eq!(client.get_balance(&alice), 150); // 100 - 50 + 100
     assert_eq!(client.get_balance(&bob), 150);   // 200 - 100 + 50
@@ -638,7 +641,8 @@ fn test_successful_atomic_swap() {
 </Tabs>
 
 <Alert variant="info" title="Automatic Rollback">
-Soroban automatically rolls back all state changes when a contract returns an error or panics. You don't need to manually undo changes.
+  Soroban automatically rolls back all state changes when a contract returns an error or panics. You
+  don't need to manually undo changes.
 </Alert>
 
 ### 5. Comprehensive Input Validation
@@ -648,7 +652,7 @@ Validate all inputs early to fail fast and provide clear error messages.
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
-```rust
+```rust illustrative
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Env, Address, String};
 
@@ -665,16 +669,16 @@ impl ValidatedContract {
         expiry: u64,
     ) -> Result<u64, Error> {
         user.require_auth();
-        
+
         // Comprehensive validation
         Self::validate_order_params(&env, amount, price, expiry)?;
-        
+
         // Execute business logic
         let order_id = Self::store_order(&env, &user, amount, price, expiry);
-        
+
         Ok(order_id)
     }
-    
+
     fn validate_order_params(
         env: &Env,
         amount: i128,
@@ -685,30 +689,30 @@ impl ValidatedContract {
         if amount <= 0 {
             return Err(Error::InvalidAmount);
         }
-        
+
         if amount > 1_000_000_000 {
             return Err(Error::AmountTooLarge);
         }
-        
+
         // Validate price
         if price <= 0 {
             return Err(Error::InvalidPrice);
         }
-        
+
         // Validate expiry
         let current_time = env.ledger().timestamp();
         if expiry <= current_time {
             return Err(Error::ExpiryInPast);
         }
-        
+
         let max_expiry = current_time + (30 * 24 * 60 * 60); // 30 days
         if expiry > max_expiry {
             return Err(Error::ExpiryTooFar);
         }
-        
+
         Ok(())
     }
-    
+
     fn store_order(
         env: &Env,
         user: &Address,
@@ -717,7 +721,7 @@ impl ValidatedContract {
         expiry: u64,
     ) -> u64 {
         let order_id = Self::get_next_order_id(env);
-        
+
         env.storage().persistent().set(
             &order_id,
             &Order {
@@ -727,10 +731,10 @@ impl ValidatedContract {
                 expiry,
             },
         );
-        
+
         order_id
     }
-    
+
     fn get_next_order_id(env: &Env) -> u64 {
         let current: u64 = env.storage()
             .instance()
@@ -765,26 +769,26 @@ pub enum Error {
   </TabItem>
   <TabItem value="test" label="Test">
 
-```rust
+```rust illustrative
 #[test]
 fn test_validation_invalid_amount() {
     let env = Env::default();
     let contract_id = env.register_contract(None, ValidatedContract);
     let client = ValidatedContractClient::new(&env, &contract_id);
-    
+
     let user = Address::generate(&env);
     let expiry = env.ledger().timestamp() + 3600;
-    
+
     env.mock_all_auths();
-    
+
     // Test negative amount
     let result = client.try_create_order(&user, &-100, &1000, &expiry);
     assert_eq!(result, Err(Ok(Error::InvalidAmount)));
-    
+
     // Test zero amount
     let result = client.try_create_order(&user, &0, &1000, &expiry);
     assert_eq!(result, Err(Ok(Error::InvalidAmount)));
-    
+
     // Test amount too large
     let result = client.try_create_order(&user, &2_000_000_000, &1000, &expiry);
     assert_eq!(result, Err(Ok(Error::AmountTooLarge)));
@@ -795,16 +799,16 @@ fn test_validation_expiry() {
     let env = Env::default();
     let contract_id = env.register_contract(None, ValidatedContract);
     let client = ValidatedContractClient::new(&env, &contract_id);
-    
+
     let user = Address::generate(&env);
     let current_time = env.ledger().timestamp();
-    
+
     env.mock_all_auths();
-    
+
     // Test expiry in past
     let result = client.try_create_order(&user, &100, &1000, &(current_time - 1));
     assert_eq!(result, Err(Ok(Error::ExpiryInPast)));
-    
+
     // Test expiry too far
     let far_future = current_time + (60 * 24 * 60 * 60); // 60 days
     let result = client.try_create_order(&user, &100, &1000, &far_future);
@@ -816,10 +820,9 @@ fn test_validation_expiry() {
 </Tabs>
 
 <Callout variant="tip" title="Validation Best Practices">
-- Validate all inputs at function entry
-- Provide specific error types for different validation failures
-- Check business logic constraints (ranges, relationships)
-- Validate time-based parameters against ledger time
+  - Validate all inputs at function entry - Provide specific error types for different validation
+  failures - Check business logic constraints (ranges, relationships) - Validate time-based
+  parameters against ledger time
 </Callout>
 
 ## Security Considerations
@@ -836,7 +839,7 @@ fn test_validation_expiry() {
 
 ### Common Security Pitfalls
 
-```rust
+```rust illustrative
 // ❌ BAD: Ignoring errors
 let balance = env.storage().get(&user).unwrap(); // Can panic!
 
@@ -881,6 +884,68 @@ Before deploying your contract, verify:
 
 ## Related Patterns
 
+- [Error Handling concepts](/docs/concepts/error-handling) — error taxonomy and Result types
+- [Storage concepts](/docs/concepts/storage) — understanding storage for rollback
+- [Authorization](/docs/concepts/authorization) — auth error handling
+- [Security fundamentals](/docs/security/fundamentals) — security best practices
+- [Hello World](/docs/patterns/hello-world) - Basic pattern structure
+
+## Additional Resources
+
+- [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html)
+- [Soroban SDK Errors](https://docs.rs/soroban-sdk/latest/soroban_sdk/contracterror/index.html)
+- [Stellar Developer Docs](https://developers.stellar.org/docs/smart-contracts)
+
+
+## Code Comments Demo
+
+The CodeSnippet component below demonstrates the comment toggle feature. Click "Hide comments" to see the validation logic without detailed annotations:
+
+<CodeSnippet
+  code={`// Comprehensive validation function with detailed comments
+fn validate_order_params(
+    env: &Env,
+    amount: i128,
+    price: i128,
+    expiry: u64,
+) -> Result<(), Error> {
+    // Validate amount is positive and reasonable
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    
+    // Prevent excessive amounts that could overflow
+    if amount > 1_000_000_000 {
+        return Err(Error::AmountTooLarge);
+    }
+    
+    // Validate price is positive
+    if price <= 0 {
+        return Err(Error::InvalidPrice);
+    }
+    
+    // Get current ledger time for expiry validation
+    let current_time = env.ledger().timestamp();
+    
+    // Ensure expiry is in the future
+    if expiry <= current_time {
+        return Err(Error::ExpiryInPast);
+    }
+    
+    // Limit orders to a reasonable timeframe (30 days max)
+    let max_expiry = current_time + (30 * 24 * 60 * 60);
+    if expiry > max_expiry {
+        return Err(Error::ExpiryTooFar);
+    }
+    
+    Ok(())
+}`}
+  language="rust"
+  defaultShowComments={true}
+/>
+
+## Related Patterns
+
 - [Storage concepts](/docs/concepts/storage) - Understanding storage for rollback
 - [Authorization](/docs/concepts/authorization) - Auth error handling
 - [Security fundamentals](/docs/security/fundamentals) - Security best practices
@@ -891,3 +956,5 @@ Before deploying your contract, verify:
 - [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html)
 - [Soroban SDK Errors](https://docs.rs/soroban-sdk/latest/soroban_sdk/contracterror/index.html)
 - [Stellar Developer Docs](https://developers.stellar.org/docs/smart-contracts)
+- [Soroban SDK Errors](https://docs.rs/soroban-sdk/latest/soroban_sdk/)
+- [Stellar Developer Docs](https://developers.stellar.org/docs/build/smart-contracts)

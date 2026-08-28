@@ -1,0 +1,251 @@
+---
+time: 20
+sidebar_position: 4
+title: Error Handling
+description: Error taxonomy, custom error patterns, and user-facing clarity strategies.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="error-handling"
+  difficulty="intermediate"
+  category="Architecture"
+  status="stable"
+  lastReviewed="April 2026"
+/>
+
+## Overview
+
+This pattern guide defines a comprehensive error handling methodology for Soroban smart contracts. It covers establishing a clear error taxonomy, implementing custom error patterns, executing propagation strategies, and ensuring user-facing clarity.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed
+- Basic understanding of Rust's `Result` type and enum definitions
+- Familiarity with the `soroban_sdk` environment
+
+</PatternSection>
+
+<PatternSection id="taxonomy" title="Error Taxonomy and Custom Patterns">
+
+A well-defined error taxonomy categorizes errors into logical groups. This prevents overlapping error codes, aids debugging, and makes client-side handling predictable.
+
+### Common Taxonomy Categories
+
+- **Validation Errors (100-199)**: Invalid inputs, out of bounds, incorrect formats.
+- **Authorization Errors (200-299)**: Missing signatures, unauthorized roles.
+- **State Errors (300-399)**: Invalid state transitions, uninitialized data.
+- **Resource Errors (400-499)**: Insufficient balance, out of gas.
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+```rust
+#![no_std]
+use soroban_sdk::{contract, contractimpl, contracttype, Env, Address};
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Error {
+    // Validation Errors (100+)
+    InvalidAmount = 101,
+    InvalidAddress = 102,
+
+    // Authorization Errors (200+)
+    Unauthorized = 201,
+    RoleNotFound = 202,
+
+    // State Errors (300+)
+    AlreadyInitialized = 301,
+    NotInitialized = 302,
+
+    // Resource Errors (400+)
+    InsufficientBalance = 401,
+    InsufficientAllowance = 402,
+}
+
+#[contract]
+pub struct TokenContract;
+
+#[contractimpl]
+impl TokenContract {
+    pub fn transfer(
+        env: Env,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
+        from.require_auth();
+
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+
+        let balance = env.storage().persistent().get(&from).unwrap_or(0);
+        if balance < amount {
+            return Err(Error::InsufficientBalance);
+        }
+
+        // Execute transfer logic here (simplified for example)
+        let new_balance = balance - amount;
+        env.storage().persistent().set(&from, &new_balance);
+
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="test" label="Test">
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{testutils::Address as _, Env};
+
+    #[test]
+    fn test_taxonomy_errors() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, TokenContract);
+        let client = TokenContractClient::new(&env, &contract_id);
+
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        env.mock_all_auths();
+
+        // Test Validation Error (100-199 range)
+        let result = client.try_transfer(&alice, &bob, &-10);
+        assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+
+        // Test Resource Error (400-499 range)
+        let result = client.try_transfer(&alice, &bob, &100);
+        assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+</PatternSection>
+
+<PatternSection id="propagation" title="Propagation and Handling Strategies">
+
+Using the `?` operator allows you to gracefully propagate errors up the call stack. This pattern advocates breaking complex operations into smaller, isolated functions that validate conditions or calculate state and return a `Result`.
+
+<PatternCallout variant="info" title="Why Propagate?">
+  Propagating errors rather than panicking ensures that your contract gracefully halts and provides
+  exact error reasons to the caller, preventing unknown execution states.
+</PatternCallout>
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+```rust
+#![no_std]
+use soroban_sdk::{contract, contractimpl, Env, Address};
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum WorkflowError {
+    InvalidInput = 1,
+    ProcessingFailed = 2,
+}
+
+#[contract]
+pub struct WorkflowContract;
+
+#[contractimpl]
+impl WorkflowContract {
+    pub fn complex_workflow(env: Env, user: Address, value: i128) -> Result<(), WorkflowError> {
+        user.require_auth();
+
+        // Strategy: Delegate and propagate errors using '?'
+        Self::validate_input(&env, value)?;
+        Self::process_data(&env, &user, value)?;
+
+        Ok(())
+    }
+
+    fn validate_input(_env: &Env, value: i128) -> Result<(), WorkflowError> {
+        if value < 0 {
+            return Err(WorkflowError::InvalidInput);
+        }
+        Ok(())
+    }
+
+    fn process_data(env: &Env, user: &Address, value: i128) -> Result<(), WorkflowError> {
+        // Business logic that could fail
+        if value == 42 {
+            return Err(WorkflowError::ProcessingFailed);
+        }
+        env.storage().persistent().set(user, &value);
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="test" label="Test">
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{testutils::Address as _, Env};
+
+    #[test]
+    fn test_error_propagation() {
+        let env = Env::default();
+        let contract_id = env.register_contract(None, WorkflowContract);
+        let client = WorkflowContractClient::new(&env, &contract_id);
+
+        let user = Address::generate(&env);
+        env.mock_all_auths();
+
+        // The error naturally propagates from validate_input up to the contract entrypoint
+        let result_validation = client.try_complex_workflow(&user, &-5);
+        assert_eq!(result_validation, Err(Ok(WorkflowError::InvalidInput)));
+
+        // The error propagates from process_data up to the contract entrypoint
+        let result_processing = client.try_complex_workflow(&user, &42);
+        assert_eq!(result_processing, Err(Ok(WorkflowError::ProcessingFailed)));
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+</PatternSection>
+
+<PatternSection id="user-facing" title="User-Facing Clarity Recommendations">
+
+To ensure frontend clients and indexers can clearly interpret contract failures, implement these recommendations:
+
+1. **Standardize Error Codes**: Publicly document your error taxonomy in your repository (e.g., in a README or developer portal). Clients rely on these numerical codes.
+2. **Emit Telemetry Events**: For critical path failures, emit an event before returning an error. This aids indexing services in tracking exact failure reasons.
+3. **Use Descriptive Enums**: Naming your Rust enum variants clearly translates to easier debugging when using the Soroban CLI or SDK tools.
+4. **Provide Client-Side Mapping**: Create an SDK or frontend utility mapping the numeric `u32` error codes to human-readable messages (e.g., `101` -> `"The requested token amount is invalid"`).
+
+<PatternCallout variant="warning" title="Event Emission on Failure">
+
+Remember that if a contract returns an error, the transaction rolls back, and any events emitted during that invocation are dropped. Therefore, telemetry events for failures only work if you catch the error at a higher level or in a parent contract.
+
+</PatternCallout>
+
+</PatternSection>
+
+<PatternSection id="related" title="Related patterns">
+
+- [Error Recovery](/docs/patterns/error-recovery) — strategies for degraded modes and fallback execution.
+- [Error Handling concepts](/docs/concepts/error-handling) — Result types and error taxonomy
+- [Authorization Concepts](/docs/concepts/authorization) — detailed auth handling and its related error paths.
+- [Testing Errors Guide](/docs/getting-started/testing-errors) — more strategies for testing failure scenarios.
+
+</PatternSection>

@@ -1,0 +1,25 @@
+{
+  // TypeScript config for Playwright E2E tests.
+  // The root tsconfig.json intentionally excludes e2e/ and playwright.config.ts
+  // to keep the Docusaurus compiler scope clean. This separate config lets IDEs
+  // and `tsc --project tsconfig.e2e.json` type-check all test files without
+  // polluting the main build.
+  "extends": "@docusaurus/tsconfig",
+  "compilerOptions": {
+    "jsx": "react",
+    "baseUrl": ".",
+    "noEmit": true,
+    "strict": true,
+    "types": ["@playwright/test"]
+  },
+  "include": [
+    "playwright.config.ts",
+    "e2e/**/*.ts",
+    "e2e/**/*.tsx"
+  ],
+  "exclude": [
+    ".docusaurus",
+    "build",
+    "node_modules"
+  ]
+}

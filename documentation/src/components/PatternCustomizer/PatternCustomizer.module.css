@@ -1,0 +1,206 @@
+/**
+ * PatternCustomizer component styling
+ * Handles layout and presentation of the customizer form and code preview
+ */
+
+.container {
+  margin: 2rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ifm-background-color, #ffffff);
+  border: 1px solid var(--ifm-border-color, #e5e7eb);
+}
+
+.header {
+  padding: 1.5rem;
+  background: var(--ifm-background-surface-color, #f9fafb);
+  border-bottom: 1px solid var(--ifm-border-color, #e5e7eb);
+}
+
+.title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ifm-heading-color, #1f2937);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ifm-text-color-secondary, #6b7280);
+  line-height: 1.5;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.formSection {
+  padding: 1.5rem;
+  border-right: 1px solid var(--ifm-border-color, #e5e7eb);
+}
+
+.previewSection {
+  padding: 1.5rem;
+  background: var(--ifm-pre-background, #1a1a1a);
+  color: var(--ifm-code-color, #f8f8f2);
+  overflow-x: auto;
+}
+
+/* Form fields */
+.fieldGroup {
+  margin-bottom: 1.5rem;
+}
+
+.fieldGroup:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--ifm-heading-color, #1f2937);
+  font-size: 0.875rem;
+}
+
+.fieldDescription {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ifm-text-color-secondary, #6b7280);
+  font-style: italic;
+}
+
+.input,
+.select,
+.textarea {
+  display: block;
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--ifm-input-border-color, #d1d5db);
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto);
+  font-size: 0.875rem;
+  background: var(--ifm-input-background-color, #ffffff);
+  color: var(--ifm-input-color, #111827);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--ifm-input-focus-border-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: var(--ifm-font-family-monospace, 'Monaco', 'Menlo', monospace);
+}
+
+.select {
+  cursor: pointer;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ifm-border-color, #e5e7eb);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--ifm-button-background-color, #0891b2);
+  color: var(--ifm-button-color, #ffffff);
+}
+
+.button:hover {
+  background: var(--ifm-button-background-color-hover, #0e7490);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button.reset {
+  background: var(--ifm-button-background-color-secondary, #6b7280);
+  color: var(--ifm-button-color, #ffffff);
+}
+
+.button.reset:hover {
+  background: #4b5563;
+}
+
+/* Preview section */
+.previewTitle {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ifm-code-color, #f8f8f2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.codePreview {
+  font-family: var(--ifm-font-family-monospace, 'Monaco', 'Menlo', 'Ubuntu Mono', monospace);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.validationError {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 4px;
+  background: #fecaca;
+  border: 1px solid #fca5a5;
+  color: #7f1d1d;
+  font-size: 0.875rem;
+}
+
+.validationSuccess {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 4px;
+  background: #bbf7d0;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+  font-size: 0.875rem;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .formSection {
+    border-right: none;
+    border-bottom: 1px solid var(--ifm-border-color, #e5e7eb);
+  }
+
+  .previewSection {
+    background: var(--ifm-code-background, #282c34);
+  }
+}

@@ -1,0 +1,289 @@
+{
+  "hubs": {
+    "home": "/docs/",
+    "getting-started": "/docs/getting-started/setup",
+    "concepts": "/docs/concepts/overview",
+    "patterns": "/docs/patterns/overview",
+    "security": "/docs/security/fundamentals",
+    "contributing": "/docs/contributing"
+  },
+  "pages": {
+    "index": {
+      "category": "home",
+      "minInternalLinks": 4,
+      "requiredLinks": [
+        "/docs/getting-started/setup",
+        "/docs/concepts/overview",
+        "/docs/patterns/overview"
+      ]
+    },
+    "getting-started/setup": {
+      "category": "getting-started",
+      "minInternalLinks": 3,
+      "requiredLinks": [
+        "/docs/getting-started/first-contract",
+        "/docs/concepts/overview"
+      ]
+    },
+    "getting-started/setup-linux": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/first-contract"]
+    },
+    "getting-started/setup-windows": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/first-contract"]
+    },
+    "getting-started/first-contract": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/building-and-compilation"]
+    },
+    "getting-started/building-and-compilation": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/local-testing-and-simulation"]
+    },
+    "getting-started/local-testing-and-simulation": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/deploy-testnet"]
+    },
+    "getting-started/deploy-testnet": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/deploy-mainnet"]
+    },
+    "getting-started/deploy-mainnet": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/security/fundamentals"]
+    },
+    "getting-started/contract-interaction": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/patterns/overview"]
+    },
+    "getting-started/debugging": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/testing-errors"]
+    },
+    "getting-started/testing-errors": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/error-handling"]
+    },
+    "contributing": {
+      "category": "contributing",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/contributing/internal-linking"]
+    },
+    "contributing/add-tested-example": {
+      "category": "contributing",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/contributing"]
+    },
+    "contributing/image-optimization": {
+      "category": "contributing",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/contributing"]
+    },
+    "contributing/performance-impact": {
+      "category": "contributing",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/contributing"]
+    },
+    "contributing/internal-linking": {
+      "category": "contributing",
+      "minInternalLinks": 3,
+      "requiredLinks": [
+        "/docs/contributing",
+        "/docs/concepts/overview",
+        "/docs/patterns/overview"
+      ]
+    },
+    "concepts/introduction": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/overview"]
+    },
+    "concepts/overview": {
+      "category": "concepts",
+      "minInternalLinks": 4,
+      "requiredLinks": [
+        "/docs/concepts/storage",
+        "/docs/concepts/authorization",
+        "/docs/concepts/events"
+      ]
+    },
+    "concepts/best-practices": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/security/fundamentals"]
+    },
+    "concepts/storage": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/authorization"]
+    },
+    "concepts/authorization": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/security/fundamentals"]
+    },
+    "concepts/events": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/storage"]
+    },
+    "concepts/gas-and-resources": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/patterns/optimization-playbook"]
+    },
+    "concepts/error-handling": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/patterns/error-handling"]
+    },
+    "concepts/cross-contract-invocation": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/security/fundamentals"]
+    },
+    "patterns/overview": {
+      "category": "patterns",
+      "minInternalLinks": 4,
+      "requiredLinks": [
+        "/docs/patterns/hello-world",
+        "/docs/security/token-audit"
+      ]
+    },
+    "patterns/hello-world": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/storage"]
+    },
+    "patterns/custom-types": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/storage"]
+    },
+    "patterns/authorization": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/authorization"]
+    },
+    "patterns/optimization-playbook": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/gas-and-resources"]
+    },
+    "patterns/lifecycle-upgrades": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/security/fundamentals"]
+    },
+    "patterns/proposal-lifecycle": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/security/governance"]
+    },
+    "patterns/error-handling": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/error-handling"]
+    },
+    "patterns/error-recovery": {
+      "category": "patterns",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/concepts/error-handling"]
+    },
+    "security/fundamentals": {
+      "category": "security",
+      "minInternalLinks": 3,
+      "requiredLinks": [
+        "/docs/security/token-audit",
+        "/docs/concepts/authorization"
+      ]
+    },
+    "security/governance": {
+      "category": "security",
+      "minInternalLinks": 2,
+      "requiredLinks": [
+        "/docs/security/fundamentals",
+        "/docs/patterns/proposal-lifecycle"
+      ]
+    },
+    "security/token-audit": {
+      "category": "security",
+      "minInternalLinks": 3,
+      "requiredLinks": [
+        "/docs/security/fundamentals",
+        "/docs/patterns/overview"
+      ]
+    },
+    "design-system/buttons": {
+      "category": "design-system",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/typography"]
+    },
+    "design-system/typography": {
+      "category": "design-system",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/buttons"]
+    },
+    "design-system/badges-tags": {
+      "category": "design-system",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/typography"]
+    },
+    "design-system/empty-states": {
+      "category": "design-system",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/buttons"]
+    },
+    "design-system/alerts-callouts": {
+      "category": "design-system",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/components/alerts"]
+    },
+    "components/buttons": {
+      "category": "components",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/buttons"]
+    },
+    "components/testimonials": {
+      "category": "components",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/empty-states"]
+    },
+    "components/alerts": {
+      "category": "components",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/alerts-callouts"]
+    },
+    "components/callouts": {
+      "category": "components",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/alerts-callouts"]
+    },
+    "components/iconography": {
+      "category": "components",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/typography"]
+    },
+    "components/alert-callout-showcase": {
+      "category": "components",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/components/alerts"]
+    },
+    "responsive/breakpoints": {
+      "category": "responsive",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/design-system/typography"]
+    }
+  }
+}

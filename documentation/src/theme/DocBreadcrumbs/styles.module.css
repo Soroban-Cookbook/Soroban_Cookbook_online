@@ -1,0 +1,230 @@
+/**
+ * DocBreadcrumbs styles
+ * ---------------------
+ * Responsive breadcrumb trail with a collapsible dropdown on mobile.
+ * All colours, spacing and motion values are wired to design tokens defined
+ * in custom.css and design-tokens.css so the component respects the site's
+ * light/dark theme automatically.
+ *
+ * The responsive breakpoint is driven purely by CSS media queries — no JS
+ * breakpoint detection — so there is zero layout shift during SSR→hydration.
+ */
+
+/* ── Viewport gate (CSS-only responsive) ──────────────────────────────── */
+
+/* Full breadcrumbs — shown on tablet/desktop (≥ 640 px) */
+.fullViewport {
+  display: none;
+}
+
+/* Collapsed breadcrumbs — shown on mobile (< 640 px) */
+.mobileViewport {
+  display: flex;
+}
+
+@media (min-width: 640px) {
+  .fullViewport {
+    display: block;
+  }
+
+  .mobileViewport {
+    display: none;
+  }
+}
+
+/* ── Nav wrapper ──────────────────────────────────────────────────────── */
+
+.breadcrumbsNav {
+  margin-bottom: 1.25rem;
+}
+
+/* ── Breadcrumb list (shared by full & collapsed variants) ────────────── */
+
+.breadcrumbsList {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-size: var(--font-size-sm, 0.875rem);
+  line-height: var(--line-height-snug, 1.375);
+}
+
+/* ── Home icon ────────────────────────────────────────────────────────── */
+
+.homeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ifm-color-emphasis-500, #6b7280);
+  transition: color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease);
+}
+
+.homeIcon:hover {
+  color: var(--ifm-color-primary, #2e8555);
+}
+
+/* ── Collapsed row (mobile) ───────────────────────────────────────────── */
+
+.collapsedRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Ellipsis toggle button ───────────────────────────────────────────── */
+
+.ellipsisItem {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+}
+
+.ellipsisButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  color: var(--ifm-color-emphasis-500, #6b7280);
+  cursor: pointer;
+  font-size: var(--font-size-sm, 0.875rem);
+  line-height: 1;
+  transition:
+    background-color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease),
+    color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease),
+    border-color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ellipsisButton:hover {
+  background-color: var(--ifm-color-emphasis-100, #f3f4f6);
+  color: var(--ifm-font-color-base, #374151);
+  border-color: var(--ifm-color-emphasis-200, #e5e7eb);
+}
+
+.ellipsisButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary, #2e8555);
+  outline-offset: 2px;
+}
+
+.ellipsisButtonOpen {
+  background-color: var(--ifm-color-emphasis-200, #e5e7eb);
+  color: var(--ifm-font-color-base, #374151);
+  border-color: var(--ifm-color-emphasis-300, #d1d5db);
+}
+
+/* Hidden badge showing the count of collapsed items */
+.ellipsisBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--ifm-color-emphasis-300, #d1d5db);
+  color: var(--ifm-color-emphasis-700, #374151);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold, 600);
+  line-height: 1;
+}
+
+/* ── Dropdown popover ─────────────────────────────────────────────────── */
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  z-index: var(--z-index-dropdown, 1000);
+  min-width: 180px;
+  padding: 0.375rem;
+  border: 1px solid var(--ifm-color-emphasis-200, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  background-color: var(--ifm-card-background-color, #ffffff);
+  box-shadow:
+    var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1)),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--sb-motion-duration-fast, 120ms)
+      var(--sb-motion-ease-out, cubic-bezier(0, 0, 0.2, 1)),
+    transform var(--sb-motion-duration-fast, 120ms)
+      var(--sb-motion-ease-out, cubic-bezier(0, 0, 0.2, 1)),
+    visibility var(--sb-motion-duration-fast, 120ms) step-end;
+  pointer-events: none;
+}
+
+.dropdownOpen {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition:
+    opacity var(--sb-motion-duration-fast, 120ms)
+      var(--sb-motion-ease-out, cubic-bezier(0, 0, 0.2, 1)),
+    transform var(--sb-motion-duration-fast, 120ms)
+      var(--sb-motion-ease-out, cubic-bezier(0, 0, 0.2, 1)),
+    visibility var(--sb-motion-duration-fast, 120ms) step-start;
+  pointer-events: auto;
+}
+
+.dropdownList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.dropdownLink {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--font-size-sm, 0.875rem);
+  line-height: var(--line-height-snug, 1.375);
+  color: var(--ifm-font-color-base, #374151);
+  text-decoration: none;
+  transition:
+    background-color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease),
+    color var(--sb-motion-duration-fast, 120ms) var(--sb-motion-ease-standard, ease);
+  white-space: nowrap;
+}
+
+.dropdownLink:hover {
+  background-color: var(--ifm-menu-color-background-hover, rgba(46, 133, 85, 0.08));
+  color: var(--ifm-menu-color-active, #2e8555);
+  text-decoration: none;
+}
+
+.dropdownLink:focus-visible {
+  outline: 2px solid var(--ifm-color-primary, #2e8555);
+  outline-offset: 2px;
+}
+
+/* ── Separator (ChevronRight is used by Infima, no extra CSS needed) ──── */
+
+/* ── Reduced-motion fallback ──────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown,
+  .dropdownOpen {
+    transition: none;
+  }
+
+  .ellipsisButton,
+  .dropdownLink,
+  .homeIcon {
+    transition: none;
+  }
+}

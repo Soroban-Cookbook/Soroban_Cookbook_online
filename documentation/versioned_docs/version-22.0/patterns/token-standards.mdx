@@ -1,0 +1,270 @@
+---
+time: 30
+sidebar_position: 7
+title: Token Standards & Implementation
+description: Comprehensive guide to Soroban token standards, SEP-41 interface, Stellar Asset Contract (SAC), custom tokens, and NFTs.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="token-standards"
+  difficulty="intermediate"
+  category="token"
+  status="stable"
+  lastReviewed="June 2026"
+/>
+
+## Overview
+
+Tokens are the foundation of decentralized applications, representing everything from stablecoins and utility tokens to unique collectibles. On Stellar's Soroban platform, tokenization is handled via two primary routes: the built-in **Stellar Asset Contract (SAC)** and **custom token contracts** implementing the **SEP-41** standard. For unique assets, developers leverage community-backed frameworks like **OpenZeppelin Stellar Contracts** to implement Non-Fungible Tokens (NFTs).
+
+This guide provides a detailed breakdown of these standards, compares their design trade-offs, and points you to concrete implementation examples.
+
+<PatternSection id="sep41" title="SEP-41: The Soroban Token Standard">
+
+The [SEP-41 specification](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md) defines a standard, interoperable interface for fungible tokens on Soroban. By implementing this interface, custom contracts ensure compatibility with wallets, block explorers, decentralized exchanges, and other smart contracts.
+
+### The SEP-41 Interface (Rust)
+
+In the Soroban SDK, the standard token interface requires the following trait methods:
+
+```rust
+use soroban_sdk::{Address, Env, String};
+
+pub trait TokenInterface {
+    /// Returns the name of the token (e.g., "Wrapped Stellar Lumens").
+    fn name(env: Env) -> String;
+
+    /// Returns the symbol of the token (e.g., "XLM").
+    fn symbol(env: Env) -> String;
+
+    /// Returns the number of decimals used by the token (typically 7 or 18).
+    fn decimals(env: Env) -> u32;
+
+    /// Returns the current balance of the specified address.
+    fn balance(env: Env, id: Address) -> i128;
+
+    /// Returns the balance that is spendable by the specified address (accounting for lockups).
+    fn spendable_balance(env: Env, id: Address) -> i128;
+
+    /// Returns the amount a spender is authorized to spend on behalf of an owner.
+    fn allowance(env: Env, from: Address, spender: Address) -> i128;
+
+    /// Sets the allowance for a spender to withdraw/transfer from the owner's balance.
+    /// This allowance is valid until the specified expiration ledger is reached.
+    fn approve(env: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32);
+
+    /// Transfers an amount of tokens from the caller's address (`from`) to another address (`to`).
+    fn transfer(env: Env, from: Address, to: Address, amount: i128);
+
+    /// Transfers tokens from one address (`from`) to another (`to`) using a previously granted allowance.
+    fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128);
+
+    /// Burns (destroys) a specified amount of tokens from the caller's balance.
+    fn burn(env: Env, from: Address, amount: i128);
+
+    /// Burns a specified amount of tokens from an address using a previously granted allowance.
+    fn burn_from(env: Env, spender: Address, from: Address, amount: i128);
+}
+```
+
+### Key Behaviors & Expectations
+
+#### 1. Authorization
+Unlike Ethereum where `msg.sender` is implicitly trusted, Soroban relies on an explicit cryptographic authorization model.
+* For `transfer(from, to, amount)`, the contract **must** assert:
+  ```rust
+  from.require_auth();
+  ```
+* For `transfer_from(spender, from, to, amount)`, the contract **must** assert that the allowance is valid and verify the *spender's* signature:
+  ```rust
+  spender.require_auth();
+  ```
+
+#### 2. Standard Event Emission
+To allow indexers and explorers to track token transfers and approvals, the contract must emit events with specific structures:
+* **Transfer**: Topic `(Symbol::new(&env, "transfer"), from, to)`, Data: `amount`
+* **Approve**: Topic `(Symbol::new(&env, "approve"), from, spender)`, Data: `amount`
+* **Burn**: Topic `(Symbol::new(&env, "burn"), from)`, Data: `amount`
+
+#### 3. The `expiration_ledger` Concept
+In Soroban, state storage is metered and requires rent payments (storage lease) to prevent ledger bloat. The `approve` function takes an `expiration_ledger: u32` parameter. This prevents stale approvals from occupying storage indefinitely. 
+* Once the current ledger exceeds the `expiration_ledger`, the allowance expires and can be cleaned up or overridden.
+* A spender attempting to use `transfer_from` after the `expiration_ledger` has passed will be rejected.
+
+</PatternSection>
+
+<PatternSection id="sac" title="Stellar Asset Contract (SAC)">
+
+The **Stellar Asset Contract (SAC)** is a built-in smart contract that bridges "classic" Stellar ledger assets (like native XLM and standard trustline assets) with the Soroban environment. 
+
+<PatternCallout variant="info" title="Zero Deployment Cost">
+You do not need to compile or deploy a contract to represent XLM or anchored stablecoins. Stellar automatically deploys a SAC instance for every asset, making them immediately accessible via Soroban.
+</PatternCallout>
+
+### Key Features of SAC
+* **SDEX Integration**: Assets in a SAC can be traded on Stellar Classic's decentralized orderbook (SDEX) and liquidity pools, while simultaneously being usable in Soroban lending protocols or AMMs.
+* **Dual Identifiers**: A SAC token is identifiable both by its Classic Asset code/issuer pair (e.g., `USDC:G...`) and its Soroban Contract ID.
+* **Admin Functions**: In addition to standard SEP-41 methods, SAC exposes administration endpoints to authorized issuers (e.g., `mint`, `clawback`, `set_authorized`) which are accessed using `StellarAssetClient`.
+
+</PatternSection>
+
+<PatternSection id="custom-tokens" title="Custom Token Implementations">
+
+When your application requires behaviors that go beyond a simple currency (such as fee-on-transfer, transfer whitelists, auto-staking, or algorithmic minting), you must deploy a custom token contract.
+
+### Example: Simple Custom Token Transfer
+
+Below is a lightweight custom token implementing transfer logic (a subset of SEP-41) using persistent storage for balances. 
+
+<Tabs>
+  <TabItem value="contract" label="Contract Code" default>
+
+```rust
+#![no_std]
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Balance(Address),
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    InsufficientBalance = 1,
+    InvalidAmount = 2,
+    SelfTransfer = 3,
+}
+
+#[contract]
+pub struct CustomToken;
+
+#[contractimpl]
+impl CustomToken {
+    /// Retrieve the balance of a specific address.
+    pub fn balance(env: Env, of: Address) -> i128 {
+        let key = DataKey::Balance(of);
+        env.storage().persistent().get(&key).unwrap_or(0)
+    }
+
+    /// Transfer tokens from `from` to `to`.
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), Error> {
+        // Cryptographically verify that the sender authorized this call
+        from.require_auth();
+
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+        if from == to {
+            return Err(Error::SelfTransfer);
+        }
+
+        let from_key = DataKey::Balance(from.clone());
+        let from_balance: i128 = env.storage().persistent().get(&from_key).unwrap_or(0);
+
+        if from_balance < amount {
+            return Err(Error::InsufficientBalance);
+        }
+
+        let to_key = DataKey::Balance(to.clone());
+        let to_balance: i128 = env.storage().persistent().get(&to_key).unwrap_or(0);
+
+        // Update balances in persistent storage
+        env.storage().persistent().set(&from_key, &(from_balance - amount));
+        env.storage().persistent().set(&to_key, &(to_balance + amount));
+
+        Ok(())
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="test" label="Test Setup">
+
+```rust
+use super::*;
+use soroban_sdk::{testutils::Address as _, Env};
+
+#[test]
+fn test_successful_transfer() {
+    let env = Env::default();
+    env.mock_all_auths(); // Mock authorization checks during testing
+
+    let contract_id = env.register(CustomToken, ());
+    let client = CustomTokenClient::new(&env, &contract_id);
+
+    let alice = Address::generate(&env);
+    let bob = Address::generate(&env);
+
+    // Initial balances are 0
+    assert_eq!(client.balance(&alice), 0);
+
+    // Manual state setup (mocking a mint mechanism)
+    let alice_key = DataKey::Balance(alice.clone());
+    env.storage().persistent().set(&alice_key, &1000i128);
+
+    // Perform transfer
+    client.transfer(&alice, &bob, &400);
+
+    assert_eq!(client.balance(&alice), 600);
+    assert_eq!(client.balance(&bob), 400);
+}
+```
+
+  </TabItem>
+</Tabs>
+
+</PatternSection>
+
+<PatternSection id="nfts" title="Non-Fungible Tokens (NFTs)">
+
+Stellar's classic ledger does not natively support unique non-fungible tokens like ERC-721. To issue NFTs, developers deploy custom smart contracts on Soroban.
+
+### OpenZeppelin Stellar Contracts
+Instead of starting from scratch, the Stellar ecosystem relies on **OpenZeppelin’s Stellar Contracts** library. This library provides modular, gas-optimized, and audited templates for NFTs:
+* **Base NFT**: Standard ownership tracking, transfers, and approval logic.
+* **Enumerable NFT**: Allows contracts to list and iterate through all tokens owned by an address or existing on-chain.
+* **Consecutive NFT**: Optimized for high-efficiency batch minting, drastically reducing gas fees for large collection drops.
+
+### SEP-0050 (Draft)
+The community is organizing under [SEP-0050](https://github.com/stellar/stellar-protocol/pull/1329) to standardize the interfaces for non-fungible assets, ensuring that wallets and NFT marketplaces can support all collections out of the box without writing custom integration code.
+
+</PatternSection>
+
+<PatternSection id="comparisons" title="Comparison & Trade-offs">
+
+Choosing the right implementation pattern depends on your project's specific requirements.
+
+| Feature / Criteria | Stellar Asset Contract (SAC) | Custom SEP-41 Token | OpenZeppelin NFT (ERC-721 style) |
+| :--- | :--- | :--- | :--- |
+| **Asset Type** | Fungible (XLM, Stablecoins, Fiat Anchors) | Fungible (Custom utility, loyalty, governance) | Non-Fungible (Collectibles, RWA deeds, gaming) |
+| **Deployment Fee** | **Zero** (Built-in) | Standard Soroban gas/storage fees | Standard Soroban gas/storage fees |
+| **Logic Customization** | None (Immutable ruleset) | **Unlimited** (Transfer hooks, minting conditions) | **Unlimited** (Custom metadata, royalty split) |
+| **Stellar SDEX Trading** | Native compatibility | Requires wrapped bridges | No native support |
+| **Storage Responsibility**| Managed by Stellar protocol | Contract developers must manage state expiration | Contract developers must manage state expiration |
+| **Best Used For** | Payments, simple DeFi lending, orderbook trading | Protocols needing custom mechanics (e.g. AMMs, custom DAOs) | Digital art, domain names, real-world asset representation |
+
+</PatternSection>
+
+<PatternSection id="security" title="Security Considerations">
+
+* **Reentrancy**: Standard token transfers are generally safe, but custom transfer hooks can open reentrancy vulnerabilities. Ensure state is updated *before* invoking external contracts.
+* **Integer Overflow/Underflow**: Rust's standard operations panic on overflow in debug mode, but silently wrap in release mode unless configured otherwise. When performing arithmetic inside balance calculations, either rely on Soroban SDK's checked arithmetic or configure your `Cargo.toml` with `overflow-checks = true`.
+* **Allowance Expiration Checks**: When executing a `transfer_from`, always check if the current ledger sequence is less than or equal to the approval's `expiration_ledger` before validating balance and transferring funds.
+
+</PatternSection>
+
+<PatternSection id="related" title="Related Links & References">
+
+* **Repository Example**: [token-transfer/src/lib.rs](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/token-transfer/src/lib.rs) - Tested custom token implementation.
+* **Official Specs**: [SEP-0041 Specification](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md)
+* **Libraries**: [OpenZeppelin Stellar Contracts on GitHub](https://github.com/OpenZeppelin/stellar-contracts)
+* **Concepts**: [Soroban Authorization Concept Guide](/docs/concepts/authorization) | [Soroban Storage and State Expiration](/docs/concepts/storage)
+
+</PatternSection>

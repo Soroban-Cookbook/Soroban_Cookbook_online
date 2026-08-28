@@ -83,7 +83,8 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Amina Okafor',
     role: 'Smart Contract Engineer, Lagos',
     quote:
-      'Soroban Cookbook helped me move from toy contracts to production patterns. The examples are practical and easy to adapt.',
+      'Soroban Cookbook helped me move from toy contracts to production ' +
+      'patterns. The examples are practical and easy to adapt.',
     avatarUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=Amina%20Okafor',
     socialHandle: '@amina_builds',
     socialUrl: 'https://x.com/amina_builds',
@@ -92,7 +93,8 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Diego Navarro',
     role: 'Protocol Developer, Buenos Aires',
     quote:
-      'I used the Cookbook to standardize authorization and storage decisions across our contracts. It cut review cycles significantly.',
+      'I used the Cookbook to standardize authorization and storage ' +
+      'decisions across our contracts. It cut review cycles significantly.',
     avatarUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=Diego%20Navarro',
     socialHandle: '@diegon_chain',
     socialUrl: 'https://github.com/diegon-chain',
@@ -101,7 +103,8 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Priya Raman',
     role: 'Full-Stack Web3 Builder, Bengaluru',
     quote:
-      'The docs strike a good balance between fundamentals and implementation detail. It is now our onboarding reference for Soroban.',
+      'The docs strike a good balance between fundamentals and ' +
+      'implementation detail. It is now our onboarding reference for Soroban.',
     avatarUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=Priya%20Raman',
     socialHandle: '@priya_stellar',
     socialUrl: 'https://x.com/priya_stellar',
@@ -110,7 +113,8 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Ethan Brooks',
     role: 'Blockchain Tooling Engineer, Austin',
     quote:
-      'Clear snippets, consistent patterns, and useful edge-case guidance. This saved us from common pitfalls during integration.',
+      'Clear snippets, consistent patterns, and useful edge-case guidance. ' +
+      'This saved us from common pitfalls during integration.',
     avatarUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=Ethan%20Brooks',
     socialHandle: '@ethanbrooksdev',
     socialUrl: 'https://github.com/ethanbrooksdev',
@@ -119,7 +123,8 @@ const defaultTestimonials: Testimonial[] = [
     name: 'Noor Al-Hassan',
     role: 'DevRel Engineer, Dubai',
     quote:
-      'As someone teaching Soroban workshops, the Cookbook is the fastest way to get contributors shipping reliable contract code.',
+      'As someone teaching Soroban workshops, the Cookbook is the fastest ' +
+      'way to get contributors shipping reliable contract code.',
     avatarUrl: 'https://api.dicebear.com/9.x/initials/svg?seed=Noor%20Al-Hassan',
     socialHandle: '@noor_onchain',
     socialUrl: 'https://x.com/noor_onchain',
@@ -135,7 +140,7 @@ const defaultCommunityLinks: CommunityLink[] = [
   },
   {
     label: 'GitHub',
-    url: 'https://github.com/Soroban-Cookbook/Soroban-Cookbook-',
+    url: 'https://github.com/Soroban-Cookbook/Soroban_Cookbook_online',
     icon: <GithubIcon />,
     description: 'Contribute code, docs, and examples.',
   },
@@ -178,7 +183,7 @@ export default function Testimonials({
                   <img
                     className={styles.avatar}
                     src={item.avatarUrl}
-                    alt={`${item.name} avatar`}
+                    alt={item.name ? `${item.name} avatar` : 'Community contributor profile avatar'}
                     loading="lazy"
                     onError={() => setFailedAvatars((prev) => ({ ...prev, [index]: true }))}
                   />

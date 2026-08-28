@@ -16,6 +16,32 @@
   margin-bottom: 1rem;
 }
 
+.estimatedTime {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ifm-color-primary);
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ifm-color-primary) 28%, transparent);
+}
+
+.estimatedTimePrefix {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.estimatedTimeLabel {
+  white-space: nowrap;
+}
+
 .metaTitle {
   font-size: 1.75rem;
   margin: 0;

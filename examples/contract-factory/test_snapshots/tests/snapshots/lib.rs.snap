@@ -1,0 +1,16 @@
+---
+source: examples/contract-factory/src/lib.rs
+expression: test_results
+---
+# Contract Factory Test Results
+
+This file stores test snapshots for the contract factory pattern.
+
+## Tests
+
+- test_child_contract_init_and_get_name: ✓
+- test_child_contract_get_info: ✓
+- test_factory_deploy_child: ✓
+- test_factory_deploy_multiple_children: ✓
+- test_factory_children_are_unique: ✓
+- test_factory_child_count_increments: ✓

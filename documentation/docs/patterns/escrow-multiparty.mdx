@@ -1,0 +1,292 @@
+---
+sidebar_position: 9
+title: Multi-Party Escrow
+description: >
+  An escrow contract with depositor, recipient, and arbitrator roles.
+  Supports dispute resolution and multi-sig-style release flow.
+---
+
+import { Callout } from '@site/src/components/Callout';
+
+# Multi-Party Escrow
+
+A production-ready escrow contract with three roles — **depositor**, **recipient**, and
+**arbitrator** — and a built-in dispute resolution path.
+
+<Callout variant="info">
+  **Difficulty:** Intermediate &nbsp;|&nbsp; **Category:** Utility &nbsp;|&nbsp;
+  **Source:** [`examples/escrow-multiparty`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/escrow-multiparty)
+</Callout>
+
+## Overview
+
+Standard two-party escrows break down when buyer and seller disagree. This contract adds a
+neutral **arbitrator** who can step in when either party raises a dispute, making it suitable
+for real-world trade, freelance payments, and marketplace transactions.
+
+### State machine
+
+```
+PENDING ──release()──► RELEASED
+        ──cancel()───► CANCELLED   (depositor only)
+        ──dispute()──► DISPUTED
+                           │
+                  resolve()├──► RELEASED  (arbitrator rules for recipient)
+                           └──► CANCELLED (arbitrator rules for depositor)
+```
+
+### Roles
+
+| Role | Can do |
+|---|---|
+| **Depositor** | Fund escrow, release to recipient, cancel (Pending only), open dispute |
+| **Recipient** | Open dispute |
+| **Arbitrator** | Resolve a disputed escrow in either direction |
+
+---
+
+## Contract
+
+```rust
+#![no_std]
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
+
+#[contracttype]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum State {
+    Pending,
+    Disputed,
+    Released,
+    Cancelled,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Depositor,
+    Recipient,
+    Arbitrator,
+    Amount,
+    State,
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    AlreadyInitialised = 1,
+    NotInitialised     = 2,
+    InvalidAmount      = 3,
+    Unauthorised       = 4,
+    InvalidState       = 5,
+}
+
+#[contract]
+pub struct EscrowMultiparty;
+
+#[contractimpl]
+impl EscrowMultiparty {
+    /// Lock funds into the escrow.
+    pub fn deposit(
+        env: Env,
+        depositor: Address,
+        recipient: Address,
+        arbitrator: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
+        depositor.require_auth();
+
+        if env.storage().instance().has(&DataKey::State) {
+            return Err(Error::AlreadyInitialised);
+        }
+        if amount <= 0 {
+            return Err(Error::InvalidAmount);
+        }
+
+        env.storage().instance().set(&DataKey::Depositor,  &depositor);
+        env.storage().instance().set(&DataKey::Recipient,  &recipient);
+        env.storage().instance().set(&DataKey::Arbitrator, &arbitrator);
+        env.storage().instance().set(&DataKey::Amount,     &amount);
+        env.storage().instance().set(&DataKey::State,      &State::Pending);
+        Ok(())
+    }
+
+    /// Depositor releases funds to the recipient (Pending only).
+    pub fn release(env: Env) -> Result<i128, Error> {
+        let depositor: Address = env.storage().instance()
+            .get(&DataKey::Depositor).ok_or(Error::NotInitialised)?;
+        depositor.require_auth();
+        Self::require_state(&env, State::Pending)?;
+        let amount = Self::get_amount_inner(&env)?;
+        env.storage().instance().set(&DataKey::State, &State::Released);
+        Ok(amount)
+    }
+
+    /// Depositor cancels and reclaims funds (Pending only).
+    pub fn cancel(env: Env) -> Result<i128, Error> {
+        let depositor: Address = env.storage().instance()
+            .get(&DataKey::Depositor).ok_or(Error::NotInitialised)?;
+        depositor.require_auth();
+        Self::require_state(&env, State::Pending)?;
+        let amount = Self::get_amount_inner(&env)?;
+        env.storage().instance().set(&DataKey::State, &State::Cancelled);
+        Ok(amount)
+    }
+
+    /// Depositor or recipient raises a dispute (Pending only).
+    pub fn dispute(env: Env, caller: Address) -> Result<(), Error> {
+        caller.require_auth();
+        let depositor: Address = env.storage().instance()
+            .get(&DataKey::Depositor).ok_or(Error::NotInitialised)?;
+        let recipient: Address = env.storage().instance()
+            .get(&DataKey::Recipient).ok_or(Error::NotInitialised)?;
+
+        if caller != depositor && caller != recipient {
+            return Err(Error::Unauthorised);
+        }
+        Self::require_state(&env, State::Pending)?;
+        env.storage().instance().set(&DataKey::State, &State::Disputed);
+        Ok(())
+    }
+
+    /// Arbitrator resolves a dispute (Disputed only).
+    ///
+    /// Pass `true` to release funds to the recipient, `false` to refund the depositor.
+    pub fn resolve(env: Env, release_to_recipient: bool) -> Result<i128, Error> {
+        let arbitrator: Address = env.storage().instance()
+            .get(&DataKey::Arbitrator).ok_or(Error::NotInitialised)?;
+        arbitrator.require_auth();
+        Self::require_state(&env, State::Disputed)?;
+        let amount = Self::get_amount_inner(&env)?;
+        let new_state = if release_to_recipient { State::Released } else { State::Cancelled };
+        env.storage().instance().set(&DataKey::State, &new_state);
+        Ok(amount)
+    }
+
+    // ── View helpers ──────────────────────────────────────────────────────────
+
+    pub fn state(env: Env) -> Result<State, Error> {
+        env.storage().instance().get(&DataKey::State).ok_or(Error::NotInitialised)
+    }
+    pub fn get_amount(env: Env)     -> Result<i128,    Error> { Self::get_amount_inner(&env) }
+    pub fn get_depositor(env: Env)  -> Result<Address, Error> {
+        env.storage().instance().get(&DataKey::Depositor).ok_or(Error::NotInitialised)
+    }
+    pub fn get_recipient(env: Env)  -> Result<Address, Error> {
+        env.storage().instance().get(&DataKey::Recipient).ok_or(Error::NotInitialised)
+    }
+    pub fn get_arbitrator(env: Env) -> Result<Address, Error> {
+        env.storage().instance().get(&DataKey::Arbitrator).ok_or(Error::NotInitialised)
+    }
+
+    // ── Internal ──────────────────────────────────────────────────────────────
+
+    fn get_amount_inner(env: &Env) -> Result<i128, Error> {
+        env.storage().instance().get(&DataKey::Amount).ok_or(Error::NotInitialised)
+    }
+
+    fn require_state(env: &Env, expected: State) -> Result<(), Error> {
+        let current: State = env.storage().instance()
+            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+        if current != expected { return Err(Error::InvalidState); }
+        Ok(())
+    }
+}
+```
+
+---
+
+## Key concepts
+
+### Why three roles?
+
+Two-party escrows give the depositor (buyer) the power to cancel at any time, which puts
+the recipient (seller/freelancer) at risk. Adding a neutral arbitrator removes that
+imbalance: once a dispute is raised, only the arbitrator decides the outcome.
+
+### `require_auth` placement
+
+Every state-changing call verifies the caller's identity first:
+
+```rust
+depositor.require_auth(); // verify before reading/writing state
+```
+
+This follows Soroban's [authorization model](../concepts/authorization) — auth checks must
+happen before any effects so the runtime can correctly attribute them.
+
+### Checks-effects pattern
+
+State is written *before* returning the amount, ensuring no re-entrancy through
+cross-contract calls:
+
+```rust
+env.storage().instance().set(&DataKey::State, &State::Released); // effect first
+Ok(amount)                                                         // then return value
+```
+
+### `require_state` helper
+
+All functions guard their entry condition with a single helper instead of duplicating
+the check:
+
+```rust
+fn require_state(env: &Env, expected: State) -> Result<(), Error> {
+    let current: State = env.storage().instance()
+        .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+    if current != expected { return Err(Error::InvalidState); }
+    Ok(())
+}
+```
+
+---
+
+## Testing dispute paths
+
+The tests cover every state transition, including the full dispute resolution path:
+
+```rust
+#[test]
+fn test_resolve_in_favour_of_recipient() {
+    let (_, actors, client) = funded(1_000);
+    client.dispute(&actors.recipient);       // recipient opens dispute
+    assert_eq!(client.resolve(&true), 1_000); // arbitrator rules for recipient
+    assert_eq!(client.state(), State::Released);
+}
+
+#[test]
+fn test_resolve_in_favour_of_depositor() {
+    let (_, actors, client) = funded(1_000);
+    client.dispute(&actors.depositor);        // depositor opens dispute
+    assert_eq!(client.resolve(&false), 1_000); // arbitrator refunds depositor
+    assert_eq!(client.state(), State::Cancelled);
+}
+```
+
+Run the tests:
+
+```bash
+cd examples/escrow-multiparty
+cargo test
+```
+
+---
+
+## Extension ideas
+
+- **Expiry time** — auto-cancel if the recipient never disputes after a deadline (combine
+  with the [Timelock Vault](./timelock-vault) pattern).
+- **Partial release** — split the amount between parties when the arbitrator decides
+  neither side is fully at fault.
+- **Token integration** — replace the `i128` amount with a real token transfer using the
+  [Token Interface](./basic-token).
+- **Multi-sig arbitration** — require M-of-N arbitrators to agree before resolving,
+  removing single-point-of-failure trust in one arbitrator.
+
+---
+
+## Related patterns
+
+- [Timelock Vault](./timelock-vault) — time-gated fund release
+- [Authorization](./authorization) — `require_auth` patterns
+- [Error Handling](./error-handling) — `contracterror` and `Result` usage

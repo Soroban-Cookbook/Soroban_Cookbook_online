@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import PatternCard from '../cards/PatternCard';
 import styles from './PatternPreview.module.css';
+import { sanitizeUrl } from '@site/src/utils/sanitizeUrl';
+import {
+  usePatternFilter,
+  CATEGORY_OPTIONS,
+  type CategoryValue,
+} from '@site/src/hooks/usePatternFilter';
 
 export interface Pattern {
   id: string;
@@ -26,13 +32,6 @@ export interface PatternPreviewProps {
   enableCarousel?: boolean;
 }
 
-const CATEGORIES = ['all', 'storage', 'tokens', 'governance', 'utility', 'defi', 'nft'];
-const DIFFICULTY_COLORS = {
-  beginner: '#10b981',
-  intermediate: '#f59e0b',
-  advanced: '#ef4444',
-};
-
 export default function PatternPreview({
   patterns,
   title = 'Popular Patterns',
@@ -42,15 +41,13 @@ export default function PatternPreview({
   maxVisible = 6,
   enableCarousel = true,
 }: PatternPreviewProps) {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { filters, setCategory, applyFilters } = usePatternFilter();
   const [viewMode, setViewMode] = useState<'grid' | 'carousel'>('carousel');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const filteredPatterns = patterns.filter(
-    (pattern) => selectedCategory === 'all' || pattern.category === selectedCategory,
-  );
+  const filteredPatterns = applyFilters(patterns);
 
   const displayPatterns =
     enableCarousel && viewMode === 'carousel'
@@ -79,14 +76,17 @@ export default function PatternPreview({
 
   const _handlePatternClick = (pattern: Pattern) => {
     if (pattern.href) {
-      window.location.href = pattern.href;
+      const safe = sanitizeUrl(pattern.href);
+      if (safe !== '#') {
+        window.location.href = safe;
+      }
     }
   };
 
   // Reset carousel index when category changes
   useEffect(() => {
     setCurrentIndex(0);
-  }, [selectedCategory]);
+  }, [filters.category]);
 
   return (
     <section className={styles.patternPreview}>
@@ -126,15 +126,13 @@ export default function PatternPreview({
         {/* Category Filter */}
         <div className={styles.filterContainer}>
           <div className={styles.categoryFilter}>
-            {CATEGORIES.map((category) => (
+            {CATEGORY_OPTIONS.map(({ value, label }) => (
               <button
-                key={category}
-                className={clsx(styles.categoryBtn, selectedCategory === category && styles.active)}
-                onClick={() => setSelectedCategory(category)}
-                aria-pressed={selectedCategory === category}>
-                {category === 'all'
-                  ? 'All Patterns'
-                  : category.charAt(0).toUpperCase() + category.slice(1)}
+                key={value}
+                className={clsx(styles.categoryBtn, filters.category === value && styles.active)}
+                onClick={() => setCategory(value as CategoryValue)}
+                aria-pressed={filters.category === value}>
+                {label}
               </button>
             ))}
           </div>
@@ -165,26 +163,24 @@ export default function PatternPreview({
               <div
                 key={pattern.id}
                 className={styles.patternCardWrapper}
-                style={{
-                  animationDelay: `${index * 50}ms`,
-                }}>
+                style={
+                  {
+                    '--animation-delay': `${index * 50}ms`,
+                  } as React.CSSProperties
+                }>
                 <PatternCard
                   contractName={pattern.contractName}
                   description={pattern.description}
                   tag={pattern.tag}
                   code={pattern.code}
-                  href={pattern.href}
+                  href={pattern.href ? sanitizeUrl(pattern.href) : undefined}
                   icon={pattern.icon}
                 />
 
                 {/* Metadata */}
                 <div className={styles.metadata}>
                   <div className={styles.metadataRow}>
-                    <span
-                      className={styles.difficulty}
-                      style={{
-                        color: DIFFICULTY_COLORS[pattern.difficulty],
-                      }}>
+                    <span className={styles.difficulty} data-difficulty={pattern.difficulty}>
                       {pattern.difficulty}
                     </span>
                     <span className={styles.popularity}>

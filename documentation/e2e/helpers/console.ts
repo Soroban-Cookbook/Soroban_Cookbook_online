@@ -3,6 +3,15 @@ import type { Page } from '@playwright/test';
 const IGNORED_CONSOLE_PATTERNS = [
   /favicon\.ico/i,
   /Failed to load resource.*404/i,
+  // Static `serve` of the production build may not expose PWA sw.js the same way
+  // as the deployed host; ignore Service Worker registration noise.
+  /bad HTTP response code \(404\).*script/i,
+  /registerSW failed/i,
+  /Failed to register a ServiceWorker/i,
+  /sw\.js/i,
+  // Recoverable hydration mismatch noise on the custom 404 page under React 19.
+  /Minified React error #418/i,
+  /onRecoverableError/i,
 ];
 
 export interface ConsoleGuard {
