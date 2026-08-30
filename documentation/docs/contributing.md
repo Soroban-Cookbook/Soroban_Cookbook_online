@@ -106,6 +106,14 @@ Docs are written in **MDX** and located in `documentation/docs/`.
 - **Formatting:** Follow the existing structure and use standard Markdown.
 - **Metadata:** Ensure every page has proper frontmatter (title, description).
 
+#### Recommendation Registry
+
+The recommendation registry at `documentation/src/components/recommendations/contentRegistry.json` is a committed build artifact generated from the MD/MDX files under `documentation/docs/`.
+
+- Regenerate it whenever you add, remove, or rename docs pages that should appear in recommendations.
+- Run `bun run check:content-registry` to verify the committed JSON matches the generator output.
+- Run `node scripts/generate-content-registry.mjs` when you intentionally need to refresh the file, then commit the updated JSON.
+
 ### B. Example / Code Contributions
 
 Contract examples should be minimal, focused, and well-documented.
@@ -130,6 +138,7 @@ Before submitting a PR, you **must** run the following checks in the `documentat
 bun run typecheck
 bun run lint
 bun run format:check
+bun run check:content-registry
 bun run build
 
 # Using npm (fallback)

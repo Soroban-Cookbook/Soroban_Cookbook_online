@@ -7,7 +7,15 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/components/alert-callout-showcase"
   },
   {
@@ -18,7 +26,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["storage", "errors", "tokens"],
+    "tags": [
+      "storage",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/components/alerts"
   },
   {
@@ -29,7 +41,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "tokens"],
+    "tags": [
+      "events",
+      "tokens"
+    ],
     "href": "/docs/components/buttons"
   },
   {
@@ -40,7 +55,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/components/callouts"
   },
   {
@@ -51,7 +72,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["errors"],
+    "tags": [
+      "errors"
+    ],
     "href": "/docs/components/iconography"
   },
   {
@@ -73,7 +96,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "tokens", "governance"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "tokens",
+      "governance"
+    ],
     "href": "/docs/concepts/authorization"
   },
   {
@@ -84,7 +113,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/concepts/best-practices"
   },
   {
@@ -95,7 +130,15 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/concepts/cross-contract-invocation"
   },
   {
@@ -106,8 +149,34 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/concepts/error-handling"
+  },
+  {
+    "id": "concepts/event-emission-audit",
+    "title": "Event Emission Audit",
+    "description": "Audit of event emission across all Soroban Cookbook example contracts (Phase 8 #637).",
+    "category": "concepts",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
+    "href": "/docs/concepts/event-emission-audit"
   },
   {
     "id": "concepts/events",
@@ -117,7 +186,12 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "errors"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors"
+    ],
     "href": "/docs/concepts/events"
   },
   {
@@ -128,7 +202,11 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["storage", "optimization", "errors"],
+    "tags": [
+      "storage",
+      "optimization",
+      "errors"
+    ],
     "href": "/docs/concepts/gas-and-resources"
   },
   {
@@ -139,7 +217,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "tokens", "governance"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "tokens",
+      "governance"
+    ],
     "href": "/docs/concepts/introduction"
   },
   {
@@ -150,7 +234,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "errors", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "upgrade"
+    ],
     "href": "/docs/concepts/overview"
   },
   {
@@ -161,7 +251,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events"],
+    "tags": [
+      "auth",
+      "storage",
+      "events"
+    ],
     "href": "/docs/concepts/randomness"
   },
   {
@@ -172,7 +266,14 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/concepts/storage"
   },
   {
@@ -183,7 +284,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/concepts/testing-strategies"
   },
   {
@@ -194,7 +301,12 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "errors"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors"
+    ],
     "href": "/docs/concepts/time-and-scheduling"
   },
   {
@@ -205,7 +317,14 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "errors", "tokens", "governance", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
     "href": "/docs/concepts/token-standards"
   },
   {
@@ -216,7 +335,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "optimization", "errors"],
+    "tags": [
+      "auth",
+      "optimization",
+      "errors"
+    ],
     "href": "/docs/contributing/accessibility-guide"
   },
   {
@@ -227,7 +350,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "events",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/contributing/add-tested-example"
   },
   {
@@ -238,7 +367,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "errors"],
+    "tags": [
+      "events",
+      "errors"
+    ],
     "href": "/docs/contributing/analytics-events"
   },
   {
@@ -249,7 +381,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["optimization"],
+    "tags": [
+      "optimization"
+    ],
     "href": "/docs/contributing/image-optimization"
   },
   {
@@ -280,7 +414,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "optimization"],
+    "tags": [
+      "events",
+      "optimization"
+    ],
     "href": "/docs/contributing/mobile-performance"
   },
   {
@@ -291,7 +428,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["errors"],
+    "tags": [
+      "errors"
+    ],
     "href": "/docs/contributing/offline-behavior"
   },
   {
@@ -313,7 +452,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "optimization"],
+    "tags": [
+      "events",
+      "optimization"
+    ],
     "href": "/docs/contributing/performance-impact"
   },
   {
@@ -324,7 +466,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["upgrade"],
+    "tags": [
+      "upgrade"
+    ],
     "href": "/docs/contributing/versioning-strategy"
   },
   {
@@ -335,7 +479,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["storage", "errors", "tokens"],
+    "tags": [
+      "storage",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/contributing"
   },
   {
@@ -346,7 +494,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "optimization", "errors"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors"
+    ],
     "href": "/docs/design-system/alerts-callouts"
   },
   {
@@ -357,7 +511,14 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "errors", "tokens", "governance", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
     "href": "/docs/design-system/badges-tags"
   },
   {
@@ -368,7 +529,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "tokens"],
+    "tags": [
+      "events",
+      "tokens"
+    ],
     "href": "/docs/design-system/buttons"
   },
   {
@@ -379,7 +543,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["errors", "tokens"],
+    "tags": [
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/design-system/empty-states"
   },
   {
@@ -390,7 +557,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "tokens"],
+    "tags": [
+      "events",
+      "tokens"
+    ],
     "href": "/docs/design-system/typography"
   },
   {
@@ -401,7 +571,12 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/api-security"
   },
   {
@@ -412,7 +587,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "optimization", "errors"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors"
+    ],
     "href": "/docs/getting-started/browser-server-compilation"
   },
   {
@@ -423,7 +604,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 20,
-    "tags": ["optimization", "errors", "tokens"],
+    "tags": [
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/building-and-compilation"
   },
   {
@@ -434,7 +619,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 20,
-    "tags": ["optimization", "errors", "tokens"],
+    "tags": [
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/contract-interaction"
   },
   {
@@ -445,7 +634,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/contract-testing"
   },
   {
@@ -456,7 +649,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/debugging"
   },
   {
@@ -467,7 +666,15 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 30,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/getting-started/deploy-mainnet"
   },
   {
@@ -478,7 +685,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "events", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "events",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/deploy-testnet"
   },
   {
@@ -489,7 +702,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 15,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/development-tools"
   },
   {
@@ -500,7 +719,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 15,
-    "tags": ["storage"],
+    "tags": [
+      "storage"
+    ],
     "href": "/docs/getting-started/first-contract"
   },
   {
@@ -511,7 +732,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "storage", "events", "optimization", "errors"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors"
+    ],
     "href": "/docs/getting-started/local-testing-and-simulation"
   },
   {
@@ -522,7 +749,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 15,
-    "tags": ["auth", "storage", "optimization"],
+    "tags": [
+      "auth",
+      "storage",
+      "optimization"
+    ],
     "href": "/docs/getting-started/local-testing"
   },
   {
@@ -533,7 +764,11 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "errors", "upgrade"],
+    "tags": [
+      "auth",
+      "errors",
+      "upgrade"
+    ],
     "href": "/docs/getting-started/setup-linux"
   },
   {
@@ -544,7 +779,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "errors"],
+    "tags": [
+      "auth",
+      "errors"
+    ],
     "href": "/docs/getting-started/setup-macos"
   },
   {
@@ -555,7 +793,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 30,
-    "tags": ["auth", "storage", "events", "errors", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "upgrade"
+    ],
     "href": "/docs/getting-started/setup-windows"
   },
   {
@@ -566,7 +810,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 5,
-    "tags": ["auth"],
+    "tags": [
+      "auth"
+    ],
     "href": "/docs/getting-started/setup"
   },
   {
@@ -577,7 +823,13 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/getting-started/testing-errors"
   },
   {
@@ -588,7 +840,9 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["storage"],
+    "tags": [
+      "storage"
+    ],
     "href": "/docs/legal/privacy"
   },
   {
@@ -610,7 +864,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["errors", "upgrade"],
+    "tags": [
+      "errors",
+      "upgrade"
+    ],
     "href": "/docs/migrations/template"
   },
   {
@@ -621,7 +878,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "storage", "errors", "tokens", "governance"],
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance"
+    ],
     "href": "/docs/patterns/authorization"
   },
   {
@@ -632,7 +895,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/basic-token"
   },
   {
@@ -643,8 +912,34 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 20,
-    "tags": ["", "auth", "storage", "errors", "tokens", "upgrade"],
+    "tags": [
+      "",
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/patterns/contract-factory"
+  },
+  {
+    "id": "patterns/contract-registry",
+    "title": "Contract Registry",
+    "description": "Map stable byte names to contract addresses with administrative authorization",
+    "category": "patterns",
+    "difficulty": "intermediate",
+    "status": "stable",
+    "time": 20,
+    "tags": [
+      "",
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
+    "href": "/docs/patterns/contract-registry"
   },
   {
     "id": "patterns/custom-types",
@@ -654,7 +949,15 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/patterns/custom-types"
   },
   {
@@ -665,7 +968,14 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/error-handling"
   },
   {
@@ -676,7 +986,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 20,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/error-recovery"
   },
   {
@@ -687,7 +1003,16 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["escrow", "defi", "intermediate", "auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "escrow",
+      "defi",
+      "intermediate",
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/escrow-basic"
   },
   {
@@ -698,7 +1023,12 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/escrow-multiparty"
   },
   {
@@ -709,7 +1039,12 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "tokens", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/patterns/hello-world"
   },
   {
@@ -733,6 +1068,24 @@
     "href": "/docs/patterns/lifecycle-upgrades"
   },
   {
+    "id": "patterns/multi-token-vault",
+    "title": "Multi-Token Vault",
+    "description": "A single vault contract that holds accounting balances for multiple different tokens simultaneously.",
+    "category": "patterns",
+    "difficulty": "intermediate",
+    "status": "stable",
+    "time": 25,
+    "tags": [
+      "storage",
+      "tokens",
+      "vault",
+      "auth",
+      "events",
+      "errors"
+    ],
+    "href": "/docs/patterns/multi-token-vault"
+  },
+  {
     "id": "patterns/optimization-playbook",
     "title": "Contract Optimization Playbook",
     "description": "A systematic guide to profiling, benchmarking, and optimizing Soroban smart contracts for gas and performance.",
@@ -740,7 +1093,12 @@
     "difficulty": "advanced",
     "status": "stable",
     "time": 25,
-    "tags": ["storage", "events", "optimization", "tokens"],
+    "tags": [
+      "storage",
+      "events",
+      "optimization",
+      "tokens"
+    ],
     "href": "/docs/patterns/optimization-playbook"
   },
   {
@@ -751,7 +1109,14 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 20,
-    "tags": ["events", "auth", "storage", "optimization", "errors", "tokens"],
+    "tags": [
+      "events",
+      "auth",
+      "storage",
+      "optimization",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/oracle-consumer"
   },
   {
@@ -762,7 +1127,14 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "errors", "tokens", "governance", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
     "href": "/docs/patterns/overview"
   },
   {
@@ -773,7 +1145,14 @@
     "difficulty": "advanced",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "storage", "errors", "tokens", "governance", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
     "href": "/docs/patterns/proposal-lifecycle"
   },
   {
@@ -784,7 +1163,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/reentrancy-guard"
   },
   {
@@ -799,6 +1184,24 @@
     "href": "/docs/patterns/staking"
   },
   {
+    "id": "patterns/streaming-payments",
+    "title": "Streaming Payments",
+    "description": "Linear token streaming with continuous accrual and withdrawable balance",
+    "category": "patterns",
+    "difficulty": "intermediate",
+    "status": "stable",
+    "time": 25,
+    "tags": [
+      "",
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
+    ],
+    "href": "/docs/patterns/streaming-payments"
+  },
+  {
     "id": "patterns/timelock-vault",
     "title": "Timelock Vault",
     "description": "Lock assets until a scheduled timestamp, then release them to a beneficiary.",
@@ -806,7 +1209,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 20,
-    "tags": ["storage", "auth", "events", "errors", "tokens"],
+    "tags": [
+      "storage",
+      "auth",
+      "events",
+      "errors",
+      "tokens"
+    ],
     "href": "/docs/patterns/timelock-vault"
   },
   {
@@ -817,7 +1226,15 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 25,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "governance"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "governance"
+    ],
     "href": "/docs/patterns/token-snapshot"
   },
   {
@@ -828,7 +1245,15 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 30,
-    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "governance"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "governance"
+    ],
     "href": "/docs/patterns/token-standards"
   },
   {
@@ -839,7 +1264,10 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["events", "tokens"],
+    "tags": [
+      "events",
+      "tokens"
+    ],
     "href": "/docs/responsive/breakpoints"
   },
   {
@@ -850,7 +1278,12 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "tokens"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "tokens"
+    ],
     "href": "/docs/responsive/mobile-audit"
   },
   {
@@ -861,8 +1294,33 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["storage", "events", "errors", "tokens", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/security/code-audit"
+  },
+  {
+    "id": "security/contract-auth-audit",
+    "title": "Contract require_auth Audit",
+    "description": "Per-method require_auth audit of all Soroban Cookbook example contracts (Phase 8 #638).",
+    "category": "security",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": [
+      "auth",
+      "storage",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
+    "href": "/docs/security/contract-auth-audit"
   },
   {
     "id": "security/defi-patterns",
@@ -872,7 +1330,14 @@
     "difficulty": "advanced",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "events", "optimization", "errors", "tokens"],
+    "tags": [
+      "auth",
+      "events",
+      "optimization",
+      "errors",
+      "tokens",
+      "upgrade"
+    ],
     "href": "/docs/security/defi-patterns"
   },
   {
@@ -903,7 +1368,13 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "events", "tokens", "governance", "upgrade"],
+    "tags": [
+      "auth",
+      "events",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
     "href": "/docs/security/governance"
   },
   {
@@ -914,7 +1385,34 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
-    "tags": ["auth", "storage", "events", "errors", "tokens", "governance", "upgrade"],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens",
+      "governance",
+      "upgrade"
+    ],
     "href": "/docs/security/token-audit"
+  },
+  {
+    "id": "security/upgrade-checklist",
+    "title": "WASM Upgrade Verification Checklist",
+    "description": "Printable security checklist for verifying reproducible WASM builds and upgrade artifacts before signing an upgrade transaction.",
+    "category": "security",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "optimization",
+      "errors",
+      "governance",
+      "upgrade"
+    ],
+    "href": "/docs/security/upgrade-checklist"
   }
 ]

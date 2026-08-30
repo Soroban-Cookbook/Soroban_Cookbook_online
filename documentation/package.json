@@ -9,6 +9,7 @@
     "prebuild": "node scripts/generate-content-registry.mjs",
     "build": "docusaurus build",
     "pretest": "node scripts/generate-content-registry.mjs",
+    "check:content-registry": "node scripts/generate-content-registry.mjs --check",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
