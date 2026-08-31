@@ -1211,6 +1211,8 @@
     "href": "/docs/patterns/lifecycle-upgrades"
   },
   {
+    "id": "patterns/multi-token-vault",
+    "title": "Multi-Token Vault",
     "id": "patterns/multisig-wallet",
     "title": "Multisig Wallet",
     "description": "Implement a multisig wallet on Soroban — threshold approval, approve, execute, and revoke flows for secure multi-party asset control.",
