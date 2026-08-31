@@ -106,6 +106,7 @@ const sidebars: SidebarsConfig = {
         'patterns/timelock-vault',
         'patterns/contract-factory',
         'patterns/contract-registry',
+        'patterns/soulbound-token',
         'patterns/oracle-consumer',
         'patterns/oracle-price-source',
         'patterns/token-vesting',

@@ -45,6 +45,7 @@ Contracts build to the shared workspace target directory,
 | [`lending`](lending/README.md) | Collateralized Lending (LTV, oracle freshness, liquidation) | [DeFi Security Patterns](https://soroban-cookbook.dev/docs/security/defi-patterns) |
 | [`multisig-wallet`](multisig-wallet/README.md) | Multisig Wallet | [Authorization](https://soroban-cookbook.dev/docs/concepts/authorization) |
 | [`oracle-consumer`](oracle-consumer/README.md) | Oracle Consumer | [Oracle Consumer Pattern](https://soroban-cookbook.dev/docs/patterns/oracle-consumer) |
+| [`pagination`](pagination/README.md) | Cursor-Based Pagination for Vec and Map Collections | [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) |
 | [`pausable-token`](pausable-token/README.md) | Pausable Token with Role-Based Access Control | [Authorization](https://soroban-cookbook.dev/docs/patterns/authorization) / [Lifecycle and Upgrades](https://soroban-cookbook.dev/docs/patterns/lifecycle-upgrades) |
 | [`reentrancy-guard`](reentrancy-guard/README.md) | Reentrancy Guard | [Reentrancy Guard Pattern](https://soroban-cookbook.dev/docs/patterns/reentrancy-guard) |
 | [`refundable-deposit`](refundable-deposit/README.md) | Refundable Deposit | [Authorization Patterns](https://soroban-cookbook.dev/docs/patterns/authorization) |

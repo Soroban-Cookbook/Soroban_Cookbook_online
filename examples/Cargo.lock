@@ -1123,6 +1123,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pagination"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1744,13 +1751,6 @@ dependencies = [
  "serde_with",
  "sha2",
  "stellar-strkey 0.0.13",
-]
-
-[[package]]
-name = "storage-ttl"
-version = "0.1.0"
-dependencies = [
- "soroban-sdk",
 ]
 
 [[package]]

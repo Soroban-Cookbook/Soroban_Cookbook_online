@@ -81,7 +81,43 @@ for amount in payouts {
 env.storage().persistent().set(&TOTAL_KEY, &(current_total + added));
 ```
 
-### 3. Hash Pre-computation
+### 3. Use Bounded Iteration and Cursor Pagination
+
+When contracts must enumerate stored `Vec` or `Map` data, do not iterate unbounded user-controlled collections in one call. Instead, slice the collection with explicit `start` and `limit` arguments, and enforce a strict maximum page size before looping.
+
+**Unsafe pattern:**
+
+```rust
+let all_entries = env.storage().persistent().get(&DATA_KEY).unwrap_or_default();
+for entry in all_entries.iter() {
+    // expands with user-controlled size
+    // may exceed CPU budget or trigger DoS-like resource spikes
+}
+```
+
+**Safer pattern:**
+
+```rust
+const MAX_PAGE_SIZE: u32 = 25;
+
+fn paginate_vec(env: &Env, values: &Vec<i128>, start: u32, limit: u32) -> Result<Vec<i128>, Error> {
+    if limit > MAX_PAGE_SIZE {
+        return Err(Error::LimitTooLarge);
+    }
+
+    let mut page = Vec::new(env);
+    for value in values.iter().skip(start as usize).take(limit as usize) {
+        page.push_back(value);
+    }
+    Ok(page)
+}
+```
+
+This keeps worst-case instruction cost predictable, prevents accidental CPU exhaustion, and allows clients to page through large datasets safely.
+
+See the [Pagination example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/pagination) for a complete contract pattern using `start`, `limit`, and a maximum page ceiling.
+
+### 4. Hash Pre-computation
 
 If your contract requires verifying data against a hash, consider computing the hash off-chain and passing it as an argument, rather than hashing raw data on-chain whenever possible and secure.
 
