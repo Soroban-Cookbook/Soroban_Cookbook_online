@@ -62,6 +62,16 @@ export default function Collapsible({
     onToggle?.(!isOpen);
   }, [isControlled, isOpen, onToggle]);
 
+  const handleSummaryKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLElement>) => {
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+        event.preventDefault();
+        handleToggle();
+      }
+    },
+    [handleToggle],
+  );
+
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
@@ -78,7 +88,10 @@ export default function Collapsible({
       )}
       open={isOpen}
       onToggle={handleToggle}>
-      <summary className={styles.collapsibleSummary}>
+      <summary
+        className={styles.collapsibleSummary}
+        aria-expanded={isOpen}
+        onKeyDown={handleSummaryKeyDown}>
         <span className={styles.collapsibleSummaryText}>{summary}</span>
         <span
           className={clsx(styles.collapsibleIcon, isOpen && styles.collapsibleIconOpen)}

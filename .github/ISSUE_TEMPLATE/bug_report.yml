@@ -32,7 +32,7 @@ body:
       label: Bug Description
       description: A clear and concise description of what the bug is.
       placeholder: |
-        When I follow the "Deploy to Testnet" guide, the `soroban contract deploy` command fails with...
+        When I follow the "Deploy to Testnet" guide, the `stellar contract deploy` command fails with...
     validations:
       required: true
 
@@ -68,8 +68,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Soroban CLI / Stellar CLI Version
-      description: Run `stellar --version` or `soroban --version` and paste the output here.
+      label: Stellar CLI / Soroban CLI Version
+      description: Run `stellar --version` (or legacy `soroban --version`) and paste the output here.
       placeholder: e.g. stellar 21.0.0
 
   - type: input

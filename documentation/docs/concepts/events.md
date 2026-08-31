@@ -33,6 +33,10 @@ Events provide a reliable audit trail of what happened in your contract and help
 - Access control changes
 - Error or rejection signals when appropriate
 
+## Example crate
+
+See the dedicated [Events Catalog example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/events-catalog) for a contract that uses stable event topics like `profile_set` and `profile_status`, with data payloads designed for indexers and UI listeners.
+
 ## Next
 
 - [Storage Patterns](./storage.md)

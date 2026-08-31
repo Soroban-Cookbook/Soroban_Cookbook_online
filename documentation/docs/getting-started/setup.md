@@ -2,12 +2,12 @@
 time: 5
 sidebar_position: 1
 title: Environment Setup
-description: Set up your Soroban development environment — install Rust, Soroban CLI, and configure your system for smart contract development.
+description: Set up your Soroban development environment — install Rust, Stellar CLI, and configure your system for smart contract development.
 ---
 
 # Environment Setup
 
-For platform-specific instructions, see [Linux Environment Setup](/docs/getting-started/setup-linux) or [Windows Environment Setup](/docs/getting-started/setup-windows).
+For platform-specific instructions, see [macOS Environment Setup](/docs/getting-started/setup-macos), [Linux Environment Setup](/docs/getting-started/setup-linux), or [Windows Environment Setup](/docs/getting-started/setup-windows). If you are upgrading from older tooling, check the [Stellar CLI Migration Guide](/docs/getting-started/stellar-cli-migration).
 
 <PrerequisitesChecker />
 
@@ -15,9 +15,8 @@ For platform-specific instructions, see [Linux Environment Setup](/docs/getting-
 
 Before you begin, ensure you have:
 
-
 - **Rust** - Latest stable version
-- **Soroban CLI** - Command-line interface for Soroban
+- **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
 - **Code Editor** - VS Code or your preferred editor
 - **Git** - Version control
 
@@ -36,16 +35,18 @@ rustc --version
 cargo --version
 ```
 
-### 2. Install Soroban CLI
+### 2. Install Stellar CLI
+
+Install the official Stellar CLI with built-in Wasm optimization features:
 
 ```bash
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 Verify installation:
 
 ```bash
-soroban --version
+stellar --version
 ```
 
 ### 3. Configure Target
@@ -61,18 +62,19 @@ rustup target add wasm32-unknown-unknown
 Test your environment with:
 
 ```bash
-soroban --help
+stellar --help
 ```
 
-You should see the Soroban CLI help output.
+You should see the Stellar CLI help output with contract, keys, network, and account subcommands.
 
 ## Next Steps
 
 Now that your environment is ready:
 
 1. [Create your first contract](./first-contract.md)
-2. [Learn core concepts](../concepts/overview)
-3. [Explore patterns](../patterns/overview)
+2. [Review development tools](./development-tools.md)
+3. [Learn core concepts](../concepts/overview)
+4. [Explore patterns](../patterns/overview)
 
 ## Troubleshooting
 
@@ -84,10 +86,10 @@ Now that your environment is ready:
 - Ensure you have write permissions
 - Try manual installation from [rust-lang.org](https://www.rust-lang.org/tools/install)
 
-**Soroban CLI not found:**
+**Stellar CLI not found:**
 
 - Restart your terminal after installation
-- Check if cargo bin directory is in your PATH
+- Check if the Cargo bin directory (`~/.cargo/bin`) is in your `PATH`
 - Verify with `cargo install --list`
 
 **Need Help?**
@@ -104,10 +106,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 And verify with `rustc --version`.
 
-### How do I install the Soroban CLI?
+### How do I install the Stellar CLI?
 You can install it via Cargo:
 ```bash
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 ### Why do I need the wasm32-unknown-unknown target?
@@ -128,10 +130,10 @@ Soroban smart contracts are compiled to WebAssembly (WASM). The `wasm32-unknown-
     },
     {
       "@type": "Question",
-      "name": "How do I install the Soroban CLI?",
+      "name": "How do I install the Stellar CLI?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "You can install it by running cargo install --locked soroban-cli."
+        "text": "You can install it by running cargo install --locked stellar-cli --features opt."
       }
     },
     {
@@ -145,3 +147,4 @@ Soroban smart contracts are compiled to WebAssembly (WASM). The `wasm32-unknown-
   ]
 })}
 </script>
+

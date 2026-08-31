@@ -121,6 +121,55 @@ Contract examples should be minimal, focused, and well-documented.
 
 ---
 
+## 🧪 Testing & Coverage
+
+### Running Tests
+
+```bash
+cd documentation
+
+# Run unit tests (watch mode for development)
+bun run test:ui
+
+# Run all unit tests once
+bun run test
+
+# Run with coverage report
+bun run test:coverage
+```
+
+### Coverage Thresholds
+
+The CI enforces a minimum coverage floor to prevent regressions. These values are set in `documentation/vitest.config.ts` under `coverage.thresholds`:
+
+| Metric | Minimum |
+|--------|---------|
+| Lines | 26% |
+| Statements | 26% |
+| Functions | 27% |
+| Branches | 30% |
+
+**These thresholds represent the current baseline** (measured 2026-08-31). They are a floor — PRs must not drop below them.
+
+**How to update thresholds:** If you've added tests and want to raise the bar:
+
+1. Run `bun run test:coverage` locally and note the new totals.
+2. Update the global values in `vitest.config.ts` → `coverage.thresholds` (round down to the nearest integer).
+3. Add a brief comment with the date you updated them.
+
+> **Note:** The project currently has many untested components. Adding tests to any of them directly improves these numbers and raises the floor for everyone.
+
+### Coverage in CI
+
+Every PR runs the coverage job automatically. On completion you will find:
+
+- A **Coverage Summary** table in the job's step summary (accessible from the Actions tab on the PR).
+- A **`coverage-report` artifact** containing the full HTML report and the raw `coverage-summary.json`.
+
+If the job fails because thresholds are not met, check the step summary for which metric fell below its floor.
+
+---
+
 ## 🧪 Local Validation Steps
 
 Before submitting a PR, you **must** run the following checks in the `documentation/` directory:
@@ -139,12 +188,13 @@ npm run format:check
 npm run build
 ```
 
-For Rust code examples, ensure they compile and pass tests:
+For Rust code examples, ensure they are formatted consistently, compile, and pass tests. All example crates live in the `examples/` workspace, which is checked by CI with the `rustfmt` job:
 
 ```bash
-cargo check
-cargo test
-cargo fmt --all -- --check
+cd examples
+cargo fmt --all -- --check  # verify formatting (run `cargo fmt --all` to auto-fix)
+cargo build                 # compile all examples
+cargo test                  # run example tests
 ```
 
 ---
@@ -268,4 +318,6 @@ If you're stuck, feel free to:
 
 - [Internal Linking Strategy](/docs/contributing/internal-linking) — how we structure cross-links for SEO and navigation
 - [Adding a Tested Code Example](/docs/contributing/add-tested-example) — contribute verified examples
+- [Reviewing Soroban Test Snapshots](/docs/contributing/soroban-test-snapshots) — regenerate and review SDK-generated test fixtures
 - [Pattern Library](/docs/patterns/overview) — where new patterns are catalogued
+- [Reviewing Test Snapshots](/docs/contributing/test-snapshots) — how to review and manage snapshot updates

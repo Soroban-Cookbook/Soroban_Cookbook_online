@@ -29,6 +29,17 @@ export default defineConfig({
         'src/theme/**',
       ],
       thresholds: {
+        // Global floor — set from measured baseline (2026-08-31).
+        // These values represent the minimum acceptable coverage across the
+        // whole codebase. They should only move upward as tests are added.
+        // To update: run `bun run test:coverage`, check the summary table,
+        // and raise each value to the new floor (rounded down).
+        lines: 26,
+        statements: 26,
+        functions: 27,
+        branches: 30,
+
+        // Per-file high-water marks for well-tested modules.
         'src/components/SearchFilters/SearchFilters.tsx': {
           lines: 90,
           statements: 90,

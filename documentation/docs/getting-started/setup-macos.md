@@ -18,7 +18,7 @@ Before you begin, ensure you have:
 - **Xcode Command Line Tools** - Required for compilation
 - **Homebrew** - Package manager for macOS
 - **Rust** - Latest stable version
-- **Soroban CLI** - Command-line interface for Soroban
+- **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
 - **Code Editor** - VS Code or your preferred editor
 - **Git** - Version control (included with Xcode)
 
@@ -128,12 +128,12 @@ cargo --version
 
 Both commands should return version numbers.
 
-### 5. Install Soroban CLI
+### 5. Install Stellar CLI
 
-Install the Soroban CLI using Cargo:
+Install the Stellar CLI with Wasm optimization support using Cargo:
 
 ```bash
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 This may take several minutes as it compiles from source. For Apple Silicon, this will compile native binaries.
@@ -141,7 +141,7 @@ This may take several minutes as it compiles from source. For Apple Silicon, thi
 Verify installation:
 
 ```bash
-soroban --version
+stellar --version
 ```
 
 ### 6. Configure WebAssembly Target
@@ -185,8 +185,8 @@ echo "=== Rust Verification ==="
 rustc --version
 cargo --version
 
-echo "=== Soroban CLI Verification ==="
-soroban --version
+echo "=== Stellar CLI Verification ==="
+stellar --version
 
 echo "=== WebAssembly Target Verification ==="
 rustup target list | grep wasm32-unknown-unknown
@@ -205,7 +205,7 @@ Use this checklist to confirm your environment is ready:
 - [ ] Homebrew installed: `brew --version` returns a version number
 - [ ] Rust installed: `rustc --version` returns a version number
 - [ ] Cargo installed: `cargo --version` returns a version number
-- [ ] Soroban CLI installed: `soroban --version` returns a version number
+- [ ] Stellar CLI installed: `stellar --version` returns a version number
 - [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Internet connectivity: `curl https://www.google.com` succeeds
@@ -396,27 +396,24 @@ cargo clean
 cargo build --release
 ```
 
-### Soroban CLI Issues
+### Stellar CLI Issues
 
-#### Soroban Installation Hangs or Times Out
+#### Stellar CLI Installation Hangs or Times Out
 
-**Problem**: `cargo install --locked soroban-cli` takes too long or times out
+**Problem**: `cargo install --locked stellar-cli` takes too long or times out
 
 **Solution**:
 ```bash
 # Try with verbose output
-cargo install --locked soroban-cli -v
+cargo install --locked stellar-cli --features opt -v
 
 # Check internet connection
 ping -c 3 github.com
-
-# If network is slow, try again later or use:
-cargo install --locked soroban-cli --version 20.0.0
 ```
 
-#### "Soroban Command Not Found"
+#### "Stellar Command Not Found"
 
-**Problem**: `soroban: command not found`
+**Problem**: `stellar: command not found`
 
 **Solution**:
 ```bash
@@ -428,7 +425,7 @@ echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.zprofile
 source ~/.zprofile
 
 # Verify
-soroban --version
+stellar --version
 ```
 
 #### Build Fails with Linker Error
@@ -444,14 +441,14 @@ xcode-select --install
 gcc --version
 
 # Try installation again
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 ### PATH and Environment Issues
 
 #### Tools Installed but Not Found
 
-**Problem**: Commands like `rustc` or `soroban` not found despite installation
+**Problem**: Commands like `rustc` or `stellar` not found despite installation
 
 **Solution**:
 ```bash
@@ -505,7 +502,7 @@ which rustc
 brew install git
 
 # Try installation again
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 ### Disk Space Issues
@@ -550,7 +547,7 @@ which cargo
 
 #### VS Code Terminal Doesn't See Tools
 
-**Problem**: Terminal in VS Code can't find `rustc` or `soroban`
+**Problem**: Terminal in VS Code can't find `rustc` or `stellar`
 
 **Solution**:
 1. Close VS Code completely
@@ -633,5 +630,5 @@ If you encounter issues not covered in this guide:
 
 1. Check the [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
 2. Ask in the [Stellar Discord](https://discord.gg/stellardev)
-3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban-Cookbook-/issues)
+3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues)
 4. Create a new issue with detailed error messages and your macOS version (run `sw_vers`)

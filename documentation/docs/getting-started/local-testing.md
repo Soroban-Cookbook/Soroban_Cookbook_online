@@ -2,23 +2,28 @@
 time: 15
 sidebar_position: 5.6
 title: Soroban Local Testing with Simulation and Snapshots
-description: Run Soroban contracts locally with soroban contract invoke, use --simulate for preflight validation, and capture ledger snapshots for reproducible debugging loops.
+description: Run Soroban contracts locally with stellar contract invoke, use --simulate for preflight validation, and capture ledger snapshots for reproducible debugging loops.
 keywords:
   - soroban local testing
-  - soroban contract invoke
-  - soroban simulate
+  - stellar contract invoke
+  - stellar simulate
   - ledger snapshot
   - soroban debugging
+title: Local Testing and Simulation
+description: This page has moved to the canonical local testing guide and redirects to the shared simulation workflow.
 image: /img/soroban-social-card.png
 ---
 
-# Soroban Local Testing with Simulation and Snapshots
+# Local Testing and Simulation
 
-This guide focuses on fast local feedback loops using `soroban contract invoke`, `--simulate`, and reusable ledger snapshots.
+This guide focuses on fast local feedback loops using `stellar contract invoke`, `--simulate`, and reusable ledger snapshots.
 
-For broader troubleshooting workflows, continue with the [Debugging Guide](./debugging.md).
+For broader troubleshooting workflows, continue with the [Debugging Guide](./debugging.md) or see the [Stellar CLI Migration Guide](./stellar-cli-migration.md).
+This page has moved to the canonical guide for local contract testing and simulation.
 
-## Why local simulation first
+Please use the updated guide here:
+
+- [Local Testing and Simulation](./local-testing-and-simulation.md)
 
 Local simulation helps you validate contract behavior before network submission:
 
@@ -40,12 +45,12 @@ Expected artifact location (example):
 target/wasm32-unknown-unknown/release/<contract>.optimized.wasm
 ```
 
-## Invoke locally with `soroban contract invoke`
+## Invoke locally with `stellar contract invoke`
 
 Use local invocation to execute functions against a sandbox ledger:
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --wasm target/wasm32-unknown-unknown/release/counter.optimized.wasm \
   -- \
   increment
@@ -54,7 +59,7 @@ soroban contract invoke \
 For deployed contracts, invoke by contract id:
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id "$CONTRACT_ID" \
   --source "$SOURCE_ACCOUNT" \
   --network testnet \
@@ -67,7 +72,7 @@ soroban contract invoke \
 Use `--simulate` to preview execution, inspect diagnostics, and catch failures before sending a transaction.
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id "$CONTRACT_ID" \
   --source "$SOURCE_ACCOUNT" \
   --network testnet \
@@ -106,10 +111,11 @@ Ledger snapshots let you replay the same state repeatedly, which is ideal for re
 stellar contract build
 
 # 2) Simulate write path
-soroban contract invoke --id "$CONTRACT_ID" --source "$SOURCE_ACCOUNT" --network testnet --simulate -- increment
+stellar contract invoke --id "$CONTRACT_ID" --source "$SOURCE_ACCOUNT" --network testnet --simulate -- increment
 
 # 3) Invoke locally for rapid state checks
-soroban contract invoke --wasm target/wasm32-unknown-unknown/release/counter.optimized.wasm -- get
+stellar contract invoke --wasm target/wasm32-unknown-unknown/release/counter.optimized.wasm -- get
 ```
 
 When a failure appears, pivot to the [Debugging Guide](./debugging.md) for root-cause isolation patterns.
+The canonical page covers the full local workflow, including `cargo test`, local sandbox invocation, and quick debugging loops before testnet deployment.

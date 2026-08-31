@@ -2,36 +2,33 @@
 time: 20
 sidebar_position: 7
 title: Deploy to Testnet
-description: Deploy Soroban contracts to Stellar testnet for validation, testing, and live environment verification before mainnet deployment.
+description: Deploy Soroban smart contracts to Stellar testnet for validation, testing, and live environment verification before mainnet deployment.
 ---
 
 # Deploy to Testnet
 
-title: Deploy to Testnet
-description: Deploy your Soroban contract to Stellar testnet for validation in a live network environment.
-sidebar_position: 5
----
-
-Deploy your Soroban contract to Stellar testnet for validation in a live network environment. This guide covers the complete workflow from contract artifact to verification.
+Deploy your Soroban contract to the Stellar testnet for validation in a live network environment. This guide covers the complete workflow from contract artifact build to verification.
 
 ## Prerequisites
 
 Before deploying, ensure you have:
 
-- **Soroban CLI** - Installed and up to date
-- **Built WASM artifact** - From `soroban contract build`
-- **Testnet account** - With XLM for transaction fees
-- **Network access** - To Stellar testnet
+- **Stellar CLI** - Installed (`stellar --version`)
+- **Built WASM artifact** - From `stellar contract build`
+- **Testnet account** - With testnet XLM for transaction fees
+- **Network access** - To Stellar testnet RPC
+
+---
 
 ## Step 1: Prepare Your Contract
 
 ### Build Your Contract
 
-First, build your contract to a WebAssembly artifact:
+First, build your contract into an optimized WebAssembly artifact:
 
 ```bash
 cd my-first-contract
-soroban contract build
+stellar contract build
 ```
 
 Expected output:
@@ -61,79 +58,56 @@ Expected output:
 -rw-r--r-- 1 user group 123K Mar 23 10:30 target/wasm32-unknown-unknown/release/my_first_contract.wasm
 ```
 
+---
+
 ## Step 2: Set Up Your Testnet Account
 
 ### Create a Testnet Account
 
-If you don't have a testnet account, create one using Soroban CLI:
+If you don't have a testnet account, create one using Stellar CLI:
 
 ```bash
-soroban keys generate --global my-testnet-account
+stellar keys generate --global my-testnet-account
 ```
 
-This generates a new keypair and stores it locally. Expected output:
+This generates a new keypair and stores it securely in your local configuration.
 
-```
-Created keypair "my-testnet-account" with public key: GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
-
-### Fund Your Account
-
-Use the Stellar Friendbot to fund your testnet account:
+To view the public address:
 
 ```bash
-curl "https://friendbot.stellar.org?addr=GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-```
-
-Replace the address with your public key from the previous step.
-
-Expected response:
-
-```json
-{
-  "hash": "...",
-  "ledger": 12345678,
-  "envelope_xdr": "...",
-  "result_xdr": "..."
-}
-```
-
-### Verify Account Funding
-
-Check your account balance:
-
-```bash
-soroban account balance --account my-testnet-account --network testnet
+stellar keys address my-testnet-account
 ```
 
 Expected output:
 
 ```
-10000.0000000 XLM
+GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
-## Step 3: Configure Soroban CLI for Testnet
+### Fund Your Account
 
-### Set Your Identity
-
-Configure your Soroban CLI to use your testnet account:
+You can fund your testnet account directly using the Stellar CLI:
 
 ```bash
-soroban config identity fund my-testnet-account --network testnet
+stellar keys fund my-testnet-account --network testnet
 ```
 
-Or set it as the default identity:
+Alternatively, use the Stellar Friendbot via `curl`:
 
 ```bash
-soroban config identity set-default my-testnet-account
+curl "https://friendbot.stellar.org?addr=$(stellar keys address my-testnet-account)"
 ```
+
+---
+
+## Step 3: Configure Network for Testnet
 
 ### Verify Network Configuration
 
 Check that testnet is properly configured:
 
 ```bash
-soroban network ls
+stellar network ls
 ```
 
 Expected output:
@@ -147,10 +121,12 @@ testnet
 If testnet is not listed, add it:
 
 ```bash
-soroban network add --name testnet \
+stellar network add --global testnet \
   --rpc-url https://soroban-testnet.stellar.org \
   --network-passphrase "Test SDF Network ; September 2015"
 ```
+
+---
 
 ## Step 4: Deploy Your Contract
 
@@ -159,7 +135,7 @@ soroban network add --name testnet \
 Deploy your contract to testnet:
 
 ```bash
-soroban contract deploy \
+stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/my_first_contract.wasm \
   --source my-testnet-account \
   --network testnet
@@ -172,7 +148,9 @@ Contract deployed successfully.
 Contract ID: CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4
 ```
 
-**Save your Contract ID** - You'll need it for all future interactions with this contract.
+**Save your Contract ID** — you'll need it for all interactions with this contract.
+
+This ID isn't random — it's deterministically derived from your source account and an internal deploy salt, which is why redeploying with the same account and salt on the same network always reproduces the same address. See [Contract IDs & Deploy Salt](/docs/concepts/contract-ids) if you need to predict a contract's address before deploying it (for example, to add it to an allowlist in advance).
 
 ### Store Contract ID for Later Use
 
@@ -188,6 +166,8 @@ Or save it to a file:
 echo "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4" > contract-id.txt
 ```
 
+---
+
 ## Step 5: Verify Deployment
 
 ### Check Contract Exists
@@ -195,29 +175,20 @@ echo "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4" > contract-id.tx
 Verify that your contract was deployed successfully:
 
 ```bash
-soroban contract info --id $CONTRACT_ID --network testnet
-```
-
-Expected output:
-
-```
-Contract ID: CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4
-Ledger: 12345678
+stellar contract info --id $CONTRACT_ID --network testnet
 ```
 
 ### Inspect Contract Metadata
 
-Get detailed information about your contract:
+Get detailed interface metadata about your contract:
 
 ```bash
-soroban contract inspect --id $CONTRACT_ID --network testnet
+stellar contract inspect --id $CONTRACT_ID --network testnet
 ```
 
 This shows:
-
 - Contract specification
-- Available functions
-- Function parameters and return types
+- Available functions and parameter names
 - Authorization requirements
 
 Example output:
@@ -229,14 +200,16 @@ Functions:
   hello(to: Symbol) -> Symbol
 ```
 
+---
+
 ## Step 6: Interact with Your Contract
 
 ### Invoke a Read-Only Function
 
-Call a read-only function to verify the contract works:
+Call a read-only function to verify contract execution:
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id $CONTRACT_ID \
   --source my-testnet-account \
   --network testnet \
@@ -254,7 +227,7 @@ Expected output:
 If your contract has functions that modify state, invoke them:
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id $CONTRACT_ID \
   --source my-testnet-account \
   --network testnet \
@@ -269,10 +242,10 @@ Expected output:
 
 ### Verify State Changes
 
-Call the function again to verify state persisted:
+Call the read function again to verify state persisted:
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id $CONTRACT_ID \
   --source my-testnet-account \
   --network testnet \
@@ -285,26 +258,28 @@ Expected output:
 1
 ```
 
+---
+
 ## Complete Deployment Workflow Example
 
-Here's a complete example from start to finish:
+Here is a complete, copy-pasteable script from start to finish:
 
 ```bash
 # 1. Build contract
 cd my-first-contract
-soroban contract build
+stellar contract build
 
 # 2. Create and fund account
-soroban keys generate --global my-testnet-account
-curl "https://friendbot.stellar.org?addr=GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+stellar keys generate --global my-testnet-account
+stellar keys fund my-testnet-account --network testnet
 
-# 3. Configure network
-soroban network add --name testnet \
+# 3. Configure network (if not already present)
+stellar network add --global testnet \
   --rpc-url https://soroban-testnet.stellar.org \
   --network-passphrase "Test SDF Network ; September 2015"
 
 # 4. Deploy contract
-CONTRACT_ID=$(soroban contract deploy \
+CONTRACT_ID=$(stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/my_first_contract.wasm \
   --source my-testnet-account \
   --network testnet)
@@ -312,29 +287,33 @@ CONTRACT_ID=$(soroban contract deploy \
 echo "Contract deployed: $CONTRACT_ID"
 
 # 5. Verify deployment
-soroban contract info --id $CONTRACT_ID --network testnet
+stellar contract info --id $CONTRACT_ID --network testnet
 
 # 6. Invoke contract
-soroban contract invoke \
+stellar contract invoke \
   --id $CONTRACT_ID \
   --source my-testnet-account \
   --network testnet \
   -- hello --to World
 ```
 
+---
+
 ## Verification Checklist
 
 Use this checklist to confirm your deployment is complete and working:
 
-- [ ] Contract built successfully: `soroban contract build` completed without errors
+- [ ] Contract built successfully: `stellar contract build` completed without errors
 - [ ] WASM file exists: `ls target/wasm32-unknown-unknown/release/*.wasm` shows file
-- [ ] Testnet account created: `soroban keys list` shows your account
-- [ ] Account funded: `soroban account balance --account my-testnet-account --network testnet` shows XLM balance
-- [ ] Network configured: `soroban network ls` shows testnet
-- [ ] Contract deployed: `soroban contract deploy` returned a Contract ID
-- [ ] Deployment verified: `soroban contract info --id $CONTRACT_ID --network testnet` succeeds
-- [ ] Contract callable: `soroban contract invoke` returns expected output
+- [ ] Testnet account created: `stellar keys ls` shows your account
+- [ ] Account funded: `stellar keys fund my-testnet-account --network testnet` succeeds
+- [ ] Network configured: `stellar network ls` shows testnet
+- [ ] Contract deployed: `stellar contract deploy` returned a Contract ID
+- [ ] Deployment verified: `stellar contract info --id $CONTRACT_ID --network testnet` succeeds
+- [ ] Contract callable: `stellar contract invoke` returns expected output
 - [ ] State persists: Multiple invocations show consistent state changes
+
+---
 
 ## Troubleshooting
 
@@ -356,7 +335,7 @@ rustup target add wasm32-unknown-unknown
 
 # Clean and rebuild
 cargo clean
-soroban contract build
+stellar contract build
 ```
 
 ### Account Not Funded
@@ -366,15 +345,11 @@ soroban contract build
 **Solution:**
 
 ```bash
-# Verify your public key
-soroban keys show my-testnet-account
+# Fund using Stellar CLI
+stellar keys fund my-testnet-account --network testnet
 
-# Fund using Friendbot (replace with your public key)
-curl "https://friendbot.stellar.org?addr=GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
-# Wait a few seconds and check balance
-sleep 5
-soroban account balance --account my-testnet-account --network testnet
+# Or via Friendbot curl
+curl "https://friendbot.stellar.org?addr=$(stellar keys address my-testnet-account)"
 ```
 
 ### Network Configuration Issues
@@ -385,12 +360,12 @@ soroban account balance --account my-testnet-account --network testnet
 
 ```bash
 # Add testnet network
-soroban network add --name testnet \
+stellar network add --global testnet \
   --rpc-url https://soroban-testnet.stellar.org \
   --network-passphrase "Test SDF Network ; September 2015"
 
 # Verify it was added
-soroban network ls
+stellar network ls
 ```
 
 ### Deployment Fails with "Invalid WASM"
@@ -405,10 +380,9 @@ ls -lh target/wasm32-unknown-unknown/release/*.wasm
 
 # Rebuild the contract
 cargo clean
-soroban contract build
+stellar contract build
 
-# Verify the file size is reasonable (typically 50KB-500KB)
-# If too small, the build may have failed silently
+# Verify the file size is reasonable (typically 10KB-200KB)
 ```
 
 ### Contract Deployment Timeout
@@ -419,16 +393,15 @@ soroban contract build
 
 ```bash
 # Check network connectivity
-ping soroban-testnet.stellar.org
+ping -c 3 soroban-testnet.stellar.org
 
-# Try again with explicit timeout
-soroban contract deploy \
+# Try again
+stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/my_first_contract.wasm \
   --source my-testnet-account \
   --network testnet
 
-# If still failing, check Stellar status page
-# https://status.stellar.org
+# Check Stellar network status: https://status.stellar.org
 ```
 
 ### Contract Invocation Authorization Error
@@ -438,14 +411,11 @@ soroban contract deploy \
 **Solution:**
 
 ```bash
-# Verify you're using the correct account
-soroban keys show my-testnet-account
+# Verify you're using the correct source account
+stellar keys address my-testnet-account
 
-# Check that the account has sufficient balance for fees
-soroban account balance --account my-testnet-account --network testnet
-
-# If contract requires specific authorization, ensure your account is authorized
-# (This depends on your contract's authorization logic)
+# Re-fund if account ran out of transaction fees
+stellar keys fund my-testnet-account --network testnet
 ```
 
 ### Contract Not Found After Deployment
@@ -459,47 +429,27 @@ soroban account balance --account my-testnet-account --network testnet
 echo $CONTRACT_ID
 
 # Check that the contract exists on testnet
-soroban contract info --id $CONTRACT_ID --network testnet
+stellar contract info --id $CONTRACT_ID --network testnet
 
-# If not found, the deployment may have failed
-# Check the deployment transaction on Stellar Expert:
-# https://testnet.stellar.expert/tx/[transaction-hash]
+# Check the deployment on Stellar Expert:
+# https://stellar.expert/explorer/testnet/contract/$CONTRACT_ID
 ```
 
-### Insufficient Fees
-
-**Problem:** `Error: Insufficient fee` or `Error: Fee too low`
-
-**Solution:**
-
-```bash
-# Check current network fees
-soroban network info --network testnet
-
-# Soroban CLI automatically calculates fees, but you can increase them:
-soroban contract invoke \
-  --id $CONTRACT_ID \
-  --source my-testnet-account \
-  --network testnet \
-  --fee 1000 \
-  -- hello --to World
-```
+---
 
 ## Common Deployment Patterns
 
 ### Deploying Multiple Contracts
 
-If you have multiple contracts to deploy:
-
 ```bash
 # Deploy first contract
-CONTRACT_1=$(soroban contract deploy \
+CONTRACT_1=$(stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/contract1.wasm \
   --source my-testnet-account \
   --network testnet)
 
 # Deploy second contract
-CONTRACT_2=$(soroban contract deploy \
+CONTRACT_2=$(stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/contract2.wasm \
   --source my-testnet-account \
   --network testnet)
@@ -511,50 +461,67 @@ echo "Contract 2: $CONTRACT_2" >> contract-ids.txt
 
 ### Deploying with Custom Initialization
 
-Some contracts require initialization parameters:
-
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id $CONTRACT_ID \
   --source my-testnet-account \
   --network testnet \
-  -- initialize --admin GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  -- initialize --admin $(stellar keys address my-testnet-account)
 ```
 
-### Monitoring Deployment Transactions
+---
 
-View your deployment transaction on Stellar Expert:
+## Using the Faucet Example
+
+If you need test tokens for your dApp during development, deploy the
+**faucet** example contract. It distributes tokens on testnet with built-in
+rate limiting (per-address cooldown) and a global distribution cap.
 
 ```bash
-# Get your account's recent transactions
-soroban account transactions --account my-testnet-account --network testnet
+# Build the faucet
+cargo build --manifest-path examples/faucet/Cargo.toml --target wasm32-unknown-unknown --release
 
-# View details on Stellar Expert
-# https://testnet.stellar.expert/account/[your-account-id]
+# Deploy
+FAUCET_ID=$(soroban contract deploy \
+  --wasm examples/target/wasm32-unknown-unknown/release/faucet.wasm \
+  --source my-testnet-account \
+  --network testnet)
+
+# Initialise: 100 tokens per claim, 100-ledger cooldown, 1 M token cap
+soroban contract invoke \
+  --id $FAUCET_ID \
+  --source my-testnet-account \
+  --network testnet \
+  -- init \
+  --admin my-testnet-account \
+  --drip_amount 100 \
+  --cooldown_ledgers 100 \
+  --max_total_claims 1000000
 ```
+
+> **Note:** The faucet is testnet-only. It distributes informational tokens to
+> help developers experiment -- it does not transfer real value.
+
+See the full [faucet example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/faucet) for source code and additional usage details.
 
 ## Next Steps
 
 Now that your contract is deployed:
 
 1. **Test thoroughly** — Invoke all contract functions and verify behavior
-2. **Monitor events** — Check contract events and logs
+2. **Understand the transaction** — [Transaction Anatomy: Invoking a Contract](./invoke-host-function) — see the XDR and op structure the CLI builds for you
+3. **Monitor events** — Check contract events and logs
+4. **Prepare for mainnet** — [Deploy to Mainnet](/docs/getting-started/deploy-mainnet) when validation is complete
+5. **Learn more** — Explore [Core Concepts](/docs/concepts/overview) and [Patterns](/docs/patterns/overview)
+2. **Monitor events** — Check contract events and logs with `stellar events --id $CONTRACT_ID --network testnet`
 3. **Prepare for mainnet** — [Deploy to Mainnet](/docs/getting-started/deploy-mainnet) when validation is complete
 4. **Learn more** — Explore [Core Concepts](/docs/concepts/overview) and [Patterns](/docs/patterns/overview)
 
 ## Additional Resources
 
-- [Soroban CLI Documentation](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup#install-the-stellar-cli)
-- [Stellar Testnet](https://developers.stellar.org/docs/fundamentals-and-concepts/testnet-public-network)
+- [Stellar CLI Documentation](https://developers.stellar.org/docs/tools/developer-tools/cli/stellar-cli)
+- [Stellar CLI Migration Guide](/docs/getting-started/stellar-cli-migration)
+- [Stellar Testnet Guide](https://developers.stellar.org/docs/fundamentals-and-concepts/testnet-public-network)
 - [Soroban SDK Reference](https://docs.rs/soroban-sdk)
 - [Stellar Expert Testnet Explorer](https://stellar.expert/explorer/testnet)
 - [Stellar Discord Community](https://discord.gg/stellardev)
-
-## Need Help?
-
-If you encounter issues not covered in this guide:
-
-1. Check the [Soroban Documentation](https://developers.stellar.org/docs/build/smart-contracts)
-2. Search [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues)
-3. Ask in the [Stellar Discord](https://discord.gg/stellardev)
-4. Create a new issue with your error message and contract code

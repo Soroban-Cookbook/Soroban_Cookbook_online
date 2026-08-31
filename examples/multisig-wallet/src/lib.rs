@@ -1,8 +1,8 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short,
-    token::TokenClient, Address, Env, Symbol, Vec,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token::TokenClient, Address,
+    Env, Symbol, Vec,
 };
 
 #[contracterror]
@@ -56,22 +56,26 @@ impl MultisigWallet {
             return Err(WalletError::InvalidThreshold);
         }
         env.storage().instance().set(&DataKey::Signers, &signers);
-        env.storage().instance().set(&DataKey::Threshold, &threshold);
         env.storage()
             .instance()
-            .set(&DataKey::ProposalCount, &0u32);
+            .set(&DataKey::Threshold, &threshold);
+        env.storage().instance().set(&DataKey::ProposalCount, &0u32);
         Ok(())
     }
 
-    pub fn deposit(env: Env, from: Address, token: Address, amount: i128) -> Result<(), WalletError> {
+    pub fn deposit(
+        env: Env,
+        from: Address,
+        token: Address,
+        amount: i128,
+    ) -> Result<(), WalletError> {
         if amount <= 0 {
             return Err(WalletError::InvalidAmount);
         }
         from.require_auth();
         let wallet = env.current_contract_address();
         TokenClient::new(&env, &token).transfer(&from, &wallet, &amount);
-        env.events()
-            .publish((EVENT_DEPOSIT, token, from), amount);
+        env.events().publish((EVENT_DEPOSIT, token, from), amount);
         Ok(())
     }
 
@@ -113,10 +117,8 @@ impl MultisigWallet {
         env.storage()
             .instance()
             .set(&DataKey::ProposalCount, &(count + 1));
-        env.events().publish(
-            (EVENT_SUBMIT, proposer, token, to),
-            (proposal_id, amount),
-        );
+        env.events()
+            .publish((EVENT_SUBMIT, proposer, token, to), (proposal_id, amount));
         Ok(proposal_id)
     }
 
@@ -173,8 +175,7 @@ impl MultisigWallet {
             .persistent()
             .set(&DataKey::Proposal(proposal_id), &updated);
         let wallet = env.current_contract_address();
-        TokenClient::new(&env, &proposal.token)
-            .transfer(&wallet, &proposal.to, &proposal.amount);
+        TokenClient::new(&env, &proposal.token).transfer(&wallet, &proposal.to, &proposal.amount);
         env.events().publish(
             (EVENT_EXECUTE, proposal_id, proposal.token, proposal.to),
             proposal.amount,

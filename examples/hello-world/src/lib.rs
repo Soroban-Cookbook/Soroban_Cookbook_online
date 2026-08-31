@@ -31,10 +31,7 @@ mod tests {
         let contract_id = env.register(HelloWorld, ());
         let client = HelloWorldClient::new(&env, &contract_id);
 
-        assert_eq!(
-            client.hello(),
-            String::from_str(&env, "Hello, Soroban!")
-        );
+        assert_eq!(client.hello(), String::from_str(&env, "Hello, Soroban!"));
     }
 
     #[test]

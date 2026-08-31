@@ -257,7 +257,7 @@ Ensure your `Cargo.toml` specifies a compatible SDK version, for example:
 
 ```toml
 [dependencies]
-soroban-sdk = "22.0.0"
+soroban-sdk = "27.0.3"
 ```
 
 ---

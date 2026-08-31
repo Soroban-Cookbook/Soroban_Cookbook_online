@@ -217,6 +217,9 @@ The script also handles examples that need extra build steps first, such as `con
 - Prefer `try_*` methods when you want to assert on failures.
 - Assert that state is unchanged after rejected operations.
 - Use snapshot-specific helpers for historical reads instead of reusing current-balance assertions.
+- [Local Testing and Simulation](./local-testing-and-simulation.md) - Canonical local workflow
+- [Testing Error Scenarios](./testing-errors.md) - Error testing patterns
+- [Building and Compilation](./building-and-compilation.md) - Build system details
 
 ## Related docs
 

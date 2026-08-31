@@ -523,7 +523,8 @@ mod tests {
         // fee_bps = 100; safe_max = i128::MAX / 100
         let safe_max = i128::MAX / 100;
         let fee = client.calculate_fee(&safe_max);
-        assert_eq!(fee, safe_max / BPS_DENOMINATOR);
+        // fee = amount * fee_bps / BPS_DENOMINATOR = safe_max * 100 / 10_000
+        assert_eq!(fee, safe_max / 100);
     }
 
     /// flash_loan rejects amount = 0 with InvalidAmount.
