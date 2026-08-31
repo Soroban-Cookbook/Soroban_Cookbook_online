@@ -35,7 +35,9 @@
 //! | `State`    | `State`   | Current state of the escrow                 |
 
 #![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, token, Address, Env};
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol,
+};
 
 // ─── Storage keys ─────────────────────────────────────────────────────────────
 
@@ -129,6 +131,11 @@ impl EscrowBasic {
             .persistent()
             .set(&DataKey::State, &EscrowState::Created);
 
+        env.events().publish(
+            (Symbol::new(&env, "initialise"),),
+            (buyer.clone(), seller.clone(), arbiter.clone(), token.clone(), amount),
+        );
+
         Ok(())
     }
 
@@ -173,6 +180,8 @@ impl EscrowBasic {
         env.storage()
             .persistent()
             .set(&DataKey::State, &EscrowState::Funded);
+
+        env.events().publish((symbol_short!("deposit"),), (buyer.clone(), amount));
 
         Ok(())
     }
@@ -232,6 +241,11 @@ impl EscrowBasic {
             .persistent()
             .set(&DataKey::State, &EscrowState::Released);
 
+        env.events().publish(
+            (symbol_short!("release"),),
+            (caller.clone(), seller.clone(), amount),
+        );
+
         Ok(())
     }
 
@@ -285,6 +299,11 @@ impl EscrowBasic {
             .persistent()
             .set(&DataKey::State, &EscrowState::Refunded);
 
+        env.events().publish(
+            (symbol_short!("refund"),),
+            (caller.clone(), buyer.clone(), amount),
+        );
+
         Ok(())
     }
 
@@ -305,9 +324,7 @@ impl EscrowBasic {
 mod tests {
     use super::*;
     use soroban_sdk::{
-        testutils::Address as _,
-        token::{self, StellarAssetClient},
-        Address, Env,
+        symbol_short, testutils::Address as _, token::{self, StellarAssetClient}, Address, Env, Val,
     };
 
     /// Helper: register a Stellar asset contract and mint tokens to `to`.
@@ -492,5 +509,41 @@ mod tests {
     fn test_get_amount_returns_initialised_amount() {
         let (_env, _buyer, _seller, _arbiter, _token, client) = setup();
         assert_eq!(client.get_amount(), Some(500));
+    }
+
+    // ── events ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_release_emits_event() {
+        let (env, buyer, _seller, _arbiter, _token, client) = setup();
+        client.deposit().unwrap();
+
+        let before = env.events().all().len();
+        client.release(&buyer).unwrap();
+
+        let events = env.events().all();
+        assert!(events.len() > before);
+        let released: Vec<_> = events
+            .iter()
+            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("release"))))
+            .collect();
+        assert_eq!(released.len(), 1);
+    }
+
+    #[test]
+    fn test_refund_emits_event() {
+        let (env, _buyer, _seller, arbiter, _token, client) = setup();
+        client.deposit().unwrap();
+
+        let before = env.events().all().len();
+        client.refund(&arbiter).unwrap();
+
+        let events = env.events().all();
+        assert!(events.len() > before);
+        let refunded: Vec<_> = events
+            .iter()
+            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("refund"))))
+            .collect();
+        assert_eq!(refunded.len(), 1);
     }
 }

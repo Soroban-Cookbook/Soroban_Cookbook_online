@@ -77,6 +77,8 @@ impl EmergencyStop {
     /// Dummy operational function guarded by the circuit breaker.
     pub fn do_work(env: Env) -> Result<u32, Error> {
         fail_if_paused(&env)?;
+        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+        admin.require_auth();
         let count: u32 = env.storage().instance().get(&DataKey::OpCount).unwrap_or(0);
         let next = count + 1;
         env.storage().instance().set(&DataKey::OpCount, &next);

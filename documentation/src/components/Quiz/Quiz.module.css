@@ -1,3 +1,43 @@
+.quiz {
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-200, #e8e8e8);
+  border-radius: 12px;
+  background: var(--ifm-card-background-color, #fff);
+}
+
+.quizTitle {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.question {
+  border: 1px solid var(--ifm-color-emphasis-200, #e8e8e8);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.question.correct {
+  border-color: var(--ifm-color-success, #28a745);
+  background: color-mix(in srgb, var(--ifm-color-success, #28a745) 5%, transparent);
+}
+
+.question.incorrect {
+  border-color: var(--ifm-color-danger, #dc3545);
+  background: color-mix(in srgb, var(--ifm-color-danger, #dc3545) 5%, transparent);
+}
+
+.questionText {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 /**
  * Quiz Component Styles
  * Interactive knowledge check with radio-button selection,
@@ -124,6 +164,72 @@
 .option {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-200, #e8e8e8);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.option:hover {
+  border-color: var(--ifm-color-primary, #25c2a0);
+}
+
+.option.selected {
+  border-color: var(--ifm-color-primary, #25c2a0);
+  background: color-mix(in srgb, var(--ifm-color-primary, #25c2a0) 8%, transparent);
+}
+
+.option.correctOption {
+  border-color: var(--ifm-color-success, #28a745);
+  background: color-mix(in srgb, var(--ifm-color-success, #28a745) 12%, transparent);
+}
+
+.option.wrongOption {
+  border-color: var(--ifm-color-danger, #dc3545);
+  background: color-mix(in srgb, var(--ifm-color-danger, #dc3545) 12%, transparent);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.input {
+  margin: 0;
+  cursor: pointer;
+}
+
+.optionLabel {
+  font-size: 0.9375rem;
+}
+
+.submitBtn {
+  padding: 0.625rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: var(--ifm-color-primary, #25c2a0);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: var(--ifm-color-emphasis-100, #f5f5f5);
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border-light);

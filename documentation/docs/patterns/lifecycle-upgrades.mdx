@@ -156,7 +156,7 @@ Perform the entire migration in a single transaction or a series of transactions
 ## Safety Checklists
 
 ### Pre-Upgrade Checklist
-- [ ] Bytecode hash of the new Wasm is verified.
+- [ ] Bytecode hash of the new Wasm is verified using the [WASM Upgrade Verification Checklist](../security/upgrade-checklist.md).
 - [ ] New storage types are backward-compatible (or migration is planned).
 - [ ] Initialization logic for new fields is tested.
 - [ ] Upgrade transaction has been simulated on a Testnet fork.

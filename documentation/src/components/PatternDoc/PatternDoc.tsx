@@ -100,6 +100,41 @@ export function PatternMeta({
   time,
 }: PatternMetaProps) {
   const estimated = parseEstimatedTime(time);
+  const [bookmarked, setBookmarked] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem('bookmarkedPatterns');
+      if (stored) {
+        const patterns = JSON.parse(stored);
+        if (Array.isArray(patterns) && patterns.includes(slug)) {
+          setBookmarked(true);
+        }
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, [slug]);
+
+  const toggleBookmark = () => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem('bookmarkedPatterns');
+      const patterns: string[] = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(patterns)) return;
+      const idx = patterns.indexOf(slug);
+      if (idx !== -1) {
+        patterns.splice(idx, 1);
+      } else {
+        patterns.push(slug);
+      }
+      window.localStorage.setItem('bookmarkedPatterns', JSON.stringify(patterns));
+      setBookmarked(patterns.includes(slug));
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
 
   return (
     <div className={styles.metaCard} data-pattern-slug={slug}>
@@ -107,6 +142,16 @@ export function PatternMeta({
         {estimated ? <EstimatedTime time={time!} /> : null}
         <Badge variant={difficulty} size="md" asStatus />
         {status && status !== 'stable' && <Badge variant={status} size="sm" />}
+        <button
+          type="button"
+          className={styles.bookmarkButton}
+          aria-pressed={bookmarked}
+          aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+          title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+          onClick={toggleBookmark}
+        >
+          {bookmarked ? '★' : '☆'}
+        </button>
       </div>
       <dl className={styles.metaGrid}>
         <div>

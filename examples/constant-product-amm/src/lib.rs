@@ -610,4 +610,73 @@ mod tests {
         let result = setup.client.try_remove_liquidity(&setup.bob, &1000, &0, &0);
         assert_eq!(result, Err(Ok(Error::InsufficientLiquidity)));
     }
+
+    // ── overflow / boundary tests ────────────────────────────────────────────
+
+    /// swap_a_for_b with amount_a_in = i128::MAX overflows in the fee
+    /// calculation (amount_a_in * 997) and must return Overflow.
+    #[test]
+    fn test_swap_a_for_b_max_amount_overflows() {
+        let setup = setup();
+        setup
+            .client
+            .add_liquidity(&setup.alice, &100_000, &200_000, &90_000, &180_000);
+
+        let result = setup.client.try_swap_a_for_b(&setup.bob, &i128::MAX, &0);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+
+    /// swap_b_for_a with amount_b_in = i128::MAX overflows similarly.
+    #[test]
+    fn test_swap_b_for_a_max_amount_overflows() {
+        let setup = setup();
+        setup
+            .client
+            .add_liquidity(&setup.alice, &100_000, &200_000, &90_000, &180_000);
+
+        let result = setup.client.try_swap_b_for_a(&setup.bob, &i128::MAX, &0);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+
+    /// add_liquidity with amounts that would cause lp_total_supply * amount to
+    /// overflow returns Overflow.
+    #[test]
+    fn test_add_liquidity_large_amounts_overflow() {
+        let setup = setup();
+
+        // First deposit: set up the pool with large reserves.
+        setup.sac_a.mint(&setup.alice, &i128::MAX);
+        setup.sac_b.mint(&setup.alice, &i128::MAX);
+
+        // Seed the pool — use half of i128::MAX to leave room.
+        let half = i128::MAX / 2;
+        setup
+            .client
+            .add_liquidity(&setup.alice, &half, &half, &0, &0);
+
+        // Second deposit: the lp_total_supply * amount_a product will overflow.
+        let result = setup
+            .client
+            .try_add_liquidity(&setup.bob, &i128::MAX, &i128::MAX, &0, &0);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+
+    /// add_liquidity with zero desired amounts is rejected as InvalidAmount.
+    #[test]
+    fn test_add_liquidity_zero_amount_rejected() {
+        let setup = setup();
+        let result = setup.client.try_add_liquidity(&setup.alice, &0, &100, &0, &0);
+        assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+    }
+
+    /// swap_a_for_b with amount = 0 is rejected as InvalidAmount.
+    #[test]
+    fn test_swap_a_for_b_zero_rejected() {
+        let setup = setup();
+        setup
+            .client
+            .add_liquidity(&setup.alice, &100_000, &200_000, &90_000, &180_000);
+        let result = setup.client.try_swap_a_for_b(&setup.bob, &0, &0);
+        assert_eq!(result, Err(Ok(Error::InvalidAmount)));
+    }
 }

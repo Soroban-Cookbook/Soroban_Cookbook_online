@@ -217,16 +217,31 @@
   font-family: var(--ifm-font-family-monospace);
 }
 
+/* Light theme needs darker accents to clear WCAG AA on the white card
+   background; the brighter originals are restored under [data-theme='dark'],
+   where they sit on a dark surface and already pass. */
 .difficulty[data-difficulty='beginner'] {
-  color: #10b981;
+  color: #047857;
 }
 
 .difficulty[data-difficulty='intermediate'] {
-  color: #f59e0b;
+  color: #9a6206;
 }
 
 .difficulty[data-difficulty='advanced'] {
-  color: #ef4444;
+  color: #c62d2d;
+}
+
+[data-theme='dark'] .difficulty[data-difficulty='beginner'] {
+  color: #10b981;
+}
+
+[data-theme='dark'] .difficulty[data-difficulty='intermediate'] {
+  color: #f59e0b;
+}
+
+[data-theme='dark'] .difficulty[data-difficulty='advanced'] {
+  color: #f87171;
 }
 
 .popularity {

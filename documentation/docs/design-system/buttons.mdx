@@ -7,8 +7,25 @@ sidebar_label: Buttons
 The button component lives in `src/components/buttons/Button.tsx` with CSS module tokens in `buttons.module.css`.
 
 ```tsx
-import { Button } from '@site/src/components/buttons';
+import { Button, ButtonGroup } from '@site/src/components/buttons';
 ```
+
+`@site/src/components/buttons` is the **single public Button API**. Earlier
+duplicate implementations under `src/components/UI/Button/` and
+`src/components/UI/ButtonGroup.tsx` are deprecated and now re-export this one,
+so every import path resolves to the same component with the same props.
+
+| Path                                              | Status                       |
+| ------------------------------------------------- | ---------------------------- |
+| `@site/src/components/buttons`                     | **Canonical** — import this  |
+| `@site/src/components/UI/Button`                   | Deprecated re-export         |
+| `@site/src/components/UI/Button/ButtonGroup`       | Deprecated re-export         |
+| `@site/src/components/UI/ButtonGroup`              | Deprecated re-export         |
+| `@site/src/components/UI/Button/Button.types`      | Deprecated type re-export    |
+
+The `.sb-btn` utility classes in `src/css/custom.css` remain for plain `<a>`
+elements styled as buttons (for example the 404 page); they are not a second
+component API.
 
 ---
 
@@ -139,7 +156,7 @@ Buttons share borders — first child gets left radius, last gets right radius, 
 ### Connected group
 
 ```tsx
-<ButtonGroup connected>...</ButtonGroup>
+<ButtonGroup variant="connected">...</ButtonGroup>
 ```
 
 Overlapping borders (`margin-right: -2px`) for a tighter, toolbar look.
@@ -147,7 +164,7 @@ Overlapping borders (`margin-right: -2px`) for a tighter, toolbar look.
 ### Segmented group
 
 ```tsx
-<ButtonGroup segmented>...</ButtonGroup>
+<ButtonGroup variant="segmented">...</ButtonGroup>
 ```
 
 Pill-shaped container with rounded inner buttons — use for view toggles (grid/list, light/dark).

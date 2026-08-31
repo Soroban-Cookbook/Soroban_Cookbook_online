@@ -15,15 +15,18 @@ members = [
     "htlc-swap",
     "oracle-consumer",
     "reentrancy-guard",
+    "registry",
     "simple-dao",
     "simple-voting",
     "staking",
+    "stream-payment",
     "timelock-vault",
     "token-snapshot",
     "token-transfer",
     "token-vesting",
     "token-wrapper",
     "upgradeable",
+    "multi-token-vault",
     "multisig-wallet",
 ]
 resolver = "2"

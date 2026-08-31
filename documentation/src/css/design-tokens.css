@@ -255,11 +255,11 @@
 
   /* Difficulty — light mode */
   --sb-badge-beginner-bg: rgba(34, 197, 94, 0.15);
-  --sb-badge-beginner-text: #15803d;
+  --sb-badge-beginner-text: #0f5e2d; /* 6.9:1 on the badge tint (was #15803d, 4.4:1) */
   --sb-badge-beginner-border: rgba(34, 197, 94, 0.35);
 
   --sb-badge-intermediate-bg: rgba(245, 158, 11, 0.15);
-  --sb-badge-intermediate-text: #b45309;
+  --sb-badge-intermediate-text: #8a3f07; /* 6.7:1 on the badge tint (was #b45309, 4.5:1) */
   --sb-badge-intermediate-border: rgba(245, 158, 11, 0.35);
 
   --sb-badge-advanced-bg: rgba(239, 68, 68, 0.12);
@@ -283,9 +283,10 @@
   --sb-badge-deprecated-text: #ffffff;
   --sb-badge-deprecated-border: #b91c1c;
 
-  --sb-badge-stable-bg: #0891b2;
+  /* White on #0891b2 was only 3.7:1; #0e7490 lifts it to 5.4:1. */
+  --sb-badge-stable-bg: #0e7490;
   --sb-badge-stable-text: #ffffff;
-  --sb-badge-stable-border: #0e7490;
+  --sb-badge-stable-border: #155e75;
 
   --sb-badge-experimental-bg: rgba(168, 85, 247, 0.15);
   --sb-badge-experimental-text: #7e22ce;
@@ -444,7 +445,8 @@
   --sb-badge-updated-bg: #1d4ed8;
   --sb-badge-updated-border: #1e40af;
 
-  --sb-badge-coming-soon-text: #9ca3af;
+  /* #624 — dark mode contrast: #d1d5db on dark bg yields ≥ 7:1 (WCAG AAA) */
+  --sb-badge-coming-soon-text: #d1d5db;
   --sb-badge-coming-soon-border: #374151;
 
   --sb-badge-deprecated-bg: #b91c1c;
@@ -458,7 +460,8 @@
   --sb-badge-experimental-border: rgba(192, 132, 252, 0.3);
 
   --sb-badge-draft-bg: rgba(156, 163, 175, 0.12);
-  --sb-badge-draft-text: #9ca3af;
+  /* #624 — dark mode contrast: #d1d5db on dark bg yields ≥ 7:1 (WCAG AAA) */
+  --sb-badge-draft-text: #d1d5db;
   --sb-badge-draft-border: rgba(156, 163, 175, 0.25);
 
   --sb-tag-token-bg: rgba(96, 165, 250, 0.15);

@@ -819,3 +819,220 @@ If you're stuck after following this guide:
 3. **Search the Soroban community** - Discord, GitHub Issues
 4. **Create a minimal reproduction** - Simplify your contract to the failing component
 5. **Ask with context** - Include error message, code, Rust/Soroban versions
+
+---
+
+## Debugging with Stellar Lab and Event Logs
+
+When a contract invocation fails on-chain, the error message alone often does not reveal the root cause. This section walks through a practical failure/debugging recipe that uses Stellar Lab, the Soroban RPC `getEvents` endpoint, and diagnostic events to trace a simulation failure back to the source line.
+
+### Failure/Debugging Recipe
+
+```
+simulate failing invocation
+        ↓
+inspect returned events
+        ↓
+retrieve events through RPC
+        ↓
+read diagnostic events
+        ↓
+identify failing contract/source location
+```
+
+### Step 1: Simulate the Failing Invocation
+
+Before submitting a transaction, simulate it to inspect the failure without spending fees.
+
+```bash
+# Simulate a contract invocation that fails
+stellar contract invoke \
+  --id <CONTRACT_ID> \
+  --source <ACCOUNT> \
+  --network testnet \
+  --sim-only \
+  -- transfer --to <RECIPIENT> --amount 1000
+```
+
+The simulation response includes:
+
+- **Error**: The error message returned by the contract.
+- **Events**: Any events emitted during execution, including diagnostic events.
+- **Cost**: Resource consumption (CPU instructions, memory, storage).
+
+If the simulation fails, examine the events in the response before retrying on-chain.
+
+### Step 2: Inspect Returned Events
+
+The simulation result contains an `events` array. Each event has:
+
+- `type`: `system` or `contract`
+- `contractId`: The contract that emitted the event
+- `topics`: Array of event identifiers (e.g., error type, function name)
+- `data`: Encoded event payload
+
+Look for events with `type: "contract"` that contain error indicators in their topics. These often reveal which function failed and why.
+
+### Step 3: Retrieve Events Through RPC
+
+After a failed transaction (or to inspect historical events), query events using the Soroban RPC:
+
+```bash
+# Query events for a specific contract
+stellar events \
+  --id <CONTRACT_ID> \
+  --network testnet \
+  --count 100
+```
+
+The RPC `getEvents` endpoint supports filtering by:
+
+- `contractId`: Filter events emitted by a specific contract
+- `topic`: Filter by event topic (e.g., error type)
+- `startLedger` / `endLedger`: Ledger range
+- `pagination`: Cursor-based pagination
+
+Example RPC request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "getEvents",
+  "params": {
+    "startLedger": 100000,
+    "endLedger": 200000,
+    "filters": {
+      "contractId": "<CONTRACT_ID>",
+      "topic": ["transfer"]
+    },
+    "pagination": {
+      "limit": 10
+    }
+  }
+}
+```
+
+### Step 4: Read Diagnostic Events
+
+Diagnostic events are system-level events that provide insight into contract execution. They are emitted automatically by the Soroban runtime and include:
+
+- **Authorization events**: Show which addresses were requested to authorize.
+- **Contract events**: Show contract-to-contract calls and their results.
+- **Error events**: Contain the error type and message.
+
+Diagnostic events are included in simulation responses and in the RPC `getEvents` results. To identify them:
+
+1. Look for events with `type: "system"` in the simulation response.
+2. Check for topics that contain error discriminators (e.g., `"transfer"`, `"increment"`).
+3. Decode the `data` field to see the error payload.
+
+Example diagnostic event structure:
+
+```json
+{
+  "type": "contract",
+  "contractId": "<CONTRACT_ID>",
+  "topics": ["transfer"],
+  "data": "AAAAAQAAAABh..."
+}
+```
+
+### Step 5: Identify the Failing Source Line
+
+Once you have the error type and event payload:
+
+1. **Match the error to your contract code**: The error discriminant in the event corresponds to the `#[repr(u32)]` value in your error enum.
+
+   ```rust
+   #[contracterror]
+   #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+   #[repr(u32)]
+   pub enum Error {
+       InvalidAmount = 1,   // Error discriminant 1
+       Unauthorized = 2,    // Error discriminant 2
+       Overflow = 3,        // Error discriminant 3
+   }
+   ```
+
+2. **Trace the function**: Use the event topics to identify which function was called.
+
+3. **Add targeted logging**: Insert `env.events().publish()` calls to emit diagnostic information at key points:
+
+   ```rust
+   pub fn transfer(env: Env, amount: i128) -> Result<(), Error> {
+       env.events().publish(
+           symbol_short!("debug_start"),
+           &amount,
+       );
+
+       if amount <= 0 {
+           return Err(Error::InvalidAmount);
+       }
+
+       // ... rest of logic
+       Ok(())
+   }
+   ```
+
+4. **Re-simulate and inspect**: After adding logging, re-run the simulation and check the new events.
+
+### Using Stellar Lab for Inspection
+
+[Stellar Lab](https://lab.stellar.org) provides a web interface for constructing and simulating Soroban transactions:
+
+1. **Navigate to Stellar Lab**: Open [lab.stellar.org](https://lab.stellar.org) and select the Soroban tab.
+
+2. **Connect to your network**: Choose testnet or mainnet, and connect your account.
+
+3. **Build a transaction**: Use the transaction builder to construct a `contractInvoke` operation with your contract ID and function arguments.
+
+4. **Simulate**: Click "Simulate" to run the transaction without submitting it. The simulation results panel shows:
+   - Transaction success/failure
+   - Events emitted (including diagnostic events)
+   - Resource consumption
+   - Return values
+
+5. **Inspect events**: In the simulation results, expand the "Events" section to see all emitted events. Filter by contract ID or topic to focus on relevant events.
+
+6. **Debug with event history**: Use the "Events" tab in Stellar Lab to query historical events for your contract. This is useful for debugging issues that occurred in past transactions.
+
+### Quick Reference: Debugging Commands
+
+```bash
+# Simulate without submitting
+stellar contract invoke --id <ID> --network testnet --sim-only -- <fn> <args>
+
+# Query contract events
+stellar events --id <ID> --network testnet --count 50
+
+# Inspect contract metadata
+stellar contract inspect --id <ID> --network testnet
+
+# View transaction details on Stellar Expert
+# https://stellar.expert/explorer/testnet/tx/<TX_HASH>
+```
+
+### Tips for Effective Event-Based Debugging
+
+1. **Emit events at decision points**: Add `env.events().publish()` calls at branch conditions, error checks, and state transitions.
+
+2. **Use descriptive topics**: Include the function name or operation type as an event topic for easy filtering.
+
+3. **Include relevant state in event data**: Emit variable values so you can see the state at the time of the event.
+
+4. **Check simulation before submission**: Always simulate first to catch issues without spending fees.
+
+5. **Query events after failures**: If a transaction fails on-chain, query events to understand what happened.
+
+6. **Use Stellar Lab for visual inspection**: The web interface makes it easy to browse events and transaction details without writing code.
+
+---
+
+## Related Resources
+
+- [Events](../concepts/events.md) - Emit and track contract events
+- [Error Handling](../concepts/error-handling.md) - Error patterns and best practices
+- [Local Testing and Simulation](./local-testing-and-simulation.md) - Test contracts locally
+- [Soroban CLI Reference](https://developers.stellar.org/docs/build/smart-contracts/getting-started/setup#install-the-stellar-cli) - Full CLI documentation
+- [Stellar Lab](https://lab.stellar.org) - Web-based transaction builder and simulator

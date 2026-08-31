@@ -236,6 +236,7 @@ impl SimpleDao {
             .get(&DataKey::Proposal(proposal_id))
             .expect("proposal not found");
 
+        config.admin.require_auth();
         assert!(!proposal.cancelled, "proposal already cancelled");
         assert!(
             proposal.queued_at == 0,
@@ -273,6 +274,7 @@ impl SimpleDao {
             .get(&DataKey::Proposal(proposal_id))
             .expect("proposal not found");
 
+        config.admin.require_auth();
         assert!(!proposal.executed, "already executed");
         assert!(!proposal.cancelled, "proposal already cancelled");
 

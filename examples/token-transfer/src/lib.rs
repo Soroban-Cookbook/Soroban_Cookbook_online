@@ -1,5 +1,7 @@
 #![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, String};
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol,
+};
 
 #[contracttype]
 #[derive(Clone)]
@@ -39,6 +41,11 @@ pub fn initialize(
     env.storage().persistent().set(&DataKey::Name, &name);
     env.storage().persistent().set(&DataKey::Symbol, &symbol);
     env.storage().persistent().set(&DataKey::Decimals, &decimals);
+
+    env.events().publish(
+        (Symbol::new(&env, "initialize"),),
+        (name.clone(), symbol.clone(), decimals),
+    );
 }
 
     /// Mint tokens to an address (for testing purposes).
@@ -50,6 +57,8 @@ pub fn initialize(
     let supply_key = DataKey::TotalSupply;
     let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
     env.storage().persistent().set(&supply_key, &(supply + amount));
+
+    env.events().publish((symbol_short!("mint"), to.clone()), amount);
 }
 
     /// Return the balance of an address.
@@ -83,6 +92,8 @@ pub fn initialize(
             .persistent()
             .set(&to_key, &(to_balance + amount));
 
+        env.events().publish((symbol_short!("transfer"), from.clone(), to.clone()), amount);
+
         Ok(())
     }
 
@@ -110,6 +121,8 @@ pub fn initialize(
         let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
         env.storage().persistent().set(&supply_key, &(supply - amount));
 
+        env.events().publish((symbol_short!("burn"), from.clone()), amount);
+
         Ok(())
     }
 
@@ -123,6 +136,11 @@ pub fn initialize(
 
         let key = DataKey::Allowance(owner, spender);
         env.storage().persistent().set(&key, &amount);
+
+        env.events().publish(
+            (symbol_short!("approve"), owner.clone(), spender.clone()),
+            amount,
+        );
 
         Ok(())
     }
@@ -215,6 +233,8 @@ pub fn initialize(
             .persistent()
             .set(&to_key, &(to_balance + amount));
 
+        env.events().publish((symbol_short!("transfer"), from.clone(), to.clone()), amount);
+
         Ok(())
     }
 }
@@ -222,7 +242,7 @@ pub fn initialize(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk::{symbol_short, testutils::Address as _, Env, Val};
 
     fn setup() -> (Env, soroban_sdk::Address, TokenTransferClient<'static>) {
         let env = Env::default();
@@ -615,4 +635,41 @@ mod tests {
         assert_eq!(client.decimals(), 7);
     }
 
+    // ── events ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_mint_emits_event() {
+        let (env, _contract_id, client) = setup();
+        let alice = Address::generate(&env);
+
+        let before = env.events().all().len();
+        client.mint(&alice, &500);
+
+        let events = env.events().all();
+        assert!(events.len() > before);
+        let minted: Vec<_> = events
+            .iter()
+            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("mint"))))
+            .collect();
+        assert_eq!(minted.len(), 1);
+    }
+
+    #[test]
+    fn test_transfer_emits_event() {
+        let (env, _contract_id, client) = setup();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+
+        client.mint(&alice, &1000);
+        let before = env.events().all().len();
+        client.transfer(&alice, &bob, &400).unwrap();
+
+        let events = env.events().all();
+        assert!(events.len() > before);
+        let transferred: Vec<_> = events
+            .iter()
+            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("transfer"))))
+            .collect();
+        assert_eq!(transferred.len(), 1);
+    }
 }

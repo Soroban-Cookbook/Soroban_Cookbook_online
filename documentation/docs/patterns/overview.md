@@ -112,13 +112,17 @@ Build essential utility contracts for multi-signature wallets, escrow, and fund 
 
 ## Using Patterns
 
-Each pattern includes:
+The patterns in this library provide practical, battle-tested Soroban contract examples covering common use cases such as storage, tokens, DeFi, access control, and governance. Each pattern is designed to be immediately useful and includes the following:
 
-- ✅ Complete source code
-- ✅ Unit tests
-- ✅ Deployment guide
-- ✅ Security considerations
-- ✅ Best practices
+- **Source code** — Complete contract implementations with `#[contract]` and `#[contractimpl]` blocks
+- **Tests** — Unit tests embedded within each pattern for verification of contract behavior
+- **Security considerations** — Highlighted callouts and checklists addressing common security pitfalls, storage scope, authorization, and production readiness
+- **Best practice callouts** — Guidance on topics such as input validation, error handling, and graceful degradation
+- **Related patterns and concepts** — Links to connected patterns, concepts, and external resources for deeper learning
+
+Some patterns also include deployment guidance, state migration strategies, and optimization techniques. The [hello world storage](/docs/patterns/hello-world) pattern demonstrates the standard pattern page layout and can be used as a template when adding new patterns.
+
+Browse the [Available Patterns](/docs/patterns/overview) to find the right pattern for your use case.
 
 ## Contributing
 

@@ -9,6 +9,7 @@ image: /img/soroban-social-card.png
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { CodeSnippet } from '@site/src/components/CodeSnippet';
+import { CodePreview } from '@site/src/components/CodePreview';
 import { PatternCustomizer } from '@site/src/components/PatternCustomizer';
 
 <PatternMeta
@@ -112,6 +113,29 @@ impl HelloWorld {
   defaultShowComments={true}
   filename="hello-world"
   showDownload={true}
+/>
+
+## Live Code Preview
+
+The `CodePreview` component renders read-only code with full syntax highlighting and a copy-to-clipboard button. It uses Prism under the hood, so keywords, types, and strings are color-coded automatically.
+
+<CodePreview
+  language="rust"
+  title="hello-world/src/lib.rs"
+  code={`#![no_std]
+use soroban_sdk::{contract, contractimpl, Env, String};
+
+#[contract]
+pub struct HelloWorld;
+
+#[contractimpl]
+impl HelloWorld {
+    pub fn hello(env: Env) -> String {
+        env.storage().instance().get(&String::from_str(&env, "msg")).unwrap_or(
+            String::from_str(&env, "Hello, Soroban!"),
+        )
+    }
+}`}
 />
 
 ## Try it yourself

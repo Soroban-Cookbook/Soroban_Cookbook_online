@@ -37,3 +37,4 @@ Events provide a reliable audit trail of what happened in your contract and help
 
 - [Storage Patterns](./storage.md)
 - [Authorization](./authorization.md)
+- [Event Emission Audit](./event-emission-audit.md)

@@ -48,6 +48,25 @@ impl TokenContract {
         let balance: i128 = env.storage().persistent().get(&to).unwrap_or(0);
         env.storage().persistent().set(&to, &(balance + amount));
     }
+
+    /// Demonstrates panic for an unrecoverable invariant violation.
+    /// This should never be called with a negative amount in correct usage.
+    pub fn checked_transfer(
+        env: Env,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) {
+        let balance: i128 = env.storage().persistent().get(&from).unwrap_or(0);
+        let new_balance = balance - amount;
+
+        if new_balance < 0 {
+            panic!("arithmetic underflow in checked_transfer");
+        }
+
+        env.storage().persistent().set(&from, &new_balance);
+        env.storage().persistent().set(&to, &(env.storage().persistent().get(&to).unwrap_or(0) + amount));
+    }
 }
 
 #[cfg(test)]
@@ -92,5 +111,20 @@ mod tests {
 
         client.mint(&alice, &500);
         client.transfer(&alice, &bob, &200);
+    }
+
+    #[test]
+    fn test_panic_on_underflow() {
+        let env = Env::default();
+        let contract_id = env.register(TokenContract, ());
+        let client = TokenContractClient::new(&env, &contract_id);
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        env.mock_all_auths();
+
+        client.mint(&alice, &50);
+
+        let result = client.try_checked_transfer(&alice, &bob, &100);
+        assert!(result.is_err());
     }
 }

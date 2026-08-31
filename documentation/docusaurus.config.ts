@@ -1,6 +1,8 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import rehypeTaskListLabels from './src/remark/rehypeTaskListLabels';
+import accessibleGithubPrismTheme from './src/theme/prismAccessibleGithub';
 
 /** Optional GA4 measurement ID — enables page views + custom events when set. */
 const gtagMeasurementId = process.env.GTAG_MEASUREMENT_ID || process.env.GOOGLE_ANALYTICS_ID || '';
@@ -22,7 +24,7 @@ const config: Config = {
     newsletterEndpoint: process.env.NEWSLETTER_ENDPOINT ?? '',
     /** Soroban Cookbook Discord invite link. Set DISCORD_INVITE_URL at build time once the server is created. */
     discordInviteUrl: process.env.DISCORD_INVITE_URL ?? '',
-/**
+    /**
      * Sentry DSN for error monitoring (issue #136).
      * Set SENTRY_DSN in your CI/CD environment or .env.local.
      * When absent, Sentry is not initialised (safe for local dev).
@@ -61,7 +63,7 @@ const config: Config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
-"script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https:",
           "font-src 'self' data:",
@@ -152,7 +154,18 @@ const config: Config = {
   // ─── Search Analytics Client Module (issue #329) ──────────────────────────
   // Loads on every page to observe the search input and fire onQuery /
   // onResult analytics events via src/utils/searchAnalytics.ts.
-  clientModules: [require.resolve('./src/clientModules/searchAnalyticsModule.ts')],
+  //
+  // ─── Mermaid Zoom Client Module (issue #316) ──────────────────────────────
+  // Makes rendered Mermaid diagrams clickable, opening a zoomable/pannable
+  // lightbox view via src/clientModules/mermaidZoomModule.ts.
+  //
+  // ─── Touch Gesture Client Module ───────────────────────────────────────────
+  // Enables touch-based interactions and gestures for mobile users.
+  clientModules: [
+    require.resolve('./src/clientModules/searchAnalyticsModule.ts'),
+    require.resolve('./src/clientModules/mermaidZoomModule.ts'),
+    require.resolve('./src/clientModules/touchGestureModule.ts'),
+  ],
   markdown: {
     mermaid: true,
   },
@@ -358,6 +371,9 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/docs',
+          // Names GFM task-list checkboxes so markdown checklists don't trip
+          // axe-core's `label` rule. See src/remark/rehypeTaskListLabels.ts.
+          rehypePlugins: [rehypeTaskListLabels],
           editUrl:
             'https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/documentation/',
           // Docs versioning: the latest cut version (e.g. "22.0") is served at the
@@ -380,6 +396,7 @@ const config: Config = {
             './src/css/badges-tags.css',
             './src/css/custom.css',
             './src/css/search-experience.css',
+            './src/css/mermaid-zoom.css',
           ],
         },
         ...(gtagMeasurementId
@@ -486,7 +503,7 @@ const config: Config = {
       copyright: `Built by the community • Powered by Stellar • MIT License • © ${new Date().getFullYear()}`,
     },
     prism: {
-      theme: prismThemes.github,
+      theme: accessibleGithubPrismTheme,
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['rust', 'toml', 'bash'],
     },

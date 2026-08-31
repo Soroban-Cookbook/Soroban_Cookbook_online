@@ -172,6 +172,9 @@ impl FlashLoanPool {
         // Effects: verify repayment by re-reading the pool's own balance
         // rather than trusting anything the receiver returned.
         let balance_after = token_client.balance(&pool);
+        // balance_before + fee: fee < balance_before (fee_bps < 10_000), so
+        // this only overflows if balance_before is astronomically close to
+        // i128::MAX — guard it defensively and panic with a clear message.
         let required = balance_before
             .checked_add(fee)
             .expect("flash-loan: fee overflow");
@@ -179,6 +182,7 @@ impl FlashLoanPool {
             panic!("flash-loan: repayment not received");
         }
 
+        // Accumulate fees — checked against corruption of the stored counter.
         let collected = Self::fees_collected(env.clone())
             .checked_add(fee)
             .expect("flash-loan: fees overflow");
@@ -204,9 +208,14 @@ impl FlashLoanPool {
             return Err(Error::InsufficientFees);
         }
 
+        // amount ≤ collected is enforced above; checked_sub guards against
+        // state corruption (e.g. a future upgrade writing a bad value).
+        let new_collected = collected
+            .checked_sub(amount)
+            .ok_or(Error::InsufficientFees)?;
         env.storage()
             .instance()
-            .set(&DataKey::FeesCollected, &(collected - amount));
+            .set(&DataKey::FeesCollected, &new_collected);
 
         let token_client = token::Client::new(&env, &Self::token_address(&env));
         token_client.transfer(&env.current_contract_address(), &to, &amount);
@@ -215,9 +224,17 @@ impl FlashLoanPool {
     }
 
     /// Fee (in the pool's token) owed for borrowing `amount`.
+    ///
+    /// Uses checked arithmetic: if `amount × fee_bps` overflows i128 the
+    /// function panics.  In practice `fee_bps < 10_000` and Stellar token
+    /// balances are bounded well below i128::MAX / 10_000, so this path is
+    /// unreachable in normal operation.
     pub fn calculate_fee(env: Env, amount: i128) -> i128 {
         let fee_bps: u32 = env.storage().instance().get(&DataKey::FeeBps).unwrap_or(0);
-        (amount * fee_bps as i128) / BPS_DENOMINATOR
+        amount
+            .checked_mul(fee_bps as i128)
+            .expect("flash-loan: fee calculation overflow")
+            / BPS_DENOMINATOR
     }
 
     /// Token balance currently available to borrow.
@@ -496,6 +513,51 @@ mod tests {
         assert_eq!(result, Err(Ok(Error::InsufficientFees)));
     }
 
+    // ── overflow / boundary tests ─────────────────────────────────────────────
+
+    /// calculate_fee with a large-but-safe amount does not overflow.
+    /// Maximum safe amount for 1% fee (100 bps): i128::MAX / 100.
+    #[test]
+    fn test_calculate_fee_boundary_safe() {
+        let (env, _admin, _lp, _token, client) = setup();
+        // fee_bps = 100; safe_max = i128::MAX / 100
+        let safe_max = i128::MAX / 100;
+        let fee = client.calculate_fee(&safe_max);
+        assert_eq!(fee, safe_max / BPS_DENOMINATOR);
+    }
+
+    /// flash_loan rejects amount = 0 with InvalidAmount.
+    #[test]
+    fn test_flash_loan_zero_amount_boundary() {
+        let (env, _admin, _lp, _token, client) = setup();
+        let borrower_id = env.register(GoodBorrower, ());
+        assert_eq!(
+            client.try_flash_loan(&borrower_id, &0),
+            Err(Ok(Error::InvalidAmount))
+        );
+    }
+
+    /// flash_loan rejects amount = i128::MAX (far exceeds pool liquidity).
+    #[test]
+    fn test_flash_loan_max_i128_exceeds_liquidity() {
+        let (env, _admin, _lp, _token, client) = setup();
+        let borrower_id = env.register(GoodBorrower, ());
+        assert_eq!(
+            client.try_flash_loan(&borrower_id, &i128::MAX),
+            Err(Ok(Error::InsufficientLiquidity))
+        );
+    }
+
+    /// deposit_liquidity rejects amount = 0 with InvalidAmount.
+    #[test]
+    fn test_deposit_liquidity_zero_amount_boundary() {
+        let (env, _admin, lp, _token, client) = setup();
+        assert_eq!(
+            client.try_deposit_liquidity(&lp, &0),
+            Err(Ok(Error::InvalidAmount))
+        );
+    }
+
     // ── borrower fixtures ────────────────────────────────────────────────────
 
     /// Repays the loan plus fee in full and signals success.
@@ -505,10 +567,16 @@ mod tests {
     #[contractimpl]
     impl GoodBorrower {
         pub fn execute_operation(env: Env, pool: Address, asset: Address, amount: i128, fee: i128) {
+            // Use checked_add to avoid overflow in the repayment amount.
+            // In a well-behaved pool fee_bps < 10_000, so amount + fee fits
+            // comfortably in i128, but we guard it for correctness.
+            let repay = amount
+                .checked_add(fee)
+                .expect("GoodBorrower: repayment overflow");
             token::Client::new(&env, &asset).transfer(
                 &env.current_contract_address(),
                 &pool,
-                &(amount + fee),
+                &repay,
             );
         }
     }

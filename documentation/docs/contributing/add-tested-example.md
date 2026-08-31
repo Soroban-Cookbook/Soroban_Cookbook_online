@@ -125,15 +125,84 @@ resolver = "2"
 
 Both commands print a clear pass/fail result for each crate.
 
-### 6. Link to the docs
+### 6. Write `README.md`
+
+Every example crate needs a README — for many readers, browsing `examples/` on
+GitHub *is* how they consume the cookbook. Use this template:
+
+````markdown
+# <Example Title>
+
+<One or two sentences: what the contract does and why someone would reach for it.>
+
+## What it demonstrates
+
+- <Technique or guarantee 1>
+- <Technique or guarantee 2>
+- <Technique or guarantee 3>
+
+## Build
+
+```bash
+stellar contract build --manifest-path examples/<your-example>/Cargo.toml
+```
+
+The optimised Wasm is written to
+`examples/target/wasm32-unknown-unknown/release/<your_example>.wasm`.
+
+## Test
+
+```bash
+# From the repository root — the same command CI runs
+./scripts/test-examples.sh <your-example>
+
+# Or invoke cargo directly
+cargo test --manifest-path examples/<your-example>/Cargo.toml
+```
+
+## Deploy to testnet
+
+```bash
+stellar contract deploy \
+  --wasm examples/target/wasm32-unknown-unknown/release/<your_example>.wasm \
+  --source my-testnet-account \
+  --network testnet
+```
+
+See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
+
+## Related documentation
+
+- [<Pattern Page>](https://soroban-cookbook.dev/docs/patterns/<pattern-page>) — the pattern page this example supports
+- [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
+- [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+````
+
+Notes:
+
+- The crate name in the Wasm filename uses underscores, the directory uses hyphens.
+- Examples build into the **shared workspace** target directory, `examples/target/`,
+  not a per-crate one.
+- If the example needs a companion Wasm built first (as `upgradeable` and
+  `contract-factory` do), add an **Additional build step** section under Build
+  that matches what `scripts/test-examples.sh` does.
+
+### 7. Add it to the examples index
+
+Add a row for your crate to the table in [`examples/README.md`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/README.md)
+so it is discoverable from the directory listing.
+
+### 8. Link to the docs
 
 In your documentation page (`.md` or `.mdx`), reference the example naturally in code fences. The tested source in `examples/` is the source of truth; keep the two in sync.
 
 ## CI integration
 
-The `test-examples` job in `.github/workflows/ci.yml` runs `./scripts/test-examples.sh` on every pull request and push to `main`. A failing example blocks the PR from merging.
+The `test-examples` job in `.github/workflows/ci.yml` runs `./scripts/test-examples.sh` on every pull request and push to `main`, and reports which examples failed.
 
 If your PR introduces a new example, CI will automatically pick it up because the script discovers every sub-directory in `examples/` that contains a `Cargo.toml`.
+
+The same job also runs `scripts/check-example-readmes.sh`, which fails if any crate with a `Cargo.toml` has no `README.md`. Both steps are advisory (`continue-on-error`), so they report gaps without blocking the merge.
 
 ## Checklist before submitting
 
@@ -143,6 +212,9 @@ If your PR introduces a new example, CI will automatically pick it up because th
 - [ ] `cargo test --manifest-path examples/<your-example>/Cargo.toml` exits 0
 - [ ] `<your-example>` is listed in `examples/Cargo.toml`
 - [ ] The documentation page references the same code
+- [ ] `examples/<your-example>/README.md` exists and follows the template above
+- [ ] `examples/README.md` lists the new crate
+- [ ] `./scripts/check-example-readmes.sh` passes
 
 ## Troubleshooting
 

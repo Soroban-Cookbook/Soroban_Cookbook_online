@@ -4,6 +4,28 @@ description: Understanding error handling in Soroban smart contracts
 sidebar_position: 5
 ---
 
+## Decision Tree: Panic vs Result
+
+Use this tree to choose the right error handling strategy:
+
+```text
+Is the failure caused by invalid caller input or expected business logic?
+│
+├─ YES → Return Result<T, Error>
+│   ├─ Caller can correct the input? → Return a specific error variant
+│   └─ External dependency failed? → Return an error or apply fallback logic
+│
+└─ NO (programmer error / invariant violation)
+    ├─ Can the contract continue safely? → Return Result or degrade gracefully
+    └─ Execution is unrecoverable → panic! or panic_with_error!
+```
+
+### Quick Rules
+
+- **Return `Result<T, Error>`** for caller-correctable failures: invalid amount, unauthorized access, insufficient balance.
+- **Use `panic!`** for unrecoverable invariant violations: arithmetic overflow, corrupted storage, broken internal assumptions.
+- **Use `panic_with_error!`** when you need a panic that maps to a contract error code (if available in your SDK version).
+
 ## Overview
 
 Soroban uses Rust's type system for error handling, providing compile-time safety and explicit error propagation. Understanding error handling is crucial for building reliable smart contracts.
@@ -75,6 +97,25 @@ pub fn atomic_operation(env: Env) -> Result<(), Error> {
 }
 ```
 
+## Panic in Soroban
+
+Use `panic!` only for unrecoverable conditions that should never happen in correct execution:
+
+```rust
+pub fn checked_transfer(env: Env, from: Address, to: Address, amount: i128) {
+    let balance: i128 = env.storage().persistent().get(&from).unwrap_or(0);
+    let new_balance = balance - amount;
+
+    // Invariant violation: balance should never underflow in a valid transfer
+    if new_balance < 0 {
+        panic!("arithmetic underflow in transfer");
+    }
+
+    env.storage().persistent().set(&from, &new_balance);
+    env.storage().persistent().set(&to, &(env.storage().persistent().get(&to).unwrap_or(0) + amount));
+}
+```
+
 ## Error Handling Patterns
 
 ### 1. Early Validation
@@ -122,7 +163,7 @@ pub fn public_operation(env: Env) -> Result<(), Error> {
 
 ## Best Practices
 
-### ✅ Do
+### Do
 
 - Return `Result` for operations that can fail
 - Use specific error types for different failures
@@ -130,7 +171,7 @@ pub fn public_operation(env: Env) -> Result<(), Error> {
 - Test all error paths
 - Document error conditions
 
-### ❌ Don't
+### Don't
 
 - Use `unwrap()` or `expect()` in production code
 - Ignore errors with `let _ = ...`
@@ -140,7 +181,7 @@ pub fn public_operation(env: Env) -> Result<(), Error> {
 
 ## Error Testing
 
-Always test error conditions:
+Always test error conditions. See the [`examples/error-handling`](../examples/error-handling) crate for runnable examples.
 
 ```rust
 #[test]

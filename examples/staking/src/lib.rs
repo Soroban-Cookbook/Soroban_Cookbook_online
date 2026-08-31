@@ -18,6 +18,13 @@
 //! Each stake record tracks `reward_debt`: the epoch index at which the user
 //! last claimed, so pending rewards can be computed lazily without iterating
 //! all stakers.
+//!
+//! ### Overflow handling
+//! All arithmetic on token amounts and reward calculations uses `checked_*`
+//! operations.  Any overflow returns `Error::Overflow` rather than panicking.
+//! The only intentional `saturating_sub` is in `current_epoch` for the
+//! ledger-sequence difference, where saturation to zero is the correct
+//! behaviour (epoch 0 before start).
 
 #![no_std]
 
@@ -67,6 +74,8 @@ pub enum Error {
     InvalidEpochLen = 6,
     /// Reward per epoch must be positive.
     InvalidReward = 7,
+    /// An arithmetic operation overflowed i128.
+    Overflow = 8,
 }
 
 // ── contract ──────────────────────────────────────────────────────────────────
@@ -134,6 +143,9 @@ impl Staking {
     ///
     /// Any pending rewards are settled before the stake is updated so the new
     /// deposit does not dilute already-earned rewards.
+    ///
+    /// Returns `Error::Overflow` if adding `amount` to the existing stake or
+    /// the global `TotalStaked` would exceed `i128::MAX`.
     pub fn stake(env: Env, staker: Address, amount: i128) -> Result<(), Error> {
         if amount <= 0 {
             return Err(Error::InvalidAmount);
@@ -145,12 +157,12 @@ impl Staking {
 
         // Settle pending rewards before changing stake
         let mut info = Self::load_stake(&env, &staker);
-        let pending = Self::pending_rewards(&env, &info, current_epoch);
+        let pending = Self::pending_rewards(&env, &info, current_epoch)?;
         info.reward_debt = current_epoch;
         info.amount = info
             .amount
             .checked_add(amount)
-            .expect("stake overflow");
+            .ok_or(Error::Overflow)?;
         Self::save_stake(&env, &staker, &info);
 
         // Credit pending rewards immediately (simplified: add to stake balance)
@@ -158,20 +170,23 @@ impl Staking {
         // by resetting reward_debt — pending is intentionally returned to caller.
         let _ = pending; // reward tracking is read-only in this example
 
-        // Update total staked
+        // Update total staked — checked to prevent silent wrap-around.
         let total: i128 = env
             .storage()
             .instance()
             .get(&DataKey::TotalStaked)
             .unwrap_or(0);
+        let new_total = total.checked_add(amount).ok_or(Error::Overflow)?;
         env.storage()
             .instance()
-            .set(&DataKey::TotalStaked, &(total + amount));
+            .set(&DataKey::TotalStaked, &new_total);
 
         Ok(())
     }
 
     /// Unstake `amount` tokens.  Pending rewards are settled and returned.
+    ///
+    /// Returns `Error::Overflow` if the reward calculation overflows.
     pub fn unstake(env: Env, staker: Address, amount: i128) -> Result<i128, Error> {
         if amount <= 0 {
             return Err(Error::InvalidAmount);
@@ -189,9 +204,12 @@ impl Staking {
             return Err(Error::InvalidAmount);
         }
 
-        let pending = Self::pending_rewards(&env, &info, current_epoch);
+        let pending = Self::pending_rewards(&env, &info, current_epoch)?;
         info.reward_debt = current_epoch;
-        info.amount -= amount;
+        // amount <= info.amount is guaranteed by the check above, so this
+        // checked_sub should never return None; we propagate Overflow if it
+        // somehow does (e.g. negative info.amount stored by a buggy upgrade).
+        info.amount = info.amount.checked_sub(amount).ok_or(Error::Overflow)?;
         Self::save_stake(&env, &staker, &info);
 
         let total: i128 = env
@@ -199,15 +217,19 @@ impl Staking {
             .instance()
             .get(&DataKey::TotalStaked)
             .unwrap_or(0);
+        // amount <= total by invariant; checked_sub guards against state corruption.
+        let new_total = total.checked_sub(amount).ok_or(Error::Overflow)?;
         env.storage()
             .instance()
-            .set(&DataKey::TotalStaked, &(total - amount));
+            .set(&DataKey::TotalStaked, &new_total);
 
         Ok(pending)
     }
 
     /// Claim pending rewards without changing the staked amount.
     /// Returns the amount of reward tokens earned since the last claim.
+    ///
+    /// Returns `Error::Overflow` if the reward calculation overflows.
     pub fn claim(env: Env, staker: Address) -> Result<i128, Error> {
         staker.require_auth();
         Self::require_initialized(&env)?;
@@ -219,7 +241,7 @@ impl Staking {
             return Err(Error::NothingStaked);
         }
 
-        let pending = Self::pending_rewards(&env, &info, current_epoch);
+        let pending = Self::pending_rewards(&env, &info, current_epoch)?;
         info.reward_debt = current_epoch;
         Self::save_stake(&env, &staker, &info);
 
@@ -234,11 +256,13 @@ impl Staking {
     }
 
     /// Return pending (unclaimed) rewards for `staker` at the current ledger.
+    /// Returns 0 on overflow (safe for display; callers needing exact values
+    /// should call `claim` which propagates the error).
     pub fn pending_reward(env: Env, staker: Address) -> i128 {
         if env.storage().instance().has(&DataKey::StartLedger) {
             let epoch = Self::current_epoch(&env);
             let info = Self::load_stake(&env, &staker);
-            Self::pending_rewards(&env, &info, epoch)
+            Self::pending_rewards(&env, &info, epoch).unwrap_or(0)
         } else {
             0
         }
@@ -305,11 +329,15 @@ impl Staking {
     ///
     /// Formula:
     ///   pending = epochs_elapsed × reward_per_epoch × user_stake / total_staked
-    fn pending_rewards(env: &Env, info: &StakeInfo, current_epoch: u32) -> i128 {
+    ///
+    /// Each multiplication is checked; division by zero is guarded.
+    /// Returns `Err(Error::Overflow)` if any intermediate product exceeds
+    /// `i128::MAX`.
+    fn pending_rewards(env: &Env, info: &StakeInfo, current_epoch: u32) -> Result<i128, Error> {
         if info.amount == 0 || current_epoch <= info.reward_debt {
-            return 0;
+            return Ok(0);
         }
-        let epochs_elapsed = (current_epoch - info.reward_debt) as i128;
+        let epochs_elapsed = i128::from(current_epoch - info.reward_debt);
         let reward_per_epoch: i128 = env
             .storage()
             .instance()
@@ -321,9 +349,18 @@ impl Staking {
             .get(&DataKey::TotalStaked)
             .unwrap_or(1);
         if total == 0 {
-            return 0;
+            return Ok(0);
         }
-        epochs_elapsed * reward_per_epoch * info.amount / total
+        // epochs_elapsed * reward_per_epoch can overflow when either factor is
+        // large (e.g. many epochs with a high reward rate).
+        let epoch_total = epochs_elapsed
+            .checked_mul(reward_per_epoch)
+            .ok_or(Error::Overflow)?;
+        // epoch_total * info.amount can overflow when both are large.
+        let numerator = epoch_total
+            .checked_mul(info.amount)
+            .ok_or(Error::Overflow)?;
+        Ok(numerator / total)
     }
 }
 
@@ -581,5 +618,72 @@ mod tests {
         let (_, admin, client) = setup();
         let result = client.try_set_reward(&0);
         assert_eq!(result, Err(Ok(Error::InvalidReward)));
+    }
+
+    // ── overflow / boundary tests ────────────────────────────────────────
+
+    /// Staking i128::MAX should overflow when added to an existing stake.
+    #[test]
+    fn test_stake_overflow_returns_error() {
+        let (env, _, client) = setup();
+        let alice = Address::generate(&env);
+
+        // First stake sets alice's balance to 1.
+        client.stake(&alice, &1);
+        // Adding i128::MAX to an existing stake of 1 must overflow.
+        let result = client.try_stake(&alice, &i128::MAX);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+
+    /// TotalStaked overflow: two users whose combined stake exceeds i128::MAX.
+    #[test]
+    fn test_total_staked_overflow_returns_error() {
+        let (env, _, client) = setup();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+
+        client.stake(&alice, &i128::MAX);
+        // Bob staking 1 more would push TotalStaked past i128::MAX.
+        let result = client.try_stake(&bob, &1);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+
+    /// Reward calculation overflow: reward_per_epoch * epochs * stake > i128::MAX.
+    #[test]
+    fn test_pending_rewards_overflow_returns_error() {
+        let env = Env::default();
+        env.mock_all_auths();
+        let contract_id = env.register(Staking, ());
+        let client = StakingClient::new(&env, &contract_id);
+        let admin = Address::generate(&env);
+
+        // Use a reward_per_epoch that, when multiplied by many epochs and a
+        // large stake, overflows i128.
+        client.initialize(&admin, &1, &i128::MAX);
+
+        let alice = Address::generate(&env);
+        client.stake(&alice, &1);
+
+        // Advance by 2 epochs: epochs_elapsed(2) * i128::MAX overflows.
+        set_ledger_sequence(&env, 2);
+        let result = client.try_claim(&alice);
+        assert_eq!(result, Err(Ok(Error::Overflow)));
+    }
+
+    /// Boundary: exactly i128::MAX staked, then fully unstaked — no overflow.
+    #[test]
+    fn test_stake_and_unstake_max_value() {
+        let (env, _, client) = setup();
+        let alice = Address::generate(&env);
+
+        client.stake(&alice, &i128::MAX);
+        assert_eq!(client.staked_balance(&alice), i128::MAX);
+        assert_eq!(client.total_staked(), i128::MAX);
+
+        // Unstaking within the same epoch yields 0 rewards (epoch 0, no elapsed).
+        let reward = client.unstake(&alice, &i128::MAX);
+        assert_eq!(reward, 0);
+        assert_eq!(client.staked_balance(&alice), 0);
+        assert_eq!(client.total_staked(), 0);
     }
 }
