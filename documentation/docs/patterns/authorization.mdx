@@ -66,7 +66,7 @@ This guide describes secure authorization and access-control patterns for Soroba
 
 Store a small, explicit mapping from an `Address` to role identifiers. Check role membership at the edge of functions that modify sensitive state.
 
-See the tested [`access-control` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control) for a complete role-based access control (RBAC) implementation: a `Role` enum (`Admin`, `Manager`, `User`), role assignments held in `env.storage().persistent()`, and a reusable `has_role`/`require_role` check used to guard restricted entry points.
+See the tested [`access-control` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control) for a complete role-based access control (RBAC) implementation: a `Role` enum (`Admin`, `Manager`, `User`), role assignments held in `env.storage().persistent()`, and a reusable `has_role`/`require_role` check used to guard restricted entry points. For production patterns that compose role-based access control with emergency circuit breakers, see the tested [`pausable-token` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/pausable-token).
 
 ### Capability-based access
 

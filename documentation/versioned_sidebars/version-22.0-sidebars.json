@@ -12,9 +12,13 @@
         "getting-started/building-and-compilation",
         "getting-started/contract-testing",
         "getting-started/local-testing-and-simulation",
+        "getting-started/local-testing",
+        "getting-started/testing-errors",
         "getting-started/deploy-testnet",
         "getting-started/deploy-mainnet",
         "getting-started/contract-interaction",
+        "getting-started/debugging",
+        "getting-started/api-security",
         "contributing",
         "contributing/add-tested-example",
         "contributing/versioning-strategy"
@@ -38,6 +42,7 @@
         "concepts/best-practices",
         "concepts/error-handling",
         "concepts/storage",
+        "concepts/storage-ttl",
         "concepts/authorization",
         "concepts/events",
         "concepts/gas-and-resources",
@@ -58,7 +63,11 @@
         "patterns/error-recovery",
         "patterns/optimization-playbook",
         "patterns/lifecycle-upgrades",
-        "patterns/proposal-lifecycle"
+        "patterns/proposal-lifecycle",
+        "patterns/staking",
+        "patterns/timelock-vault",
+        "patterns/contract-factory",
+        "patterns/oracle-consumer"
       ]
     },
     {

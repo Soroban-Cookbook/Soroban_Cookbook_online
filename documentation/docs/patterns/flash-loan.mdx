@@ -1,0 +1,123 @@
+---
+sidebar_position: 19
+title: Flash Loan Pattern
+description: Learn how to implement a secure flash loan pattern with atomic repayment and fees in Soroban.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="flash-loan"
+  difficulty="advanced"
+  category="DeFi"
+  status="stable"
+  lastReviewed="August 2026"
+/>
+
+## Overview
+
+A flash loan is a single-asset liquidity pool that lets anyone borrow tokens with **no collateral**, provided the loan (plus a fee) is repaid before the borrowing transaction finishes.
+
+This pattern demonstrates how to implement a **Flash Loan** pool in Soroban. Because the Soroban host aborts the whole invocation and rolls back state changes if the transaction panics, an unpaid loan simply never takes effect.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust and `soroban-sdk` version 22+
+- Familiarity with cross-contract calls (`contractclient`)
+- Understanding of transaction rollbacks on panic
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+### The Receiver Interface
+
+The contract receiving the flash loan must implement a specific interface. The pool transfers the borrowed tokens to the receiver and then calls `execute_operation`.
+
+```rust
+#[contractclient(name = "FlashLoanReceiverClient")]
+pub trait FlashLoanReceiverInterface {
+    fn execute_operation(env: Env, pool: Address, asset: Address, amount: i128, fee: i128);
+}
+```
+
+### Atomic Repayment and Fee
+
+The pool implements the `flash_loan` function. It calculates the fee, transfers the tokens to the receiver, invokes the receiver's callback, and then verifies that the pool's balance has increased by at least the required fee. 
+
+```rust
+pub fn flash_loan(env: Env, receiver: Address, amount: i128) -> Result<i128, Error> {
+    // ... validation and setup ...
+
+    let fee = Self::calculate_fee(env.clone(), amount);
+
+    // Interaction: hand the principal to the receiver before we know
+    // whether it will be repaid.
+    token_client.transfer(&pool, &receiver, &amount);
+
+    // Arbitrary receiver logic runs here (e.g. arbitrage).
+    FlashLoanReceiverClient::new(&env, &receiver).execute_operation(
+        &pool,
+        &token_addr,
+        &amount,
+        &fee,
+    );
+
+    // Effects: verify repayment by re-reading the pool's own balance
+    let balance_after = token_client.balance(&pool);
+    let required = balance_before.checked_add(fee).expect("overflow");
+    if balance_after < required {
+        panic!("flash-loan: repayment not received");
+    }
+    
+    // ... update fees collected ...
+    Ok(fee)
+}
+```
+
+</PatternSection>
+
+<PatternSection id="testing" title="Testing the Non-Repay Scenario">
+
+The `examples/flash-loan` contract includes a test specifically verifying that if the receiver does not repay the loan, the transaction reverts and the state is unchanged.
+
+```rust
+#[test]
+fn test_failed_flash_loan_leaves_pool_state_untouched() {
+    let (env, _admin, _lp, token_addr, client) = setup();
+    let borrower_id = env.register(NoRepayBorrower, ());
+
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        client.flash_loan(&borrower_id, &500);
+    }));
+    assert!(result.is_err(), "flash loan should have panicked");
+
+    // The host rolls back the whole invocation on panic, so the
+    // principal transfer to the borrower never actually happened.
+    let token_client = token::Client::new(&env, &token_addr);
+    assert_eq!(token_client.balance(&client.address), 1_000);
+    assert_eq!(token_client.balance(&borrower_id), 0);
+}
+```
+
+This explains the non-repay test scenario and proves the atomic nature of the flash loan, which is correctly enforced by the Soroban environment. 
+
+</PatternSection>
+
+<PatternSection id="security" title="Security & Reentrancy">
+
+Because the balance check happens *after* control returns from the receiver, the contract never trusts the receiver's return value for the critical invariant — it verifies the token balance directly. 
+
+This mirrors the checks-effects-interactions discipline used in the [Reentrancy Guard](./reentrancy-guard.mdx) pattern, applied to a borrow-repay invariant instead of a double-spend invariant. The transaction's atomic rollback capability eliminates the need for complex internal mutex lock state flags for the repayment mechanic itself.
+
+See the [DeFi Security Guide](../security/defi-patterns.md) for more details.
+
+</PatternSection>
+
+<PatternSection id="related-code" title="Related Code">
+
+- [`examples/flash-loan/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/flash-loan/src/lib.rs)
+
+</PatternSection>

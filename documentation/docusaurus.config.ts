@@ -24,7 +24,7 @@ const config: Config = {
     newsletterEndpoint: process.env.NEWSLETTER_ENDPOINT ?? '',
     /** Soroban Cookbook Discord invite link. Set DISCORD_INVITE_URL at build time once the server is created. */
     discordInviteUrl: process.env.DISCORD_INVITE_URL ?? '',
-/**
+    /**
      * Sentry DSN for error monitoring (issue #136).
      * Set SENTRY_DSN in your CI/CD environment or .env.local.
      * When absent, Sentry is not initialised (safe for local dev).
@@ -43,7 +43,24 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'es', 'pt-BR'],
+    localeConfigs: {
+      en: {
+        label: 'English',
+        direction: 'ltr',
+        htmlLang: 'en',
+      },
+      es: {
+        label: 'Español',
+        direction: 'ltr',
+        htmlLang: 'es',
+      },
+      'pt-BR': {
+        label: 'Português (Brasil)',
+        direction: 'ltr',
+        htmlLang: 'pt-BR',
+      },
+    },
   },
 
   // Theme initialization script to prevent flash of incorrect theme
@@ -63,7 +80,7 @@ const config: Config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
-"script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https:",
           "font-src 'self' data:",
@@ -154,8 +171,16 @@ const config: Config = {
   // ─── Search Analytics Client Module (issue #329) ──────────────────────────
   // Loads on every page to observe the search input and fire onQuery /
   // onResult analytics events via src/utils/searchAnalytics.ts.
+  //
+  // ─── Mermaid Zoom Client Module (issue #316) ──────────────────────────────
+  // Makes rendered Mermaid diagrams clickable, opening a zoomable/pannable
+  // lightbox view via src/clientModules/mermaidZoomModule.ts.
+  //
+  // ─── Touch Gesture Client Module ───────────────────────────────────────────
+  // Enables touch-based interactions and gestures for mobile users.
   clientModules: [
     require.resolve('./src/clientModules/searchAnalyticsModule.ts'),
+    require.resolve('./src/clientModules/mermaidZoomModule.ts'),
     require.resolve('./src/clientModules/touchGestureModule.ts'),
   ],
   markdown: {
@@ -169,7 +194,7 @@ const config: Config = {
       require.resolve('@easyops-cn/docusaurus-search-local'),
       {
         hashed: true,
-        language: ['en'],
+        language: ['en', 'es', 'pt'],
         highlightSearchTermsOnTargetPage: true,
         explicitSearchResultPath: true,
         indexDocs: true,
@@ -292,6 +317,10 @@ const config: Config = {
             to: '/docs/getting-started/deploy-testnet',
           },
           {
+            from: '/docs/getting-started/local-testing',
+            to: '/docs/getting-started/local-testing-and-simulation',
+          },
+          {
             from: '/docs/getting-started/interaction',
             to: '/docs/getting-started/contract-interaction',
           },
@@ -331,6 +360,47 @@ const config: Config = {
           },
           {
             from: '/docs/patterns/optimization',
+            to: '/docs/patterns/optimization-playbook',
+          },
+          // Overview-promised / historical pattern URLs (legacy paths without /docs)
+          {
+            from: '/patterns',
+            to: '/docs/patterns/overview',
+          },
+          {
+            from: '/patterns/overview',
+            to: '/docs/patterns/overview',
+          },
+          {
+            from: '/patterns/types',
+            to: '/docs/patterns/custom-types',
+          },
+          {
+            from: '/patterns/custom-types',
+            to: '/docs/patterns/custom-types',
+          },
+          {
+            from: '/patterns/auth',
+            to: '/docs/patterns/authorization',
+          },
+          {
+            from: '/patterns/authorization',
+            to: '/docs/patterns/authorization',
+          },
+          {
+            from: '/patterns/upgrades',
+            to: '/docs/patterns/lifecycle-upgrades',
+          },
+          {
+            from: '/patterns/lifecycle-upgrades',
+            to: '/docs/patterns/lifecycle-upgrades',
+          },
+          {
+            from: '/patterns/optimization',
+            to: '/docs/patterns/optimization-playbook',
+          },
+          {
+            from: '/patterns/optimization-playbook',
             to: '/docs/patterns/optimization-playbook',
           },
           // Contributing renames
@@ -388,6 +458,7 @@ const config: Config = {
             './src/css/badges-tags.css',
             './src/css/custom.css',
             './src/css/search-experience.css',
+            './src/css/mermaid-zoom.css',
           ],
         },
         ...(gtagMeasurementId
@@ -426,6 +497,10 @@ const config: Config = {
           position: 'right',
         },
         {
+          type: 'localeDropdown',
+          position: 'right',
+        },
+        {
           href: process.env.DISCORD_INVITE_URL ?? 'https://discord.gg/YNBu3jKEF',
           label: 'Discord',
           position: 'right',
@@ -446,6 +521,10 @@ const config: Config = {
             {
               label: 'Documentation',
               to: '/',
+            },
+            {
+              label: 'Internal Docs',
+              to: '/docs/design-system/buttons',
             },
           ],
         },

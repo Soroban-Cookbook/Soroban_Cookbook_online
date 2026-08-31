@@ -32,6 +32,10 @@ Authorization in Soroban ensures only expected identities can execute sensitive 
 - Mint/burn operations in token-like contracts
 - Upgrading contract logic or config
 
+## Related Examples
+
+The [`examples/multisig-wallet/`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/multisig-wallet) example demonstrates M-of-N authorization, where a configurable threshold of signers must approve a transaction before it can be executed.
+
 ## Next
 
 - [Security Fundamentals](../security/fundamentals.md)

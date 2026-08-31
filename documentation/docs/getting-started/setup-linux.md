@@ -18,7 +18,7 @@ Before you begin, ensure you have:
 
 - **Linux OS** - Ubuntu 20.04+, Debian 11+, or other modern distributions
 - **Rust** - Latest stable version
-- **Soroban CLI** - Command-line interface for Soroban
+- **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
 - **Code Editor** - VS Code or your preferred editor
 - **Git** - Version control
 - **Build Tools** - Essential development packages
@@ -56,7 +56,7 @@ sudo pacman -Syu
 
 ### 2. Install Build Tools and Dependencies
 
-You'll need essential build tools and libraries to compile Rust and Soroban CLI.
+You'll need essential build tools and libraries to compile Rust and Stellar CLI.
 
 **Ubuntu/Debian:**
 
@@ -113,12 +113,12 @@ cargo --version
 
 You should see version numbers for both commands.
 
-### 4. Install Soroban CLI
+### 4. Install Stellar CLI
 
-Install the Soroban CLI using Cargo:
+Install the Stellar CLI with Wasm optimization support using Cargo:
 
 ```bash
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 This may take several minutes as it compiles from source.
@@ -126,7 +126,7 @@ This may take several minutes as it compiles from source.
 Verify installation:
 
 ```bash
-soroban --version
+stellar --version
 ```
 
 ### 5. Configure WebAssembly Target
@@ -154,8 +154,8 @@ echo "=== Rust Verification ==="
 rustc --version
 cargo --version
 
-echo "=== Soroban CLI Verification ==="
-soroban --version
+echo "=== Stellar CLI Verification ==="
+stellar --version
 
 echo "=== WebAssembly Target Verification ==="
 rustup target list | grep wasm32-unknown-unknown
@@ -175,7 +175,7 @@ Use this checklist to confirm your environment is ready:
 
 - [ ] Rust installed: `rustc --version` returns a version number
 - [ ] Cargo installed: `cargo --version` returns a version number
-- [ ] Soroban CLI installed: `soroban --version` returns a version number
+- [ ] Stellar CLI installed: `stellar --version` returns a version number
 - [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Build tools available: `gcc --version` returns a version number
@@ -202,7 +202,7 @@ sudo apt install package-name
 
 ### PATH Issues
 
-**Problem:** `command not found: soroban` or `command not found: rustc`
+**Problem:** `command not found: stellar` or `command not found: rustc`
 
 **Solution:**
 
@@ -238,19 +238,16 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Cargo Installation Hangs or Times Out
 
-**Problem:** `cargo install soroban-cli` takes too long or times out
+**Problem:** `cargo install stellar-cli` takes too long or times out
 
 **Solution:**
 
 ```bash
 # Increase the timeout and use verbose output
-cargo install --locked soroban-cli -v
+cargo install --locked stellar-cli --features opt -v
 
 # If still failing, check your internet connection:
 ping -c 3 github.com
-
-# Try with a specific version if latest fails:
-cargo install --locked soroban-cli --version 20.0.0
 ```
 
 ### Build Fails with "linker not found"

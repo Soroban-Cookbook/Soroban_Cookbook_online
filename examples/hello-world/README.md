@@ -43,3 +43,4 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 - [Hello World Pattern](https://soroban-cookbook.dev/docs/patterns/hello-world) — the pattern page this example supports
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+- [Reviewing Test Snapshots](https://soroban-cookbook.dev/docs/contributing/test-snapshots) — how to review and manage snapshot updates

@@ -14,7 +14,7 @@ import { attachConsoleGuard } from './helpers/console';
  * @media (prefers-reduced-motion: reduce) at the browser level.
  */
 
-test.use({ reducedMotion: 'reduce' });
+test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
 test.describe('prefers-reduced-motion – global CSS rule', () => {
   test('global reduced-motion rule sets animation-duration to near-zero', async ({ page }) => {

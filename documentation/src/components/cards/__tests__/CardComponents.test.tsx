@@ -29,7 +29,7 @@ describe('BaseCard', () => {
     render(
       <BaseCard ariaLabel="My card" className="custom-class">
         Content
-      </BaseCard>
+      </BaseCard>,
     );
     const card = screen.getByLabelText('My card');
     expect(card).toHaveClass('custom-class');
@@ -139,7 +139,9 @@ describe('PatternCard', () => {
   it('renders contract name, description and tag', () => {
     render(<PatternCard {...defaultProps} />);
     expect(screen.getByText('hello_world')).toBeInTheDocument();
-    expect(screen.getByText('A minimal contract demonstrating persistent storage.')).toBeInTheDocument();
+    expect(
+      screen.getByText('A minimal contract demonstrating persistent storage.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('#storage')).toBeInTheDocument();
   });
 
