@@ -62,6 +62,53 @@ To create reproducible results, you must control your environment.
 - **Release Profile:** Always build your contract with `cargo build --release` before measuring.
 - **Warm vs. Cold Cache:** Note that the first time an entry is read, it costs more than subsequent reads in the same transaction.
 
+## Wasm Size Budgets (CI-enforced)
+
+Every example contract in this repository ships a `.wasm` binary, and Soroban
+rejects contracts over **65,536 bytes (64 KiB)**. Size regressions are easy to
+introduce silently, so CI **release-builds every example** and fails when a
+binary exceeds its documented budget.
+
+- Budgets live in [`examples/wasm-budgets.toml`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/wasm-budgets.toml),
+  as per-crate byte limits derived from release-baseline measurements.
+- The [`check-wasm-budgets`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/.github/workflows/ci.yml)
+  job runs `bash scripts/check-wasm-budgets.sh`, which release-builds each
+  workspace member for the `wasm32v1-none` target (the current supported
+  Soroban target; the legacy `wasm32-unknown-unknown` is rejected by
+  `soroban-sdk` 27+ on modern Rust) and compares file size against the budget.
+- Builds over budget exit non-zero, so the PR is blocked.
+
+The release profile is declared **once** at the workspace root
+(`examples/Cargo.toml`) with size-oriented settings (`opt-level = "z"`,
+`lto = true`, `strip = "symbols"`, `panic = "abort"`). Cargo only honors
+`[profile.release]` at the workspace root — per-package tables are silently
+ignored and would otherwise fall back to the size-inefficient default profile
+(no LTO, no stripping). Keeping it centralised means every example ships a
+small, stripped binary and the budgets below are measured against that same
+profile, which is exactly what gets deployed.
+
+The budget file is meant to be **tight enough to catch regressions, not to
+pine a specific byte count**. Each budget is the measured baseline plus ~25%
+headroom, so a meaningful regression tripping CI, while routine maintenance
+does not. If a contract genuinely needs more room after optimisation, raise
+its budget on the PR and explain why.
+
+Local validation:
+
+```bash
+bash scripts/check-wasm-budgets.sh
+```
+
+To refresh baselines after a deliberate, justified size change:
+
+```bash
+cargo build --release --target wasm32v1-none --manifest-path examples/Cargo.toml
+find examples/target/wasm32v1-none/release -maxdepth 1 -name '*.wasm' -printf '%f %s\n'
+```
+
+Then update `wasm-budgets.toml` with the new size + headroom and document the
+reason for the change.
+
 ## Performance Anti-Patterns
 
 ### 1. The "Linear Scan" Trap
@@ -147,6 +194,30 @@ If you need to store multiple flags or small numbers, pack them into a single `u
 - **Instance Storage:** Best for global config (read on every invocation).
 - **Persistent Storage:** Best for user balances (long-lived, expensive).
 - **Temporary Storage:** Best for oracles or sequence numbers (cheap, but must be bumped).
+
+## Reference Example: Tiny Contract Benchmark
+
+The project includes a compact benchmark contract at [examples/tiny-contract](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/tiny-contract) to make bytecode-size work reproducible.
+
+It keeps the contract surface minimal while using a release profile tuned for size:
+
+```toml
+[profile.release]
+opt-level = "z"
+panic = "abort"
+strip = "symbols"
+lto = true
+codegen-units = 1
+```
+
+Use the benchmark to compare a plain release build against a post-`wasm-opt` build:
+
+```bash
+cargo build --manifest-path examples/tiny-contract/Cargo.toml --target wasm32-unknown-unknown --release
+stellar contract optimize \
+  --wasm examples/target/wasm32-unknown-unknown/release/tiny_contract.wasm \
+  --out examples/target/wasm32-unknown-unknown/release/tiny_contract.optimized.wasm
+```
 
 ## Measurable Improvements Checklist
 

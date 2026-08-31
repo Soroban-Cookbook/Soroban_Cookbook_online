@@ -1,0 +1,17 @@
+# Shared Clippy configuration for the Soroban Cookbook example contracts.
+#
+# Clippy's default settings are either too noisy or too weak for `no_std`
+# Soroban contracts. These knobs tighten the handy-but-noisy lints and relax
+# ones that don't make sense for contract entry points.
+#
+# The ban on `.unwrap()`/`.expect(` outside `#[cfg(test)]` is enforced by
+# `scripts/forbid-unwrap.sh` (see CONTRIBUTING), because Clippy cannot
+# express "unwraps are allowed inside the test module but nowhere else" in a
+# single shared `clippy.toml`. Keep the two in sync.
+
+# `#[contractimpl]` macro-generated entry points can legitimately have many
+# arguments; raise the threshold so we only flag genuinely excessive cases.
+too-many-arguments-threshold = 8
+
+# Large `match` arms on storage keys are common in multi-entry-point contracts.
+too-many-lines-threshold = 120

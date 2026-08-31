@@ -53,6 +53,11 @@ const DOCUMENT_METADATA: Record<string, DocumentMetadata> = {
     difficulty: 'beginner',
     tags: [],
   },
+  'getting-started/js-sdk': {
+    category: 'getting-started',
+    difficulty: 'beginner',
+    tags: ['auth'],
+  },
   'getting-started/local-testing': {
     category: 'getting-started',
     difficulty: 'beginner',

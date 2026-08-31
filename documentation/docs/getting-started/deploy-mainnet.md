@@ -11,6 +11,41 @@ Deploying to Stellar mainnet is a one-way door: **there is no undo**. Bugs ship 
 
 ---
 
+## Required reading / safety checklist
+
+**Mainnet deployment is not a command to run blindly.** Cookbook examples show CLI syntax; they do not replace upgrade design, authorization, an emergency stop, or an operational runbook. Work through the resources below before you submit a mainnet transaction.
+
+### Required reading
+
+Read these repository pages and examples. The links are to files that exist in this cookbook:
+
+1. **[Contract Lifecycle & Upgrade Safety](../patterns/lifecycle-upgrades.mdx)** — `upgrade` must call `admin.require_auth()` before `env.deployer().update_current_contract_wasm`. Complete the [Summary Checklist](../patterns/lifecycle-upgrades.mdx#summary-checklist) on testnet first.
+2. **[Upgradeable example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/upgradeable)** — tested `upgrade(new_wasm_hash)` with constructor-stored admin (`examples/upgradeable/src/lib.rs`).
+3. **[Emergency-stop example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/emergency-stop)** — admin-gated `pause()` / `unpause()` and `fail_if_paused` on operational entry points (`examples/emergency-stop/src/lib.rs`).
+4. **[Authorization & Access Control](../patterns/authorization.mdx)** — `require_auth`, roles, least privilege (`examples/authorization`, `examples/access-control`).
+5. **[Multisig wallet example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/multisig-wallet)** — M-of-N signers and threshold execution (`examples/multisig-wallet/src/lib.rs`). See also [Authorization concepts](../concepts/authorization.md).
+6. **[Timelock Vault](../patterns/timelock-vault.mdx)** — time-delayed release (`examples/timelock-vault`).
+7. **[Governance Security](../security/governance.md)** — timelock between approval and execution of sensitive actions (including upgrades).
+8. **[Security Fundamentals](../security/fundamentals.md)** — vulnerability classes to review before production.
+
+### Production safeguards (this repository's terminology)
+
+- **Upgrade authority:** only an admin `Address` that has `require_auth`'d may call `upgrade`. A single software key is not enough for production; prefer a hardware wallet, a multi-signature account, and a **timelock** so users can exit before a pending upgrade lands.
+- **Emergency stop / circuit breaker:** implement `pause` / `unpause` (admin-gated) and call `fail_if_paused` at the top of operational functions. The incident-response section below uses those method names, not a fictional `set_paused` API.
+- **Testnet vs mainnet:** iterate on testnet (and local simulation). Mainnet is permanent, costs real XLM, and has no Friendbot.
+
+### Secrets policy
+
+**Never put private keys, seed phrases, funded mainnet secrets, or real production credentials in this repository, in pull requests, in issues, or in documentation examples.**
+
+- Use **named Stellar CLI identities** (for example `mainnet-deployer`) stored locally or in the OS secure store (`stellar keys generate … --secure-store`).
+- Commands below use placeholders such as `$CONTRACT_ID` and identity **names**. Do not paste a `S…` secret key or a 24-word phrase into a command, a screenshot, or a commit.
+- Do not pass `--as-secret` in shared examples. Do not check in `.stellar`, key files, or `.env` values that hold production secrets.
+
+If a command below uses `--source mainnet-deployer`, that is an **identity name**, not a key.
+
+---
+
 ## Stage 1: Pre-deploy checklist
 
 Work through every item on this checklist before touching mainnet. Do not skip items and do not deploy if any item is unresolved.
@@ -31,7 +66,10 @@ Work through every item on this checklist before touching mainnet. Do not skip i
 - [ ] All user-supplied inputs are validated (amounts > 0, addresses not zero/self, no out-of-range values)
 - [ ] No unbounded loops or collections that grow without limit
 - [ ] At least one peer has reviewed the contract logic and the security assumptions
+- [ ] Upgrade authority (if any) is locked to a hardware-wallet-controlled **or multi-sig / timelocked** admin — see [Required reading](#required-reading--safety-checklist)
+- [ ] Emergency stop (`pause` / `unpause` + `fail_if_paused`) is implemented, or immutability is an explicit accepted risk
 - [ ] Upgrade authority (if any) is locked to a hardware-wallet-controlled admin address
+- [ ] For upgrades: complete the [WASM Upgrade Verification Checklist](../security/upgrade-checklist.md)
 
 ### Testnet validation
 
@@ -48,7 +86,7 @@ Work through every item on this checklist before touching mainnet. Do not skip i
 - [ ] Admin keypair is stored in a hardware wallet or multi-sig
 - [ ] Monitoring strategy is in place (see [Stage 4](#stage-4-post-deploy-monitoring))
 - [ ] Incident response plan is documented: who is notified, how the contract is paused or migrated
-- [ ] Team has reviewed the [Security Fundamentals](../security/fundamentals.md) guide
+- [ ] Team has reviewed the [Required reading / safety checklist](#required-reading--safety-checklist) and [Security Fundamentals](../security/fundamentals.md)
 
 ---
 
@@ -59,13 +97,13 @@ Work through every item on this checklist before touching mainnet. Do not skip i
 Never reuse your testnet keypair on mainnet. Generate a dedicated mainnet identity:
 
 ```bash
-stellar keys generate --global mainnet-deployer
+stellar keys generate mainnet-deployer --secure-store
 ```
 
-View the public key:
+View the public key (this prints an address, not a secret):
 
 ```bash
-stellar keys address mainnet-deployer
+stellar keys public-key mainnet-deployer
 ```
 
 **Store the seed phrase offline.** The deployer key only needs to exist long enough to deploy and initialize the contract. After initialization, transfer admin rights to a hardware wallet address and delete or archive the deployer key.
@@ -78,24 +116,18 @@ Purchase XLM and send it to your deployer public key. You need enough XLM to cov
 - **Transaction fees** for the deploy and initialization calls (typically a few stroop each)
 - A buffer for unexpected retry fees
 
-Check your balance before proceeding:
-
-```bash
-stellar account balance \
-  --account mainnet-deployer \
-  --network mainnet
-```
+Check the public key on a trusted explorer or your RPC provider **before** deploying. There is no Friendbot on mainnet. Do not paste account secrets into the CLI to "check a balance."
 
 ### Add the mainnet network
 
 ```bash
 stellar network add \
-  --name mainnet \
-  --rpc-url https://mainnet.stellar.validationcloud.io/v1/<your-key> \
-  --network-passphrase "Public Global Stellar Network ; September 2015"
+  --rpc-url <your-trusted-mainnet-rpc-url> \
+  --network-passphrase "Public Global Stellar Network ; September 2015" \
+  mainnet
 ```
 
-Public RPC endpoints are available from multiple providers (Validation Cloud, Ankr, Stellar Foundation). Use an endpoint you trust, or run your own Horizon/Soroban RPC node for production workloads.
+Use an RPC URL from a provider you trust, or run your own Soroban RPC node. Do not commit API keys or the filled-in RPC URL to this repository.
 
 Verify the network is configured:
 
@@ -119,34 +151,34 @@ stellar contract build
 Verify the artifact:
 
 ```bash
-ls -lh target/wasm32-unknown-unknown/release/my_contract.optimized.wasm
+ls -lh target/wasm32-unknown-unknown/release/my_contract.wasm
 ```
 
 Record the SHA-256 hash of the artifact you are about to deploy. This hash is your audit trail:
 
 ```bash
-sha256sum target/wasm32-unknown-unknown/release/my_contract.optimized.wasm
+sha256sum target/wasm32-unknown-unknown/release/my_contract.wasm
 ```
 
-### Simulate the deployment first
+### Build the transaction without submitting it
 
-Before spending real XLM, simulate the transaction to catch configuration errors:
+`--sim-only` is not a current `stellar contract deploy` flag. To construct the deploy transaction **without sending it**, use `--build-only` (prints the transaction XDR to stdout):
 
 ```bash
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/my_contract.optimized.wasm \
+  --wasm target/wasm32-unknown-unknown/release/my_contract.wasm \
   --source mainnet-deployer \
   --network mainnet \
-  --sim-only
+  --build-only
 ```
 
-If simulation fails, investigate the error before proceeding.
+To simulate that envelope against your configured RPC, pipe it into `stellar tx simulate` (requires `--source-account` and `--network` per current CLI help). If either step fails, stop. Do not deploy.
 
 ### Deploy to mainnet
 
 ```bash
 CONTRACT_ID=$(stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/my_contract.optimized.wasm \
+  --wasm target/wasm32-unknown-unknown/release/my_contract.wasm \
   --source mainnet-deployer \
   --network mainnet)
 
@@ -180,20 +212,20 @@ stellar contract invoke \
 Confirm the contract is live and the initialization is correct:
 
 ```bash
-# Inspect the on-chain contract metadata
-stellar contract inspect \
+# Inspect the on-chain contract interface (inspect --id is not a current flag)
+stellar contract info interface \
   --id "$CONTRACT_ID" \
   --network mainnet
 ```
 
-Invoke a read-only function to verify state:
+Invoke a **read-only** function that your contract actually exports. For the cookbook upgradeable example that is `version` or `get_value`; for emergency-stop it is `is_paused`. Do not assume a `get_admin` method exists.
 
 ```bash
 stellar contract invoke \
   --id "$CONTRACT_ID" \
   --source mainnet-deployer \
   --network mainnet \
-  -- get_admin
+  -- version
 ```
 
 Cross-check on a block explorer:
@@ -258,15 +290,17 @@ Even well-audited contracts encounter unexpected situations. Have a plan before 
 
 ### Pause mechanisms
 
-If your contract implements a pause flag, keep the admin keypair accessible for emergency use:
+If your contract implements the cookbook [emergency-stop](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/emergency-stop) pattern, keep the admin identity available for emergency use. The tested API is `pause` / `unpause` (each calls `admin.require_auth()`), not `set_paused`:
 
 ```bash
 stellar contract invoke \
   --id "$CONTRACT_ID" \
   --source admin-hardware-wallet \
   --network mainnet \
-  -- set_paused --paused true
+  -- pause
 ```
+
+`admin-hardware-wallet` is a **CLI identity name**. Use a hardware-wallet or multisig-controlled identity; never embed a secret key in this command.
 
 If your contract does not implement pause, your options are limited to:
 
@@ -276,7 +310,7 @@ If your contract does not implement pause, your options are limited to:
 
 ### Migration / upgrade
 
-If your contract uses the [upgrade pattern](../patterns/lifecycle-upgrades.mdx):
+If your contract uses the [upgrade pattern](../patterns/lifecycle-upgrades.mdx) as implemented in [`examples/upgradeable`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/upgradeable):
 
 ```bash
 # Build the patched contract
@@ -284,7 +318,7 @@ stellar contract build
 
 # Upload the new WASM (gets a new hash)
 stellar contract upload \
-  --wasm target/wasm32-unknown-unknown/release/my_contract.optimized.wasm \
+  --wasm target/wasm32-unknown-unknown/release/my_contract.wasm \
   --source admin-hardware-wallet \
   --network mainnet
 
@@ -352,7 +386,7 @@ Copy this checklist into your release notes for every mainnet deployment.
 
 ### Deploy
 
-- [ ] `--sim-only` simulation passes
+- [ ] `--build-only` deploy transaction builds successfully (do not submit until this is reviewed)
 - [ ] Contract deployed and Contract ID recorded in at least two places
 - [ ] Initialization call succeeded
 - [ ] Admin set to hardware wallet / multi-sig (not deployer)
@@ -372,8 +406,10 @@ Copy this checklist into your release notes for every mainnet deployment.
 
 - [Contract Interaction](./contract-interaction.md) — invoke functions on your deployed contract
 - [Security Fundamentals](../security/fundamentals.md) — vulnerability classes and mitigation patterns
-- [Gas and Resource Management](../concepts/gas-and-resources.md) — control on-chain costs
 - [Contract Lifecycle and Upgrades](../patterns/lifecycle-upgrades.mdx) — plan for future upgrades safely
+- [Emergency-stop example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/emergency-stop)
+- [Timelock Vault](../patterns/timelock-vault.mdx)
+- [Governance Security](../security/governance.md)
 
 ## Additional resources
 

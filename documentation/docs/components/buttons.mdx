@@ -4,23 +4,28 @@ description: Soroban Cookbook button system with variants, sizes, states, icon s
 ---
 
 import React from 'react';
-import Button from '@site/src/components/UI/Button';
-import ButtonGroup from '@site/src/components/UI/Button/ButtonGroup';
+import { Button, ButtonGroup } from '@site/src/components/buttons';
 
-This button system includes:
+`@site/src/components/buttons` is the single public Button API. It provides:
 
-- Variants: `primary`, `secondary`, `tertiary`, `ghost`, `link`
-- Sizes: `sm`, `md`, `lg`, `xl`
+- Variants: `primary`, `secondary`, `tertiary`, `ghost`, `danger`
+- Sizes: `small`, `medium`, `large`
 - States: default, hover, active, focus, disabled, loading
-- Icon support: icon-only, left icon, right icon
-- Grouping: connected buttons for related actions
+- Icon support: icon-only, start icon, end icon
+- Grouping: connected and segmented button sets
 - Accessibility: keyboard focus styles, proper disabled handling, loading semantics
 - Dark mode: color tokens adjusted for contrast in `[data-theme='dark']`
+
+:::note Deprecated import paths
+`@site/src/components/UI/Button` and `@site/src/components/UI/Button/ButtonGroup`
+now re-export this component and are deprecated. Import from
+`@site/src/components/buttons` in new code.
+:::
 
 ## Basic Usage
 
 ```tsx
-import Button from '@site/src/components/UI/Button';
+import { Button } from '@site/src/components/buttons';
 
 export default function Example() {
   return <Button>Deploy Contract</Button>;
@@ -34,7 +39,7 @@ export default function Example() {
   <Button variant="secondary">Secondary</Button>
   <Button variant="tertiary">Tertiary</Button>
   <Button variant="ghost">Ghost</Button>
-  <Button variant="link">Link</Button>
+  <Button variant="danger">Danger</Button>
 </div>
 
 ## Sizes
@@ -47,10 +52,9 @@ export default function Example() {
     flexWrap: 'wrap',
     marginBottom: '1rem',
   }}>
-  <Button size="sm">Small</Button>
-  <Button size="md">Medium</Button>
-  <Button size="lg">Large</Button>
-  <Button size="xl">Extra Large</Button>
+  <Button size="small">Small</Button>
+  <Button size="medium">Medium</Button>
+  <Button size="large">Large</Button>
 </div>
 
 ## States
@@ -59,6 +63,9 @@ export default function Example() {
   <Button>Default</Button>
   <Button disabled>Disabled</Button>
   <Button loading>Loading</Button>
+  <Button loading loadingText="Saving…">
+    Save
+  </Button>
 </div>
 
 Use keyboard `Tab` navigation to verify visible focus states (`:focus-visible`).
@@ -66,10 +73,16 @@ Use keyboard `Tab` navigation to verify visible focus states (`:focus-visible`).
 ## Icons
 
 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-  <Button iconLeft={<span aria-hidden="true">+</span>}>Create</Button>
-  <Button iconRight={<span aria-hidden="true">→</span>}>Continue</Button>
-  <Button iconOnly aria-label="Settings" iconLeft={<span aria-hidden="true">⚙</span>} />
+  <Button startIcon={<span aria-hidden="true">+</span>}>Create</Button>
+  <Button endIcon={<span aria-hidden="true">→</span>}>Continue</Button>
+  <Button iconOnly aria-label="Settings">
+    <span aria-hidden="true">⚙</span>
+  </Button>
 </div>
+
+## Full Width
+
+<Button fullWidth>Submit Application</Button>
 
 ## Button Group
 

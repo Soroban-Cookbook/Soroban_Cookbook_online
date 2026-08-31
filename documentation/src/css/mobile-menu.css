@@ -107,9 +107,14 @@
   .navbar-sidebar .navbar__search-input {
     min-height: 44px;
   }
+
+  /* ── 7. Touch-action: allow vertical scroll, prevent horizontal navigation ── */
+  html {
+    touch-action: pan-y;
+  }
 }
 
-/* ── 7. Reduced-motion fallback ─────────────────────────────────────────────
+/* ── 8. Reduced-motion fallback ─────────────────────────────────────────────
    The global rule in custom.css already collapses all transitions to 0.01ms,
    but we also honour the --sb-motion-duration tokens (set to 0ms under
    prefers-reduced-motion). This block makes the intent explicit for the

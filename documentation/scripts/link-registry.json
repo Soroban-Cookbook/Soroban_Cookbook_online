@@ -85,6 +85,15 @@
       "minInternalLinks": 2,
       "requiredLinks": ["/docs/contributing"]
     },
+    "contributing/soroban-test-snapshots": {
+      "category": "contributing",
+      "minInternalLinks": 3,
+      "requiredLinks": [
+        "/docs/contributing",
+        "/docs/contributing/add-tested-example",
+        "/docs/getting-started/local-testing-and-simulation"
+      ]
+    },
     "contributing/image-optimization": {
       "category": "contributing",
       "minInternalLinks": 2,
@@ -142,6 +151,11 @@
       "category": "concepts",
       "minInternalLinks": 2,
       "requiredLinks": ["/docs/patterns/optimization-playbook"]
+    },
+    "concepts/simulation-and-footprints": {
+      "category": "concepts",
+      "minInternalLinks": 2,
+      "requiredLinks": ["/docs/getting-started/contract-interaction", "/docs/concepts/gas-and-resources"]
     },
     "concepts/error-handling": {
       "category": "concepts",

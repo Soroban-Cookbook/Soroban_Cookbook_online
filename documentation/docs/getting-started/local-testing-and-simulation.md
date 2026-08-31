@@ -298,26 +298,11 @@ fn test_storage_inspection() {
 }
 ```
 
-### Snapshot Testing
+### SDK test snapshots
 
-Create snapshot files to track state changes across test runs. The `test_snapshots` directory stores golden files:
+With the Soroban SDK `testutils` feature enabled, the repository's locked SDK writes meaningful test-environment state under `test_snapshots/` automatically when the final test `Env` reference is dropped. The current SDK does not use `SOROBAN_SNAPSHOT_DIR` or `UPDATE_EXPECT` as an approval gate. Run the relevant Cargo test normally, then inspect the generated-file changes in Git before committing them.
 
-```rust
-#[test]
-fn test_snapshot() {
-    let env = Env::default();
-    let contract_id = env.register(Counter, ());
-    let client = CounterClient::new(&env, &contract_id);
-
-    client.increment();
-
-    // Snapshot the current state
-    let snapshot = env.ledger().get();
-    // Compare against stored snapshot in test_snapshots/
-}
-```
-
-Soroban generates snapshot files under `test_snapshots/` when `SOROBAN_SNAPSHOT_DIR` is set or using the testutils feature. This lets you diff state changes across commits.
+See [Reviewing Soroban Test Snapshots](/docs/contributing/soroban-test-snapshots) for the exact token-transfer workflow and authorization, ledger, and event review checklist.
 
 ### State Table Inspection
 

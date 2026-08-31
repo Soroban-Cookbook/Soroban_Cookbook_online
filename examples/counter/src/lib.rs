@@ -10,11 +10,7 @@ pub struct Counter;
 impl Counter {
     /// Increment the counter by one and return the new value.
     pub fn increment(env: Env) -> u32 {
-        let count: u32 = env
-            .storage()
-            .instance()
-            .get(&COUNTER_KEY)
-            .unwrap_or(0);
+        let count: u32 = env.storage().instance().get(&COUNTER_KEY).unwrap_or(0);
         let new_count = count + 1;
         env.storage().instance().set(&COUNTER_KEY, &new_count);
         new_count
@@ -22,10 +18,7 @@ impl Counter {
 
     /// Return the current counter value without modifying state.
     pub fn get(env: Env) -> u32 {
-        env.storage()
-            .instance()
-            .get(&COUNTER_KEY)
-            .unwrap_or(0)
+        env.storage().instance().get(&COUNTER_KEY).unwrap_or(0)
     }
 
     /// Reset the counter to zero.

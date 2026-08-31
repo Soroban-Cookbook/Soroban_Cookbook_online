@@ -53,6 +53,12 @@
   --ifm-color-emphasis-800: #1f2937;
   --ifm-color-emphasis-900: #111827;
 
+  /* Navbar search placeholder and the `ctrl`/`K` hint <kbd> rendered by
+     docusaurus-search-local both use this token against
+     --ifm-color-emphasis-200. Infima's default (emphasis-500, #6b7280) only
+     reaches 3.9:1 on that background; emphasis-600 reaches 6.1:1. */
+  --ifm-navbar-search-input-placeholder-color: var(--ifm-color-emphasis-600);
+
   /* Card Colors */
   --ifm-card-background-color: #ffffff;
   --ifm-border-color: #e5e7eb;
@@ -63,7 +69,9 @@
 
   /* Sidebar */
   --ifm-menu-color: #374151;
-  --ifm-menu-color-active: #2e8555;
+  /* Primary (#2e8555) on the active menu background (#f2f2f2) is 4.1:1;
+     primary-darker reaches 5.3:1 and still reads as brand green. */
+  --ifm-menu-color-active: #277148;
   --ifm-menu-color-background-hover: rgba(46, 133, 85, 0.08);
 
   /* Footer */
@@ -200,6 +208,10 @@
   --ifm-color-emphasis-700: #e2e8f0;
   --ifm-color-emphasis-800: #f1f5f9;
   --ifm-color-emphasis-900: #f8fafc;
+
+  /* Same WCAG AA fix as the light theme: emphasis-500 (#94a3b8) is only 4.0:1
+     on emphasis-200 (#334155); emphasis-600 reaches 7.0:1. */
+  --ifm-navbar-search-input-placeholder-color: var(--ifm-color-emphasis-600);
 
   /* Card Colors */
   --ifm-card-background-color: #1e293b;
@@ -358,6 +370,31 @@ html {
   button {
     text-decoration: underline;
   }
+}
+
+/* ── Links in prose ─────────────────────────────────────────────────────────── */
+
+/* Docusaurus leaves body links undecorated, so inside a paragraph they are
+   distinguished from the surrounding text by colour alone — WCAG 1.4.1, and
+   what axe reports as `link-in-text-block`. Underline anchors that sit in a
+   run of text; card grids, nav and heading anchors are untouched. */
+.markdown
+  p
+  a:not(.hash-link):not([class*='card']):not([class*='Card']):not([class*='button']):not(
+    [class*='Button']
+  ),
+.markdown
+  li
+  a:not(.hash-link):not([class*='card']):not([class*='Card']):not([class*='button']):not(
+    [class*='Button']
+  ),
+.markdown
+  td
+  a:not(.hash-link):not([class*='card']):not([class*='Card']):not([class*='button']):not(
+    [class*='Button']
+  ) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* ── Skip Link ──────────────────────────────────────────────────────────────── */

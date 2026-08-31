@@ -1,9 +1,8 @@
 name: Cross-Browser E2E Tests
 
 on:
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron: '0 0 * * *'
   push:
     branches:
       - main
@@ -33,15 +32,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -63,10 +62,10 @@ jobs:
           # Wait until the server responds before running tests
           npx wait-on http://localhost:3000 --timeout 60000
 
-      - name: Run smoke tests (${{ matrix.browser }})
+      - name: Run E2E tests (${{ matrix.browser }})
         run: npx playwright test --project=${{ matrix.browser }}
         env:
-          BASE_URL: http://localhost:3000
+          E2E_BASE_URL: http://localhost:3000
           CI: "true"
 
       - name: Upload Playwright report
@@ -89,4 +88,4 @@ jobs:
             echo "❌ Cross-browser E2E tests failed"
             exit 1
           fi
-          echo "✅ All browsers (chromium, firefox, webkit) passed smoke tests"
+          echo "✅ All browsers (chromium, firefox, webkit) passed E2E tests"

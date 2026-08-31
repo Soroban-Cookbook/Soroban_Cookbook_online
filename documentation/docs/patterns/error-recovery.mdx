@@ -21,6 +21,10 @@ Robust error handling is critical for production smart contracts. This guide dem
   fund loss, ensures predictable behavior, and provides clear feedback when operations fail.
 </Callout>
 
+<Callout variant="info" title="Decision Tree">
+  Before choosing an error strategy, review the [Error Handling concept](/docs/concepts/error-handling#decision-tree-panic-vs-result) decision tree for when to return `Result`, use `panic!`, or use `panic_with_error!`.
+</Callout>
+
 ## Prerequisites
 
 - Rust stable and `cargo`

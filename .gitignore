@@ -3,6 +3,8 @@ node_modules/
 .pnp
 .pnp.js
 target/
+examples/target/
+examples/**/target/
 
 # Testing
 coverage/

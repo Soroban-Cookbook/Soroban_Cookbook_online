@@ -138,14 +138,16 @@ export default function DocBreadcrumbs(): React.JSX.Element | null {
   return (
     <>
       {/* Full breadcrumbs — visible on desktop via CSS media query.
-          Hidden from accessibility tree on viewports where it's display:none. */}
-      <div className={styles.fullViewport} aria-hidden="true">
+          No aria-hidden: this variant is `display: none` below 640 px, which
+          already removes it from the accessibility tree. Marking it hidden
+          while it is on screen left its links focusable but unannounced
+          (axe: aria-hidden-focus). */}
+      <div className={styles.fullViewport}>
         <BreadcrumbsNav breadcrumbs={items} />
       </div>
 
-      {/* Collapsed breadcrumbs — visible on mobile via CSS media query.
-          aria-hidden is removed by the client-side effect below when this
-          variant is the shown one. */}
+      {/* Collapsed breadcrumbs — visible on mobile via CSS media query, and
+          `display: none` (so also out of the accessibility tree) above it. */}
       <div className={styles.mobileViewport}>
         {shouldCollapse ? (
           <CollapsedBreadcrumbs breadcrumbs={items} />

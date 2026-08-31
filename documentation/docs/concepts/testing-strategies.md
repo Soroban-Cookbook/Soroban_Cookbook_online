@@ -10,6 +10,8 @@ keywords:
 image: /img/soroban-social-card.png
 ---
 
+> **Note:** This concept page covers advanced testing strategies and theory. For concrete implementation templates and examples, see the [Contract Testing Guide](../getting-started/contract-testing).
+
 # Advanced Soroban Testing Strategies
 
 Production-grade Soroban development benefits from layered testing: unit, integration, and fuzz testing. Each layer catches a different class of failure.

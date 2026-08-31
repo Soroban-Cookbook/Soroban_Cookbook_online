@@ -1,0 +1,187 @@
+---
+time: 25
+sidebar_position: 6
+title: Role-Based Access Control
+description: Practical patterns for role-based access control, role storage, and grant/revoke flows in Soroban contracts.
+image: /img/soroban-social-card.png
+keywords:
+  - role-based access
+  - access control
+  - RBAC
+  - has_role
+  - require_role
+  - grant_role
+  - revoke_role
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="role-based-access-control"
+  difficulty="intermediate"
+  category="Architecture"
+  status="stable"
+  lastReviewed="May 2026"
+/>
+
+## Overview
+
+This guide walks through implementing Role-Based Access Control (RBAC) in Soroban smart contracts. It covers storing role assignments, restricting functions to specific roles, granting and revoking roles securely, and testing role-based access restrictions.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust and `cargo`
+- Soroban CLI and `soroban_sdk`
+- Familiarity with the [`require_auth()`](/docs/patterns/authorization) pattern
+
+</PatternSection>
+
+<PatternSection id="goals" title="Goals">
+
+- Implement explicit roles for managing different levels of access.
+- Securely store role assignments on-chain.
+- Safely grant and revoke roles to and from users.
+
+</PatternSection>
+
+<PatternSection id="patterns" title="Role Storage and Enforcement">
+
+### Role storage
+
+Roles should be stored securely in the contract's persistent storage. Using an enum for roles ensures strict typing. The data key should map an `Address` to their assigned `Role`.
+
+### Granting and revoking roles
+
+Role assignment should be restricted to administrators. The `grant_role` and `revoke_role` functions must require the admin's authorization before modifying the persistent storage. 
+
+> **Security Note:** If the sole administrator role is compromised, the attacker can grant themselves any role, escalate privileges, and lock out legitimate users (admin takeover). Ensure the administrator role is properly secured, for example by using a multi-sig account or a governance contract.
+
+### Enforcement
+
+The `has_role` helper reads from storage to check if an address holds a specific role. The `require_role` function wraps this to return an `Error::Unauthorized` if the check fails. Using structured errors instead of panicking allows callers to handle denials gracefully.
+
+</PatternSection>
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+```rust illustrative
+// See examples/access-control/src/lib.rs for the complete example
+#![no_std]
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
+
+#[contracttype]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Role {
+    User,
+    Manager,
+    Admin,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Role(Address),
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    Unauthorized = 1,
+}
+
+pub fn has_role(env: &Env, user: &Address, role: Role) -> bool {
+    env.storage()
+        .persistent()
+        .get::<DataKey, Role>(&DataKey::Role(user.clone()))
+        .map(|stored| stored == role)
+        .unwrap_or(false)
+}
+
+pub fn require_role(env: &Env, user: &Address, role: Role) -> Result<(), Error> {
+    if has_role(env, user, role) {
+        Ok(())
+    } else {
+        Err(Error::Unauthorized)
+    }
+}
+
+#[contract]
+pub struct AccessControl;
+
+#[contractimpl]
+impl AccessControl {
+    pub fn __constructor(env: Env, admin: Address) {
+        env.storage()
+            .persistent()
+            .set(&DataKey::Role(admin), &Role::Admin);
+    }
+
+    pub fn grant_role(env: Env, granter: Address, user: Address, role: Role) -> Result<(), Error> {
+        granter.require_auth();
+        require_role(&env, &granter, Role::Admin)?;
+        env.storage().persistent().set(&DataKey::Role(user), &role);
+        Ok(())
+    }
+
+    pub fn revoke_role(env: Env, granter: Address, user: Address) -> Result<(), Error> {
+        granter.require_auth();
+        require_role(&env, &granter, Role::Admin)?;
+        env.storage().persistent().remove(&DataKey::Role(user));
+        Ok(())
+    }
+
+    pub fn manager_only_action(env: Env, caller: Address) -> Result<(), Error> {
+        caller.require_auth();
+        require_role(&env, &caller, Role::Manager)
+    }
+}
+```
+
+  </TabItem>
+
+  <TabItem value="test" label="Tests">
+
+#### Testing non-admin denial
+
+It is crucial to test that non-admins cannot perform restricted actions or grant roles to others.
+
+```rust illustrative
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::testutils::Address as _;
+
+    #[test]
+    fn test_non_admin_is_denied_admin_only_action() {
+        let (env, _, client) = setup();
+        let outsider = Address::generate(&env);
+
+        let result = client.try_admin_only_action(&outsider);
+        assert_eq!(result, Err(Ok(Error::Unauthorized)));
+    }
+
+    #[test]
+    fn test_non_admin_cannot_grant_roles() {
+        let (env, _, client) = setup();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+
+        let result = client.try_grant_role(&alice, &bob, &Role::Manager);
+        assert_eq!(result, Err(Ok(Error::Unauthorized)));
+        assert_eq!(client.get_role(&bob), None);
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+<PatternSection id="related" title="Related code">
+
+- [Access Control Example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control/src/lib.rs)
+- [Authorization Pattern](/docs/patterns/authorization)
+
+</PatternSection>

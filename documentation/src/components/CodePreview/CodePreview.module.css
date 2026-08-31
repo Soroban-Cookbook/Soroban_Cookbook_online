@@ -1,0 +1,120 @@
+/**
+ * CodePreview component styling
+ * Read-only syntax-highlighted code block with copy-to-clipboard
+ */
+
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-pre-background, #1a1a1a);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  background: var(--ifm-code-background, #282c34);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200, #3f3f3f);
+}
+
+.title {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+}
+
+.language {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.7;
+  color: var(--ifm-font-color-base);
+}
+
+.copyButton {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--ifm-font-color-base);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copyButton:hover {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+.copyButton:active {
+  transform: scale(0.98);
+}
+
+.copyIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.pre {
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  font-family: var(--ifm-font-family-monospace, 'JetBrains Mono', 'Monaco', monospace);
+  font-size: var(--ifm-code-font-size, 13px);
+  line-height: 1.6;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0;
+  min-height: 1.5em;
+}
+
+.lineHighlighted {
+  background: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+}
+
+.gutter {
+  text-align: right;
+  user-select: none;
+  padding: 0 0.75rem 0 0.75rem;
+  opacity: 0.45;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+}
+
+.content {
+  white-space: pre;
+  padding-right: 0.75rem;
+}
+
+.expandButton {
+  border: none;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  width: 100%;
+  text-align: left;
+  background: var(--ifm-background-surface-color, #282c34);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--ifm-font-color-base);
+  transition: background 0.15s ease;
+}
+
+.expandButton:hover {
+  background: var(--ifm-color-emphasis-100);
+}

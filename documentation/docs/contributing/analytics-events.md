@@ -57,6 +57,51 @@ import { trackEvent, trackSearch, trackCopyCode, trackNewsletterSubmit } from '@
 | **Parameters** | `submission_status` (`success`), `submission_method` (`endpoint` \| `demo`) |
 | **PII notes** | Email addresses are never included |
 
+## Conversion funnel events
+
+The landing → docs → GitHub funnel (`FUNNEL_STEPS` in `analytics.ts`) is emitted
+by `src/components/FunnelTracker/FunnelTracker.tsx`, except the CTA step, which
+is fired by the homepage buttons through `trackCtaClick`. Every step is gated on
+analytics consent — nothing is sent before the visitor accepts.
+
+Build the GA4 funnel exploration from these events in the order listed.
+
+### `funnel_landing_view`
+
+| Field | Value |
+|-------|--------|
+| **Purpose** | Funnel step 1 — visitor reaches the homepage |
+| **Trigger** | Route change to `/` with consent granted |
+| **Parameters** | `page_path` (string) |
+| **PII notes** | Only the site-relative path is sent |
+
+### `funnel_cta_click`
+
+| Field | Value |
+|-------|--------|
+| **Purpose** | Funnel step 2 — visitor clicks a homepage call to action |
+| **Trigger** | `trackCtaClick` from a homepage CTA button |
+| **Parameters** | `cta_id` (string), `destination` (string) |
+| **PII notes** | Identifies the button, not the visitor |
+
+### `funnel_docs_view`
+
+| Field | Value |
+|-------|--------|
+| **Purpose** | Funnel step 3 — visitor lands on a documentation page |
+| **Trigger** | Route change to a path starting with `/docs` with consent granted |
+| **Parameters** | `page_path` (string) |
+| **PII notes** | Only the site-relative path is sent |
+
+### `funnel_github_click`
+
+| Field | Value |
+|-------|--------|
+| **Purpose** | Funnel step 4 — visitor leaves for the GitHub repository |
+| **Trigger** | Click on any `https://github.com/` link, from any page |
+| **Parameters** | `destination` (string), `page_path` (string) |
+| **PII notes** | Only the outbound URL and the page it was clicked from |
+
 ## Enabling GA4
 
 Set a measurement ID when building:
