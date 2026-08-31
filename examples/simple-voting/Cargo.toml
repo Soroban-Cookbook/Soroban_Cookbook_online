@@ -3,6 +3,8 @@ license = "MIT"
 name = "simple-voting"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract implementing a simple proposal voting system with yes/no choices."
+keywords = ["soroban", "example", "voting"]
 description = "Soroban example voting contract with vote delegation."
 keywords = ["soroban", "example", "simple-voting"]
 

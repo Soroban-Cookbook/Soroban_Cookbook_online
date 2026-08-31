@@ -3,6 +3,7 @@ license = "MIT"
 name = "token-transfer"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract implementing a minimal token with balance tracking and transfers."
 description = "Soroban example token contract with mint, transfer, burn, and allowance operations."
 keywords = ["soroban", "example", "token-transfer"]
 

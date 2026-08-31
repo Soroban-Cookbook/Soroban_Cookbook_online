@@ -3,6 +3,8 @@ license = "MIT"
 name = "simple-dao"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example contract implementing a simple DAO with proposals, voting, and execution."
+keywords = ["soroban", "example", "dao"]
 description = "Soroban example DAO with proposal creation, voting, queuing, and timelocked execution."
 keywords = ["soroban", "example", "simple-dao"]
 
