@@ -112,7 +112,7 @@ mod tests {
     }
 
     fn name(env: &Env, s: &str) -> Bytes {
-        Bytes::from_array(env, s.as_bytes())
+        Bytes::from_slice(env, s.as_bytes())
     }
 
     fn initialize(fixture: &Fixture) {
@@ -165,16 +165,18 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "HostError: Error(Auth, InvalidAction)")]
     fn unauthorized_set_fails() {
-        let fixture = setup();
+        let mut fixture = setup();
         initialize(&fixture);
+
+        // `setup()` mocks all auths; clear them so `admin.require_auth()` in
+        // `set()` actually runs. The client is not the admin, so it panics.
+        fixture.env.set_auths(&[]);
 
         let n = name(&fixture.env, "my-contract");
         let addr = Address::generate(&fixture.env);
 
-        // Without mock_all_auths, an unauthorized caller must fail.
-        // The require_auth() call in set() will panic.
         fixture.client.set(&n, &addr);
     }
 
@@ -216,7 +218,10 @@ mod tests {
 
         let n = name(&fixture.env, "");
         let addr = Address::generate(&fixture.env);
-        assert_eq!(fixture.client.try_set(&n, &addr), Err(Ok(Error::NameTooLong)));
+        assert_eq!(
+            fixture.client.try_set(&n, &addr),
+            Err(Ok(Error::NameTooLong))
+        );
     }
 
     #[test]

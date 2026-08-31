@@ -112,6 +112,10 @@ You do not need to compile or deploy a contract to represent XLM or anchored sta
 
 </PatternSection>
 
+<PatternCallout variant="info" title="See the fee-on-transfer wrapper example">
+  A concrete example of a custom token wrapper with basis-point fees and treasury accounting is available at [Token Wrapper with Transfer Fee](/docs/patterns/token-wrapper).
+</PatternCallout>
+
 <PatternSection id="custom-tokens" title="Custom Token Implementations">
 
 When your application requires behaviors that go beyond a simple currency (such as fee-on-transfer, transfer whitelists, auto-staking, or algorithmic minting), you must deploy a custom token contract.
@@ -266,5 +270,6 @@ Choosing the right implementation pattern depends on your project's specific req
 * **Official Specs**: [SEP-0041 Specification](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0041.md)
 * **Libraries**: [OpenZeppelin Stellar Contracts on GitHub](https://github.com/OpenZeppelin/stellar-contracts)
 * **Concepts**: [Soroban Authorization Concept Guide](/docs/concepts/authorization) | [Soroban Storage and State Expiration](/docs/concepts/storage)
+* **Security**: [Token Pattern Security Audit](/docs/security/token-audit) — checklists for basic tokens, allowances, wrappers, vaults, and SAC integration
 
 </PatternSection>

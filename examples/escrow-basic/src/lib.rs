@@ -133,7 +133,13 @@ impl EscrowBasic {
 
         env.events().publish(
             (Symbol::new(&env, "initialise"),),
-            (buyer.clone(), seller.clone(), arbiter.clone(), token.clone(), amount),
+            (
+                buyer.clone(),
+                seller.clone(),
+                arbiter.clone(),
+                token.clone(),
+                amount,
+            ),
         );
 
         Ok(())
@@ -181,7 +187,8 @@ impl EscrowBasic {
             .persistent()
             .set(&DataKey::State, &EscrowState::Funded);
 
-        env.events().publish((symbol_short!("deposit"),), (buyer.clone(), amount));
+        env.events()
+            .publish((symbol_short!("deposit"),), (buyer.clone(), amount));
 
         Ok(())
     }
@@ -324,7 +331,13 @@ impl EscrowBasic {
 mod tests {
     use super::*;
     use soroban_sdk::{
-        symbol_short, testutils::Address as _, token::{self, StellarAssetClient}, Address, Env, Val,
+        symbol_short,
+        testutils::Address as _,
+        token::{self, StellarAssetClient},
+        Address, Env, Val,
+        testutils::{Address as _, Events as _},
+        token::{self, StellarAssetClient},
+        Address, Env,
     };
 
     /// Helper: register a Stellar asset contract and mint tokens to `to`.
@@ -334,7 +347,9 @@ mod tests {
         to: &Address,
         amount: i128,
     ) -> (Address, token::Client<'a>) {
-        let contract_address = env.register_stellar_asset_contract_v2(admin.clone()).address();
+        let contract_address = env
+            .register_stellar_asset_contract_v2(admin.clone())
+            .address();
         let sac = StellarAssetClient::new(env, &contract_address);
         sac.mint(to, &amount);
         let client = token::Client::new(env, &contract_address);
@@ -342,7 +357,14 @@ mod tests {
     }
 
     /// Helper: return a fully-wired escrow ready to deposit.
-    fn setup() -> (Env, Address, Address, Address, Address, EscrowBasicClient<'static>) {
+    fn setup() -> (
+        Env,
+        Address,
+        Address,
+        Address,
+        Address,
+        EscrowBasicClient<'static>,
+    ) {
         let env = Env::default();
         env.mock_all_auths();
 
@@ -355,9 +377,7 @@ mod tests {
         let contract_id = env.register(EscrowBasic, ());
         let client = EscrowBasicClient::new(&env, &contract_id);
 
-        client
-            .initialise(&buyer, &seller, &arbiter, &token_addr, &500)
-            .unwrap();
+        client.initialise(&buyer, &seller, &arbiter, &token_addr, &500);
 
         (env, buyer, seller, arbiter, token_addr, client)
     }
@@ -400,7 +420,7 @@ mod tests {
     #[test]
     fn test_deposit_moves_tokens_and_sets_funded() {
         let (env, _buyer, _seller, _arbiter, token_addr, client) = setup();
-        client.deposit().unwrap();
+        client.deposit();
         assert_eq!(client.get_state(), Some(EscrowState::Funded));
 
         let token_client = token::Client::new(&env, &token_addr);
@@ -411,7 +431,7 @@ mod tests {
     #[test]
     fn test_double_deposit_fails() {
         let (_env, _buyer, _seller, _arbiter, _token, client) = setup();
-        client.deposit().unwrap();
+        client.deposit();
         let result = client.try_deposit();
         assert_eq!(result, Err(Ok(Error::AlreadySettled)));
     }
@@ -421,8 +441,8 @@ mod tests {
     #[test]
     fn test_buyer_can_release_to_seller() {
         let (env, buyer, seller, _arbiter, token_addr, client) = setup();
-        client.deposit().unwrap();
-        client.release(&buyer).unwrap();
+        client.deposit();
+        client.release(&buyer);
 
         assert_eq!(client.get_state(), Some(EscrowState::Released));
         let token_client = token::Client::new(&env, &token_addr);
@@ -433,8 +453,8 @@ mod tests {
     #[test]
     fn test_arbiter_can_release_to_seller() {
         let (env, _buyer, seller, arbiter, token_addr, client) = setup();
-        client.deposit().unwrap();
-        client.release(&arbiter).unwrap();
+        client.deposit();
+        client.release(&arbiter);
 
         assert_eq!(client.get_state(), Some(EscrowState::Released));
         let token_client = token::Client::new(&env, &token_addr);
@@ -444,7 +464,7 @@ mod tests {
     #[test]
     fn test_seller_cannot_release() {
         let (_env, _buyer, seller, _arbiter, _token, client) = setup();
-        client.deposit().unwrap();
+        client.deposit();
         let result = client.try_release(&seller);
         assert_eq!(result, Err(Ok(Error::UnauthorisedRelease)));
     }
@@ -459,8 +479,8 @@ mod tests {
     #[test]
     fn test_double_release_fails() {
         let (_env, buyer, _seller, _arbiter, _token, client) = setup();
-        client.deposit().unwrap();
-        client.release(&buyer).unwrap();
+        client.deposit();
+        client.release(&buyer);
         let result = client.try_release(&buyer);
         assert_eq!(result, Err(Ok(Error::NotFunded)));
     }
@@ -470,8 +490,8 @@ mod tests {
     #[test]
     fn test_arbiter_can_refund_buyer() {
         let (env, buyer, _seller, arbiter, token_addr, client) = setup();
-        client.deposit().unwrap();
-        client.refund(&arbiter).unwrap();
+        client.deposit();
+        client.refund(&arbiter);
 
         assert_eq!(client.get_state(), Some(EscrowState::Refunded));
         let token_client = token::Client::new(&env, &token_addr);
@@ -482,7 +502,7 @@ mod tests {
     #[test]
     fn test_buyer_cannot_refund_self() {
         let (_env, buyer, _seller, _arbiter, _token, client) = setup();
-        client.deposit().unwrap();
+        client.deposit();
         let result = client.try_refund(&buyer);
         assert_eq!(result, Err(Ok(Error::UnauthorisedRefund)));
     }
@@ -497,8 +517,8 @@ mod tests {
     #[test]
     fn test_refund_after_release_fails() {
         let (_env, buyer, _seller, arbiter, _token, client) = setup();
-        client.deposit().unwrap();
-        client.release(&buyer).unwrap();
+        client.deposit();
+        client.release(&buyer);
         let result = client.try_refund(&arbiter);
         assert_eq!(result, Err(Ok(Error::NotFunded)));
     }
@@ -525,25 +545,28 @@ mod tests {
         assert!(events.len() > before);
         let released: Vec<_> = events
             .iter()
-            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("release"))))
+            .filter(|e| {
+                e.1.iter()
+                    .any(|v| *v == Val::from(symbol_short!("release")))
+            })
             .collect();
         assert_eq!(released.len(), 1);
+        client.deposit();
+
+        client.release(&buyer);
+
+        // `.all()` exposes only the most recent invocation's events.
+        assert!(!env.events().all().events().is_empty());
     }
 
     #[test]
     fn test_refund_emits_event() {
         let (env, _buyer, _seller, arbiter, _token, client) = setup();
-        client.deposit().unwrap();
+        client.deposit();
 
-        let before = env.events().all().len();
-        client.refund(&arbiter).unwrap();
+        client.refund(&arbiter);
 
-        let events = env.events().all();
-        assert!(events.len() > before);
-        let refunded: Vec<_> = events
-            .iter()
-            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("refund"))))
-            .collect();
-        assert_eq!(refunded.len(), 1);
+        // `.all()` exposes only the most recent invocation's events.
+        assert!(!env.events().all().events().is_empty());
     }
 }

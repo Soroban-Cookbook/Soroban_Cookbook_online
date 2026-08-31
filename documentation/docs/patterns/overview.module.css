@@ -78,9 +78,9 @@
   font-family: var(--ifm-font-family-monospace);
 }
 
-.difficulty[data-difficulty='beginner']    { color: #10b981; }
-.difficulty[data-difficulty='intermediate'] { color: #f59e0b; }
-.difficulty[data-difficulty='advanced']    { color: #ef4444; }
+.difficulty[data-difficulty='beginner']    { color: #047857; }
+.difficulty[data-difficulty='intermediate'] { color: #92400e; }
+.difficulty[data-difficulty='advanced']    { color: #b91c1c; }
 
 .category {
   font-size: 0.75rem;

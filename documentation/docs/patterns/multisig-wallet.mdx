@@ -1,0 +1,76 @@
+---
+title: Multisig Wallet
+description: Implement M-of-N multisignature wallets with configurable thresholds, proposal approval, execution, and revocation in Soroban.
+
+sidebar_position: 16
+---
+
+<span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--utility">Utility</span> <span class="sb-badge sb-badge--stable">Stable</span>
+
+# Multisig Wallet
+
+A multisig wallet requires a defined number of authorized signers to approve a transaction before it can be executed. This pattern demonstrates M-of-N authorization, where `threshold` signers must approve a proposal for it to become executable.
+
+## Overview
+
+The `multisig-wallet` contract enables a group of users to manage shared funds or perform privileged operations collectively. It supports:
+
+- Threshold management - set the number of approvals required
+- Approval - signers approve a proposal
+- Execution - execute a proposal once threshold is met
+- Revocation - withdraw an approval before execution
+
+## Prerequisites
+
+- Familiarity with [Soroban authorization](../concepts/authorization)
+- Understanding of [contract storage](../concepts/storage)
+- Basic Rust and Soroban development setup
+
+## Implementation
+
+The full implementation is available in [`examples/multisig-wallet/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/multisig-wallet). The contract stores a list of signers, the current threshold, and a map of proposals from their id to approval states.
+
+### Core Functions
+
+| Function | Description |
+|--------|-------------------------------------------------------------------------------------------------------
+| `set_threshold(new_threshold)` | Updates the approval threshold. Must be etween `1` and the total number of signers. |
+| `approve(proposal_id)` | Marks the caller as approving the given proposal. Callable only by authorized signers. |
+| `execute(proposal_id)` | Executes the proposal if the number of approvals meets or exceeds the current threshold. |
+| `revoke(proposal_id)` | Removes the caller's approval, potentially dropping the proposal below threshold. |
+
+### Threshold Edge Cases
+
+- 1-of-1 wallet - With a single signer and threshold `1`, the wallet behaves like a simple owner-controlled account. Approval and execution happen in one step.
+- Threshold equals signer count - Requires unanimous approval (N-of-N).
+- Threshold greater than signer count - Invalid; the contract should reject such values.
+- Changing threshold after approvals - Existing approvals remain, but the new threshold applies to future executions.
+
+### Test Scenarios
+
+The example's test suite covers these critical paths:
+
+- Setting a valid threshold
+- Rejecting an invalid threshold (e.g., `0` or greater than signer count)
+- Approving with exactly enough signers to reach the threshold
+- Executing only after the threshold has been satisfied
+- Revoking an approval to drop below threshold, blocking execution
+- Attempting to approve or execute without authorization
+
+## Security Considerations
+
+- Authorization - Always verify `env.current_contract_address`( and require authentication for signers using `require_auth`.
+- Error handling - Use `panic`, or a custom `Error` type for unauthorized calls, duplicate approvals, invalid thresholds, and proposals that don't exist.
+- Event emission - Emit `approval`, `execution`, and `revocation` events to provide transparency and support indexing.
+- Reentrancy - Since execution can call external contracts, consider a reentrancy guard or ensure effects are applied after external calls.
+
+## Related Patterns
+
+- [Authorization Concept](../concepts/authorization)
+- [Escrow Multiparty](./escrow-multiparty)
+- [Proposal Lifecycle](./proposal-lifecycle)
+
+## References
+
+- [Example repository](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/multisig-wallet)
+- [Soroban Docs](https://developers.stellar.org/docs/smart-contracts)

@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracterror, Address, Env};
+use soroban_sdk::{contract, contracterror, contractimpl, Address, Env};
 
 #[contracterror]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -19,12 +19,7 @@ pub struct TokenContract;
 
 #[contractimpl]
 impl TokenContract {
-    pub fn transfer(
-        env: Env,
-        from: Address,
-        to: Address,
-        amount: i128,
-    ) -> Result<(), Error> {
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), Error> {
         from.require_auth();
 
         if amount <= 0 {
@@ -51,12 +46,7 @@ impl TokenContract {
 
     /// Demonstrates panic for an unrecoverable invariant violation.
     /// This should never be called with a negative amount in correct usage.
-    pub fn checked_transfer(
-        env: Env,
-        from: Address,
-        to: Address,
-        amount: i128,
-    ) {
+    pub fn checked_transfer(env: Env, from: Address, to: Address, amount: i128) {
         let balance: i128 = env.storage().persistent().get(&from).unwrap_or(0);
         let new_balance = balance - amount;
 
@@ -65,7 +55,10 @@ impl TokenContract {
         }
 
         env.storage().persistent().set(&from, &new_balance);
-        env.storage().persistent().set(&to, &(env.storage().persistent().get(&to).unwrap_or(0) + amount));
+        env.storage().persistent().set(
+            &to,
+            &(env.storage().persistent().get(&to).unwrap_or(0) + amount),
+        );
     }
 }
 

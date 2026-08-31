@@ -2,15 +2,22 @@
 name = "batch-ops"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example that executes a batch of token transfers in a single call."
+keywords = ["soroban", "example", "batch-ops"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+soroban-sdk = "22.0.0"
 
 [dev-dependencies]
 soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+soroban-sdk = "22.0.0"
+
+[dev-dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
 
 [profile.release]
 opt-level = "z"

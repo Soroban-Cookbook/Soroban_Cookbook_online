@@ -1,13 +1,65 @@
 ---
 sidebar_position: 4
-title: Code Playground (Phase 4)
-description: MVP scope and rationale for live code preview in the Soroban Cookbook.
+title: Code Playground (Phase 2 Planning)
+description: Requirements, architecture, mockups, and timeline for the interactive code playground.
 ---
 
-# Code Playground — Phase 4: Live Code Preview (Basic)
+# Code Playground — Phase 2: Interactive Code Playground Planning
 
-**Issue:** [#164 — Phase 4: Live Code Preview (Basic)](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/164)
-**Dependency:** Builds on [#74 — Playground Planning](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/74)
+**Issue:** [#74 — Playground Planning](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/74)
+**Dependent Issues:** [#136](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/136), [#137](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/137), [#138](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/138), [#139](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/139), [#140](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/140)
+
+## Objective
+
+Plan the interactive code playground feature for the Soroban Cookbook. This document defines requirements, evaluates technical architectures, proposes UI/UX mockups, identifies integration points, and establishes a timeline and milestones.
+
+## Requirements
+
+- **In-browser code editing**: Allow users to edit Rust/Soroban code snippets directly in the browser.
+- **Compilation**: Compile Rust code to WASM either in-browser or via a remote API.
+- **Execution**: Execute the compiled WASM in a sandboxed environment and display the result.
+- **Integration**: Embed playground components into MDX documentation pages.
+- **MVP scope**: Support the `hello-world` example end-to-end (edit, compile, run, output).
+
+## Technical Architecture
+
+### Option A: WASM compile in-browser
+
+- Use `crate` `soroban-sdk` with `wasm-bindgen` and a Rust-to-WASM compiler (e.g. `wasm-unknown-unknown` target).
+- Pros: No server cost, offline support, low latency.
+- Cons: Large WASM bundle, browser compatibility issues, complex toolchain.
+
+### Option B: Remote compilation API
+
+- Build a backend service that receives Rust source and returns compiled WASM.
+- Pros: Simpler frontend, full toolchain control, easier to update.
+- Cons: Requires server infrastructure, network latency, potential scalability challenges.
+
+**Decision**: For the MVP, use a remote API (Option B) to avoid browser compilation complexity. Later, if needed, evaluate in-browser compilation as an enhancement.
+
+## UI/UX Mockups
+
+- A playground panel embedded below code snippets.
+- Layout: Code editor on the left, output console on the right.
+- Buttons: "Run", "Reset", "Copy".
+- Editor: Monaco editor for Rust syntax highlighting.
+- Output: Scrollable console showing stdout/stderr or compilation errors.
+
+## Integration Points
+
+- Docusaurus MDX: Create a `<Playground>` component to wrap code snippets.
+- Reuse existing `CodePreview` component for read-only display.
+- Add a "Run in Playground" button to code blocks via Docusaurus theme extension or custom MDX components.
+- Build a small HTTP API endpoint for compilation/execution.
+
+## Timeline and Milestones
+
+| Milestone | Description | Estimated Time |
+|-----------|-------------|----------------|
+| M1 | Requirements and architecture finalized | Week 1 |
+| M2 | Backend compilation service prototype | Week 2 |
+| M3 | Frontend playground component integration | Week 3 |
+| M4 | MVP complete: hello-world compiles and runs | Week 4 |
 
 ## MVP Scope
 
@@ -89,13 +141,13 @@ The following features are **not** part of this MVP and are tracked separately:
 - **Server-side execution API** — A backend service that compiles and executes Soroban contracts. Separate roadmap item.
 - **Testnet deployment from browser** — Deploying compiled contracts to Stellar testnet. Requires wallet integration and backend services.
 
-## Alignment with Issue #74 (Playground Planning)
+## Alignment with Phase 4 Features
 
-Issue #74 established the planning foundation for interactive code features. This implementation aligns with its recommendations:
+This planning document defines the architecture for the playground. The Phase 4 implementation follows these plans:
 
 - Uses the same component-based architecture pattern
 - Follows the existing CSS module and TypeScript conventions
-- Does not contradict any prior planning decisions — it adds a lightweight preview layer that can be extended later with the full playground features
+- Adds a lightweight preview layer that can be extended later with the full playground features
 
 ## Files changed
 

@@ -20,6 +20,30 @@ Thank you for your interest in contributing! To ensure a smooth experience for b
 
 ---
 
+### Rust Example Contracts: Style & Lint
+
+The example Soroban contracts in [`examples/`](examples/) share a single style and
+lint configuration so local development matches CI exactly:
+
+- **Formatting** — [`examples/rustfmt.toml`](examples/rustfmt.toml) pins `edition = "2021"`
+  so formatting is deterministic across toolchains. Format / verify with:
+  ```bash
+  cargo fmt --manifest-path examples/Cargo.toml --all -- --check
+  ```
+- **Clippy** — [`examples/clippy.toml`](examples/clippy.toml) tightens the noisy-by-default
+  Clippy knobs for `no_std` contract entry points. Lint with:
+  ```bash
+  cargo clippy --manifest-path examples/Cargo.toml --workspace --lib
+  ```
+- **No new `unwrap`/`expect` outside `#[cfg(test)]`** — enforced by
+  [`scripts/forbid-unwrap.sh`](scripts/forbid-unwrap.sh) (run locally as
+  `./scripts/forbid-unwrap.sh`). Existing unwraps are tracked as tech debt and
+  not flagged; only newly added ones outside test modules are rejected.
+
+These checks run in the `lint-contracts` CI job. Run them locally before opening a PR.
+
+---
+
 
 ### Why the Guide?
 We want to enable you to submit high-quality PRs with minimal back-and-forth. The guide provides clear expectations, automated check commands, and standardized practices.

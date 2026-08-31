@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useColorMode } from '@docusaurus/theme-common';
 import styles from './KeyboardShortcuts.module.css';
 
 /**
@@ -44,9 +43,20 @@ function goToAdjacentPage(direction: 'prev' | 'next'): void {
   document.querySelector<HTMLAnchorElement>(`.pagination-nav__link--${direction}`)?.click();
 }
 
+function toggleTheme(): void {
+  if (typeof document === 'undefined') return;
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try {
+    localStorage.setItem('theme', next);
+  } catch {
+    // Ignore storage quota or disabled errors
+  }
+}
+
 export default function KeyboardShortcuts(): React.JSX.Element | null {
   const [helpOpen, setHelpOpen] = useState(false);
-  const { colorMode, setColorMode } = useColorMode();
   const gPressedAtRef = useRef(0);
 
   useEffect(() => {
@@ -70,7 +80,7 @@ export default function KeyboardShortcuts(): React.JSX.Element | null {
           focusSearch();
           break;
         case 't':
-          setColorMode(colorMode === 'dark' ? 'light' : 'dark');
+          toggleTheme();
           break;
         case '[':
           goToAdjacentPage('prev');
@@ -94,7 +104,7 @@ export default function KeyboardShortcuts(): React.JSX.Element | null {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [colorMode, setColorMode]);
+  }, []);
 
   if (!helpOpen) return null;
 

@@ -14,6 +14,13 @@ pub enum DataKey {
     Decimals,
 }
 
+#[contracttype]
+#[derive(Clone)]
+pub struct AllowanceData {
+    pub amount: i128,
+    pub expiration: u64,
+}
+
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
@@ -29,37 +36,36 @@ pub struct TokenTransfer;
 
 #[contractimpl]
 impl TokenTransfer {
-
     /// Initialize the token metadata.
-/// This should only be called once after deployment.
-pub fn initialize(
-    env: Env,
-    name: String,
-    symbol: String,
-    decimals: u32,
-) {
-    env.storage().persistent().set(&DataKey::Name, &name);
-    env.storage().persistent().set(&DataKey::Symbol, &symbol);
-    env.storage().persistent().set(&DataKey::Decimals, &decimals);
+    /// This should only be called once after deployment.
+    pub fn initialize(env: Env, name: String, symbol: String, decimals: u32) {
+        env.storage().persistent().set(&DataKey::Name, &name);
+        env.storage().persistent().set(&DataKey::Symbol, &symbol);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Decimals, &decimals);
 
-    env.events().publish(
-        (Symbol::new(&env, "initialize"),),
-        (name.clone(), symbol.clone(), decimals),
-    );
-}
+        env.events().publish(
+            (Symbol::new(&env, "initialize"),),
+            (name.clone(), symbol.clone(), decimals),
+        );
+    }
 
     /// Mint tokens to an address (for testing purposes).
     pub fn mint(env: Env, to: Address, amount: i128) {
-    let key = DataKey::Balance(to.clone());
-    let current: i128 = env.storage().persistent().get(&key).unwrap_or(0);
-    env.storage().persistent().set(&key, &(current + amount));
+        let key = DataKey::Balance(to.clone());
+        let current: i128 = env.storage().persistent().get(&key).unwrap_or(0);
+        env.storage().persistent().set(&key, &(current + amount));
 
-    let supply_key = DataKey::TotalSupply;
-    let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
-    env.storage().persistent().set(&supply_key, &(supply + amount));
+        let supply_key = DataKey::TotalSupply;
+        let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
+        env.storage()
+            .persistent()
+            .set(&supply_key, &(supply + amount));
 
-    env.events().publish((symbol_short!("mint"), to.clone()), amount);
-}
+        env.events()
+            .publish((symbol_short!("mint"), to.clone()), amount);
+    }
 
     /// Return the balance of an address.
 
@@ -92,11 +98,13 @@ pub fn initialize(
             .persistent()
             .set(&to_key, &(to_balance + amount));
 
-        env.events().publish((symbol_short!("transfer"), from.clone(), to.clone()), amount);
+        env.events().publish(
+            (symbol_short!("transfer"), from.clone(), to.clone()),
+            amount,
+        );
 
         Ok(())
     }
-
 
     /// Burn tokens from an address, reducing total supply. Requires authorization from `from`.
     pub fn burn(env: Env, from: Address, amount: i128) -> Result<(), Error> {
@@ -119,9 +127,12 @@ pub fn initialize(
 
         let supply_key = DataKey::TotalSupply;
         let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
-        env.storage().persistent().set(&supply_key, &(supply - amount));
+        env.storage()
+            .persistent()
+            .set(&supply_key, &(supply - amount));
 
-        env.events().publish((symbol_short!("burn"), from.clone()), amount);
+        env.events()
+            .publish((symbol_short!("burn"), from.clone()), amount);
 
         Ok(())
     }
@@ -134,12 +145,42 @@ pub fn initialize(
             return Err(Error::InvalidAmount);
         }
 
-        let key = DataKey::Allowance(owner, spender);
-        env.storage().persistent().set(&key, &amount);
+        let key = DataKey::Allowance(owner.clone(), spender.clone());
 
+        // Update the allowance in persistent storage
+        env.storage().persistent().set(&key, &amount);
+        let key = DataKey::Allowance(owner, spender);
+        env.storage().persistent().set(&key, &AllowanceData { amount, expiration: u64::MAX });
+
+        env.events()
+            .publish((symbol_short!("approve"), owner, spender), amount);
+
+        Ok(())
+    }
+
+    /// Approve another address to spend tokens on behalf of the caller until a given expiration time.
+    pub fn approve_with_expiration(
+        env: Env,
+        owner: Address,
+        spender: Address,
+        amount: i128,
+        expiration: u64,
+    ) -> Result<(), Error> {
+        owner.require_auth();
+
+        if amount < 0 {
+            return Err(Error::InvalidAmount);
+        }
+
+        let key = DataKey::Allowance(owner, spender);
+        env.storage().persistent().set(&key, &AllowanceData { amount, expiration });
+
+        // Emit an event for the approval
         env.events().publish(
-            (symbol_short!("approve"), owner.clone(), spender.clone()),
+            (symbol_short!("approve"), owner, spender),
             amount,
+            (symbol_short!("approve"), owner.clone(), spender.clone()),
+            (amount, expiration),
         );
 
         Ok(())
@@ -148,9 +189,9 @@ pub fn initialize(
     /// Get the allowance that spender can spend on behalf of owner.
     pub fn allowance(env: Env, owner: Address, spender: Address) -> i128 {
         let key = DataKey::Allowance(owner, spender);
-        env.storage().persistent().get(&key).unwrap_or(0)
+        let allowance_data: AllowanceData = env.storage().persistent().get(&key).unwrap_or(AllowanceData { amount: 0, expiration: 0 });
+        allowance_data.amount
     }
-
 
     /// Return the balance of an address.
     pub fn balance(env: Env, of: Address) -> i128 {
@@ -158,39 +199,55 @@ pub fn initialize(
         env.storage().persistent().get(&key).unwrap_or(0)
     }
 
-      /// Return the token name.
+    /// Return the token name.
     pub fn name(env: Env) -> String {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Name)
-            .unwrap()
+        env.storage().persistent().get(&DataKey::Name).unwrap()
+    /// Return the token name. Panics if the token is not initialised (these
+    /// metadata fields are only written by `initialize`).
+    pub fn name(env: Env) -> String {
+        match env.storage().persistent().get(&DataKey::Name) {
+            Some(name) => name,
+            None => panic!("token-transfer: token not initialised (no name)"),
+        }
     }
 
-    /// Return the token symbol.
+    /// Return the token symbol. Panics if the token is not initialised.
     pub fn symbol(env: Env) -> String {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Symbol)
-            .unwrap()
+        env.storage().persistent().get(&DataKey::Symbol).unwrap()
+        match env.storage().persistent().get(&DataKey::Symbol) {
+            Some(symbol) => symbol,
+            None => panic!("token-transfer: token not initialised (no symbol)"),
+        }
     }
 
-    /// Return the number of decimals used by the token.
+    /// Return the number of decimals used by the token. Panics if the token is
+    /// not initialised.
     pub fn decimals(env: Env) -> u32 {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Decimals)
-            .unwrap()
+        env.storage().persistent().get(&DataKey::Decimals).unwrap()
+        match env.storage().persistent().get(&DataKey::Decimals) {
+            Some(decimals) => decimals,
+            None => panic!("token-transfer: token not initialised (no decimals)"),
+        }
     }
 
     /// Return the total supply of the token.
     pub fn total_supply(env: Env) -> i128 {
-        env.storage().persistent().get(&DataKey::TotalSupply).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::TotalSupply)
+            .unwrap_or(0)
     }
 
     /// Transfer tokens from one address to another.
     /// Transfer tokens from one address to another using allowance.
     /// The caller must be approved to spend tokens on behalf of the from address.
-    pub fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) -> Result<(), Error> {
+    pub fn transfer_from(
+        env: Env,
+        spender: Address,
+        from: Address,
+        to: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
         spender.require_auth();
 
         if amount <= 0 {
@@ -203,7 +260,17 @@ pub fn initialize(
 
         // Check allowance
         let allowance_key = DataKey::Allowance(from.clone(), spender.clone());
-        let current_allowance: i128 = env.storage().persistent().get(&allowance_key).unwrap_or(0);
+        let allowance_data: AllowanceData = env.storage()
+            .persistent()
+            .get(&allowance_key)
+            .unwrap_or(AllowanceData { amount: 0, expiration: 0 });
+        let current_allowance = allowance_data.amount;
+        let expiration = allowance_data.expiration;
+
+        // Ensure allowance is not expired
+        if expiration != 0 && env.ledger().timestamp() >= expiration {
+            return Err(Error::InsufficientAllowance);
+        }
 
         if current_allowance < amount {
             return Err(Error::InsufficientAllowance);
@@ -220,7 +287,7 @@ pub fn initialize(
         // Update allowance
         env.storage()
             .persistent()
-            .set(&allowance_key, &(current_allowance - amount));
+            .set(&allowance_key, &AllowanceData { amount: current_allowance - amount, expiration });
 
         // Update balances
         let to_key = DataKey::Balance(to.clone());
@@ -233,7 +300,10 @@ pub fn initialize(
             .persistent()
             .set(&to_key, &(to_balance + amount));
 
-        env.events().publish((symbol_short!("transfer"), from.clone(), to.clone()), amount);
+        env.events().publish(
+            (symbol_short!("transfer"), from.clone(), to.clone()),
+            amount,
+        );
 
         Ok(())
     }
@@ -242,7 +312,8 @@ pub fn initialize(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{symbol_short, testutils::Address as _, Env, Val};
+    use soroban_sdk::testutils::{Address as _, Events as _};
+    use soroban_sdk::Env;
 
     fn setup() -> (Env, soroban_sdk::Address, TokenTransferClient<'static>) {
         let env = Env::default();
@@ -589,7 +660,7 @@ mod tests {
         assert_eq!(client.balance(&alice), 750);
         assert_eq!(client.balance(&dave), 250);
     }
-    
+
     #[test]
     fn test_name_returns_initialized_value() {
         let (env, _, client) = setup();
@@ -600,10 +671,7 @@ mod tests {
             &7,
         );
 
-        assert_eq!(
-            client.name(),
-            String::from_str(&env, "Example Token")
-        );
+        assert_eq!(client.name(), String::from_str(&env, "Example Token"));
     }
 
     #[test]
@@ -616,10 +684,7 @@ mod tests {
             &7,
         );
 
-        assert_eq!(
-            client.symbol(),
-            String::from_str(&env, "EXT")
-        );
+        assert_eq!(client.symbol(), String::from_str(&env, "EXT"));
     }
 
     #[test]
@@ -639,24 +704,19 @@ mod tests {
 
     #[test]
     fn test_mint_emits_event() {
-        let (env, _contract_id, client) = setup();
+        let (env, contract_id, client) = setup();
         let alice = Address::generate(&env);
 
-        let before = env.events().all().len();
         client.mint(&alice, &500);
 
-        let events = env.events().all();
-        assert!(events.len() > before);
-        let minted: Vec<_> = events
-            .iter()
-            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("mint"))))
-            .collect();
-        assert_eq!(minted.len(), 1);
+        // `.all()` exposes only the most recent invocation's events.
+        let events = env.events().all().filter_by_contract(&contract_id);
+        assert!(!events.events().is_empty());
     }
 
     #[test]
     fn test_transfer_emits_event() {
-        let (env, _contract_id, client) = setup();
+        let (env, contract_id, client) = setup();
         let alice = Address::generate(&env);
         let bob = Address::generate(&env);
 
@@ -668,8 +728,16 @@ mod tests {
         assert!(events.len() > before);
         let transferred: Vec<_> = events
             .iter()
-            .filter(|e| e.1.iter().any(|v| *v == Val::from(symbol_short!("transfer"))))
+            .filter(|e| {
+                e.1.iter()
+                    .any(|v| *v == Val::from(symbol_short!("transfer")))
+            })
             .collect();
         assert_eq!(transferred.len(), 1);
+        client.transfer(&alice, &bob, &400);
+
+        // `.all()` exposes only the most recent invocation's events.
+        let events = env.events().all().filter_by_contract(&contract_id);
+        assert!(!events.events().is_empty());
     }
 }

@@ -320,33 +320,32 @@ The compiled WASM binary is at `target/wasm32-unknown-unknown/release/token_snap
 
 1. **Generate or use an existing identity:**
    ```bash
-   soroban keys generate snapshot-admin
+   stellar keys generate --global snapshot-admin
+   stellar keys fund snapshot-admin --network testnet
    ```
 
-2. **Fund the account** via the [Stellar Testnet Faucet](https://laboratory.stellar.org/?network=testnet#account-creator).
-
-3. **Deploy:**
+2. **Deploy:**
    ```bash
-   soroban contract deploy \
+   stellar contract deploy \
      --wasm target/wasm32-unknown-unknown/release/token_snapshot.wasm \
      --network testnet \
      --source snapshot-admin
    ```
    This returns a contract ID (e.g., `CDEF...`).
 
-4. **Initialize:**
+3. **Initialize:**
    ```bash
-   soroban contract invoke \
+   stellar contract invoke \
      --id CDEF... \
      --network testnet \
      --source snapshot-admin \
      -- initialize \
-     --admin $(soroban keys address snapshot-admin)
+     --admin $(stellar keys address snapshot-admin)
    ```
 
-5. **Mint tokens:**
+4. **Mint tokens:**
    ```bash
-   soroban contract invoke \
+   stellar contract invoke \
      --id CDEF... \
      --network testnet \
      --source snapshot-admin \
@@ -355,9 +354,9 @@ The compiled WASM binary is at `target/wasm32-unknown-unknown/release/token_snap
      --amount 1000
    ```
 
-6. **Create snapshot:**
+5. **Create snapshot:**
    ```bash
-   soroban contract invoke \
+   stellar contract invoke \
      --id CDEF... \
      --network testnet \
      --source snapshot-admin \
@@ -365,9 +364,9 @@ The compiled WASM binary is at `target/wasm32-unknown-unknown/release/token_snap
    ```
    Returns a snapshot ID (e.g., `1`).
 
-7. **Query historical balance:**
+6. **Query historical balance:**
    ```bash
-   soroban contract invoke \
+   stellar contract invoke \
      --id CDEF... \
      --network testnet \
      --source snapshot-admin \
