@@ -7,6 +7,8 @@ A contract that swaps its own Wasm for a new version while preserving stored sta
 - `env.deployer().update_current_contract_wasm` driven by an admin call
 - State surviving the upgrade to the v2 implementation
 - A `version` entry point so callers can tell which build is live
+- **Lazy storage migration** with version byte tracking
+- Double-migrate protection (panics if called twice)
 
 ## Build
 
