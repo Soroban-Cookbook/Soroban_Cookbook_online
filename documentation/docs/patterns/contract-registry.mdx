@@ -1,0 +1,173 @@
+---
+time: 20
+sidebar_position: 8
+title: Contract Registry
+description: Map stable byte names to contract addresses with administrative authorization
+difficulty: intermediate
+tags: []
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Contract Registry / Name Service
+
+A **contract registry** provides a stable name-to-address mapping for deployed contracts. This is useful alongside a contract factory: the factory deploys new contract instances, and the registry provides a stable name so clients do not need to track raw contract addresses.
+
+## Overview
+
+The registry contract allows an administrator to:
+
+- **Set** a name-to-address mapping
+- **Get** the address for a registered name
+- **Update** existing mappings (overwrite)
+
+Only the authorized administrator can update entries. All addresses can read mappings.
+
+## Use Cases
+
+- **Service Discovery**: Map human-readable names to contract addresses
+- **Factory Integration**: Register contracts deployed by a factory
+- **Version Management**: Point a name to the latest contract version
+- **Multi-contract Systems**: Provide stable references across contract upgrades
+
+## Architecture
+
+```
+Registry Contract
+├── initialize(admin)
+├── set(name, address)
+├── get(name) -> Option<Address>
+└── admin() -> Option<Address>
+```
+
+### Name Format
+
+Names are `Bytes` objects between 1 and 32 bytes. This supports:
+
+- ASCII strings: `b"token"`, `b"vault"`
+- Hex-encoded identifiers: `b"0x1234"`
+- Binary keys (for programmatic use)
+
+## Implementation
+
+### Core Logic
+
+```rust
+pub fn set(env: Env, name: Bytes, address: Address) -> Result<(), Error> {
+    let admin: Address = env
+        .storage()
+        .instance()
+        .get(&DataKey::Admin)
+        .ok_or(Error::NotInitialized)?;
+    admin.require_auth();
+
+    if name.len() == 0 || name.len() > 32 {
+        return Err(Error::NameTooLong);
+    }
+
+    env.storage()
+        .instance()
+        .set(&DataKey::Entry(name), &address);
+    Ok(())
+}
+
+pub fn get(env: Env, name: Bytes) -> Option<Address> {
+    env.storage().instance().get(&DataKey::Entry(name))
+}
+```
+
+### Key Properties
+
+1. **Authorization**: Only the admin can call `set`
+2. **Overwrite**: Calling `set` on an existing name updates the address
+3. **Missing entries**: `get` returns `None` for unregistered names
+4. **Name validation**: Names must be 1–32 bytes
+
+## Testing
+
+The implementation includes comprehensive tests:
+
+```rust
+#[test]
+fn set_and_get_registered_name() {
+    let fixture = setup();
+    initialize(&fixture);
+
+    let n = name(&fixture.env, "my-contract");
+    let addr = Address::generate(&fixture.env);
+    fixture.client.set(&n, &addr);
+
+    assert_eq!(fixture.client.get(&n), Some(addr));
+}
+
+#[test]
+fn unauthorized_set_fails() {
+    let env = Env::default();
+    let admin = Address::generate(&env);
+    let unauthorized = Address::generate(&env);
+
+    let contract_id = env.register(Registry, ());
+    let client = RegistryClient::new(&env, &contract_id);
+
+    env.mock_auths(&[MockAuth { ... }]);
+    client.initialize(&admin);
+
+    let n = name(&env, "my-contract");
+    let addr = Address::generate(&env);
+
+    // Try with unauthorized address
+    env.mock_auths(&[MockAuth { ... }]);
+    let result = client.try_set(&n, &addr);
+    assert_eq!(result, Err(Ok(Error::Unauthorized)));
+}
+```
+
+### Test Coverage
+
+- [x] Registry initialization with admin
+- [x] Authorized `set()` and `get()` roundtrip
+- [x] Update existing name overwrites address
+- [x] Unauthorized `set()` fails
+- [x] Multiple names map to different contracts
+- [x] Missing name returns `None`
+- [x] Empty name rejected
+- [x] Name over 32 bytes rejected
+- [x] Reinitialization rejected
+
+## Integration with Factory
+
+The registry pairs naturally with the [Contract Factory](./contract-factory.mdx) pattern:
+
+```
+Factory: deploy_child(name) -> address
+Registry: set(name, address)
+```
+
+1. Factory deploys a new contract and returns its address
+2. The address is registered under a stable name
+3. Clients resolve the name to get the current address
+
+This separation allows:
+
+- **Upgrades**: Deploy a new contract and update the registry entry
+- **Discovery**: Clients look up contracts by name, not address
+- **Governance**: Registry updates can require multi-sig approval
+
+## Example Files
+
+- **Contract**: `examples/registry/src/lib.rs`
+- **Tests**: Included in the contract file
+- **Cargo.toml**: `examples/registry/Cargo.toml`
+
+## Related Patterns
+
+- [Contract Factory](./contract-factory.mdx) - Deploy contract instances
+- [Authorization](./authorization.mdx) - Access control patterns
+- [Error Handling](./error-handling.mdx) - Error patterns
+
+## Resources
+
+- [Soroban Storage](https://developers.stellar.org/docs/smart-contracts/storage)
+- [Contract Lifecycle](./lifecycle-upgrades.mdx)
+- [Security Fundamentals](../security/fundamentals.md)

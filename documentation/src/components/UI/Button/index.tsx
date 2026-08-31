@@ -1,52 +1,13 @@
-import React, { forwardRef } from 'react';
-import clsx from 'clsx';
-import type { ButtonProps } from './Button.types';
+/**
+ * @deprecated Import from `@site/src/components/buttons` instead.
+ *
+ * `src/components/buttons` is the canonical Button implementation (issue #629).
+ * This path is kept as a re-export so existing imports keep resolving, but it
+ * no longer defines its own component — the prop API is the canonical one:
+ * `variant` (`primary` | `secondary` | `tertiary` | `ghost` | `danger`),
+ * `size` (`small` | `medium` | `large`), and `startIcon` / `endIcon` in place
+ * of the old `iconLeft` / `iconRight`.
+ */
 
-function Spinner() {
-  return <span className="sb-btn__spinner" aria-hidden="true" />;
-}
-
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  {
-    variant = 'primary',
-    size = 'md',
-    iconLeft,
-    iconRight,
-    loading = false,
-    iconOnly = false,
-    className,
-    children,
-    disabled,
-    type = 'button',
-    ...rest
-  },
-  ref,
-) {
-  const isDisabled = disabled || loading;
-
-  return (
-    <button
-      {...rest}
-      ref={ref}
-      type={type}
-      disabled={isDisabled}
-      aria-busy={loading || undefined}
-      className={clsx(
-        'sb-btn',
-        `sb-btn--${variant}`,
-        `sb-btn--${size}`,
-        {
-          'sb-btn--icon-only': iconOnly,
-          'is-loading': loading,
-        },
-        className,
-      )}>
-      {loading && <Spinner />}
-      {!loading && iconLeft && <span className="sb-btn__icon">{iconLeft}</span>}
-      {!iconOnly && <span className="sb-btn__label">{children}</span>}
-      {!loading && iconRight && <span className="sb-btn__icon">{iconRight}</span>}
-    </button>
-  );
-});
-
-export default Button;
+export { Button as default, Button } from '../../buttons';
+export type { ButtonProps, ButtonVariant, ButtonSize } from '../../buttons';

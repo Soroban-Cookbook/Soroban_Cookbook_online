@@ -1,20 +1,13 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+/**
+ * @deprecated Import these types from `@site/src/components/buttons` instead.
+ *
+ * Re-exported from the canonical Button implementation (issue #629).
+ */
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'link';
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
-
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  iconLeft?: ReactNode;
-  iconRight?: ReactNode;
-  loading?: boolean;
-  iconOnly?: boolean;
-}
-
-export interface ButtonGroupProps {
-  children: ReactNode;
-  ariaLabel?: string;
-  vertical?: boolean;
-  className?: string;
-}
+export type {
+  ButtonProps,
+  ButtonVariant,
+  ButtonSize,
+  ButtonGroupProps,
+  ButtonGroupVariant,
+} from '../../buttons';

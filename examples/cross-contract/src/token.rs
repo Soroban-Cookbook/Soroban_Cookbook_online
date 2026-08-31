@@ -1,11 +1,11 @@
 //! Simple token contract that serves as the "callee" in cross-contract invocations.
-//! 
+//!
 //! This contract demonstrates:
 //! - Basic token operations (mint, transfer, balance)
 //! - Authorization requirements
 //! - Error conditions that cross-contract callers must handle
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol};
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, Symbol};
 
 #[derive(Clone)]
 #[contracttype]
@@ -14,8 +14,14 @@ pub enum DataKey {
     Admin,
 }
 
-#[contracttype]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[contracterror]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[repr(u32)]
 pub enum TokenError {
     /// Insufficient balance for the requested operation
     InsufficientBalance = 1,
@@ -50,15 +56,30 @@ impl Token {
 
         let balance = Self::balance(env.clone(), to.clone());
         let new_balance = balance + amount;
+
+        env.storage().persistent().set(&DataKey::Balance(to.clone()), &new_balance);
+
         
-        env.storage().persistent().set(&DataKey::Balance(to), &new_balance);
+        env.storage().persistent().set(&DataKey::Balance(to.clone()), &new_balance);
         
         // Emit transfer event
         env.events().publish(
-            (Symbol::new(&env, "transfer"), Address::from_contract_address(&env)),
-            (Address::from_contract_address(&env), to, amount)
+            (Symbol::new(&env, "transfer"), env.current_contract_address()),
+            (env.current_contract_address(), to, amount)
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(to.clone()), &new_balance);
+
+        // Emit transfer event
+        env.events().publish(
+            (
+                Symbol::new(&env, "transfer"),
+                env.current_contract_address(),
+            ),
+            (env.current_contract_address(), to, amount),
         );
-        
+
         Ok(())
     }
 
@@ -72,23 +93,34 @@ impl Token {
         }
 
         let from_balance = Self::balance(env.clone(), from.clone());
-        
+
         if from_balance < amount {
             return Err(TokenError::InsufficientBalance);
         }
 
         let to_balance = Self::balance(env.clone(), to.clone());
-        
+
         // Update balances
         env.storage().persistent().set(&DataKey::Balance(from.clone()), &(from_balance - amount));
         env.storage().persistent().set(&DataKey::Balance(to.clone()), &(to_balance + amount));
-        
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(from.clone()), &(from_balance - amount));
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(to.clone()), &(to_balance + amount));
+
         // Emit transfer event
         env.events().publish(
-            (Symbol::new(&env, "transfer"), Address::from_contract_address(&env)),
+            (Symbol::new(&env, "transfer"), env.current_contract_address()),
             (from, to, amount)
+            (
+                Symbol::new(&env, "transfer"),
+                env.current_contract_address(),
+            ),
+            (from, to, amount),
         );
-        
+
         Ok(())
     }
 
@@ -105,12 +137,13 @@ impl Token {
         env.storage().instance().get(&DataKey::Admin).unwrap()
     }
 
-    /// Simulate a contract that might fail unpredictably
+    /// Simulate a contract that fails with a normal contract error so the caller can
+    /// recover using try_* without escalating into a host panic.
     pub fn risky_operation(env: Env, should_fail: bool) -> Result<i128, TokenError> {
         if should_fail {
-            panic!("Simulated contract failure");
+            return Err(TokenError::Unauthorized);
         }
-        
+
         // Return some computation
         Ok(42)
     }

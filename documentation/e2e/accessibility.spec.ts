@@ -28,6 +28,21 @@ test.describe('Automated Accessibility Audit (@axe-core)', () => {
       await page.waitForLoadState('networkidle');
       // Allow CSS transitions / lazy sections to settle after reduced-motion.
       await page.waitForTimeout(300);
+      await page.waitForLoadState('networkidle');
+
+      // Cards on these pages fade in. Scanning mid-transition samples
+      // part-way-composited colours, which made this suite flaky and reported
+      // contrast failures for colours that never actually render. Freeze
+      // animations so axe sees the settled page.
+      await page.addStyleTag({
+        content: `*, *::before, *::after {
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0s !important;
+          transition-delay: 0s !important;
+        }`,
+      });
+      await page.waitForTimeout(250);
 
       const accessibilityScanResults = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

@@ -196,7 +196,13 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #1c1917;
+  /* #f59e0b is only 2.1:1 on the card surface in light mode. */
+  color: #9a6206;
   font-family: var(--ifm-font-family-monospace);
+}
+
+[data-theme='dark'] .patternBadge {
+  color: #f59e0b;
 }
 
 .patternTag {
@@ -247,6 +253,7 @@
   font-weight: 700;
   font-family: var(--ifm-font-family-monospace);
   color: #1c1917;
+  color: #9a6206;
   transition: opacity 0.15s;
 }
 

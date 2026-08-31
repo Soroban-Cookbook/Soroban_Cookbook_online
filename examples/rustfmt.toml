@@ -1,0 +1,28 @@
+# rustfmt configuration for all Soroban example crates.
+#
+# These settings keep the example contracts formatted consistently so that
+# `cargo fmt --all -- --check` in CI (and locally) produces stable, reviewable
+# diffs across every crate in the workspace.
+
+edition = "2021"
+max_width = 100
+use_field_init_shorthand = true
+reorder_imports = true
+# Shared rustfmt configuration for the Soroban Cookbook example contracts.
+#
+# Every example crate in this workspace is a `no_std` Soroban contract written
+# against edition 2021. We pin the edition here so formatting stays
+# deterministic across rustfmt versions (the default edition has shifted
+# between toolchains in the past).
+#
+# Local contributors and CI both resolve this config by running `cargo fmt`
+# from the `examples/` workspace root:
+#
+#   cargo fmt --manifest-path examples/Cargo.toml --all -- --check
+#
+# Keep settings deliberately small and stable-toolchain compatible. Options
+# such as `imports_granularity` / `group_imports` are nightly-only and are
+# deliberately NOT set here so the config behaves identically on the stable
+# toolchain used by CI.
+
+edition = "2021"

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from '@docusaurus/Link';
 import { Highlight, themes as prismThemes } from 'prism-react-renderer';
+import accessibleGithubPrismTheme from '@site/src/theme/prismAccessibleGithub';
 import { trackCopyCode } from '@site/src/utils/analytics';
 import styles from './styles.module.css';
 
@@ -72,6 +73,11 @@ function CopyButton({ text }: { text: string }) {
 export default function QuickStartSection() {
   // Always use vsDark — github light token colors fail WCAG AA contrast audits.
   const selectedTheme = prismThemes.vsDark;
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === 'dark';
+  // The stock github theme fails WCAG AA on its own code background; use the
+  // contrast-corrected variant the docs prism config also uses.
+  const selectedTheme = isDark ? prismThemes.vsDark : accessibleGithubPrismTheme;
 
   return (
     <section className={styles.section}>

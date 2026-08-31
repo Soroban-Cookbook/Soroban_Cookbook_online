@@ -10,6 +10,9 @@ keywords:
 image: /img/soroban-social-card.png
 ---
 
+> **Note:** This concept page covers the high-level differences between token models in Soroban. For concrete implementation templates and examples, see the [Token Standards Pattern](../patterns/token-standards).
+
+
 # Soroban Token Standards Overview
 
 Soroban token implementations generally follow two tracks:

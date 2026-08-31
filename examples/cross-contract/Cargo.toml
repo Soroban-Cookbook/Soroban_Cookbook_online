@@ -2,16 +2,24 @@
 name = "cross-contract"
 version = "0.0.0"
 edition = "2021"
+description = "Soroban example demonstrating cross-contract invocations between a token and a vault."
+keywords = ["soroban", "example", "cross-contract"]
 publish = false
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+soroban-sdk = "22.0.0"
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
 
 [dev-dependencies]
-soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+soroban-sdk = "22.0.0"
+soroban-sdk = { version = "27.0.6", features = ["testutils"] }
+
+[dev-dependencies]
+soroban-sdk = { version = "27.0.6", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]

@@ -27,20 +27,20 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -64,20 +64,20 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -98,20 +98,20 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -120,6 +120,9 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Run Playwright specs type check
+        run: bun run typecheck:e2e
 
       - name: Run TypeScript check
         run: bun run typecheck
@@ -132,20 +135,20 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -153,7 +156,7 @@ jobs:
             bun-
 
       - name: Cache build output
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: documentation/build
           key: build-${{ github.sha }}
@@ -162,6 +165,9 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Check generated content registry
+        run: bun run check:content-registry
 
       - name: Build documentation
         run: bun run build
@@ -197,15 +203,15 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
@@ -218,7 +224,7 @@ jobs:
           echo "✅ bun.lock found"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -245,7 +251,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -253,7 +259,88 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Cache Cargo registry
-        uses: actions/cache@v4
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            examples/target
+          key: cargo-examples-${{ hashFiles('examples/Cargo.lock') }}
+          restore-keys: |
+            cargo-examples-
+
+      - name: Check Cargo.lock exists
+        run: |
+          if [ ! -f examples/Cargo.lock ]; then
+            echo "❌ examples/Cargo.lock not found — run 'cargo update' inside examples/ and commit the lockfile"
+            exit 1
+          fi
+          echo "✅ examples/Cargo.lock found"
+
+      - name: Check every example crate has a README
+        run: bash scripts/check-example-readmes.sh
+
+      - name: Run example tests (locked)
+        run: bash scripts/test-examples.sh
+
+  wasm-build-examples:
+    name: Wasm Build Code Examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            examples/target
+            examples/upgradeable/v2/target
+            examples/contract-factory/child/target
+          key: cargo-wasm-examples-${{ hashFiles('examples/**/Cargo.toml') }}
+          restore-keys: |
+            cargo-wasm-examples-
+
+      - name: Build every example to wasm32v1-none (release)
+        run: bash scripts/build-examples-wasm.sh
+
+  rustfmt:
+    name: Rust Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust stable (with rustfmt)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check Rust formatting for all examples
+        working-directory: examples
+        run: cargo fmt --all -- --check
+
+  check-wasm-budgets:
+    name: Check Wasm Size Budgets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -263,9 +350,36 @@ jobs:
           restore-keys: |
             cargo-examples-
 
-      - name: Run example tests
-        run: bash scripts/test-examples.sh
-        continue-on-error: true
+      - name: Release-build every example and enforce Wasm budgets
+        run: bash scripts/check-wasm-budgets.sh
+
+  lint-contracts:
+    name: Lint Contract Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check example formatting (rustfmt.toml)
+        # Uses the shared config at examples/rustfmt.toml (edition 2021) so local
+        # `cargo fmt` output and CI match. Requires every workspace member to be
+        # formatted identically.
+        run: cargo fmt --manifest-path examples/Cargo.toml --all -- --check
+
+      - name: Lint example libs (clippy.toml)
+        # Loads the shared thresholds from examples/clippy.toml. Scoped to --lib
+        # so pre-existing test-only compile issues don't block the style gate.
+        run: cargo clippy --manifest-path examples/Cargo.toml --workspace --lib
+
+      - name: Forbid new unwrap/expect outside #[cfg(test)]
+        run: bash scripts/forbid-unwrap.sh
 
   e2e-console:
     name: Browser Console Audit
@@ -276,20 +390,20 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -311,7 +425,7 @@ jobs:
           CI: true
 
   e2e-smoke:
-    name: Playwright Smoke Tests (Chromium)
+    name: Playwright Core Tests (Chromium)
     runs-on: ubuntu-latest
     needs: [build-docs]
     defaults:
@@ -319,20 +433,20 @@ jobs:
         working-directory: ./documentation
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.2.0"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ hashFiles('documentation/bun.lock') }}
@@ -343,7 +457,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: documentation-build
           path: documentation/build
@@ -356,27 +470,108 @@ jobs:
           bun run serve --port 3000 &
           npx wait-on http://localhost:3000 --timeout 60000
 
-      - name: Run smoke tests (Chromium)
-        # Keep this job scoped to smoke.spec.ts — a11y/search suites are covered
-        # separately (or follow-ups). Running the full Chromium project here pulls
-        # in contrast/search failures unrelated to basic smoke coverage.
-        run: npx playwright test e2e/smoke.spec.ts --project=chromium
+      - name: Run core tests (Chromium)
+        # Keep this job scoped to smoke.spec.ts, accessibility.spec.ts, and navigation.spec.ts
+        # Other suites are run nightly/on main to reduce PR CI times.
+        run: npx playwright test e2e/smoke.spec.ts e2e/accessibility.spec.ts e2e/navigation.spec.ts --project=chromium
         env:
-          BASE_URL: http://localhost:3000
+          E2E_BASE_URL: http://localhost:3000
           CI: "true"
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-ci-chromium
           path: documentation/playwright-report
           retention-days: 7
 
+  check-snippet-drift:
+    name: Snippet Drift Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for drifted src= snippets
+        run: bash scripts/check-snippet-drift.sh
+  coverage:
+    name: Unit Test Coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./documentation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2.0"
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ hashFiles('documentation/bun.lock') }}
+          restore-keys: |
+            bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run tests with coverage
+        # Thresholds are enforced by vitest.config.ts (global + per-file).
+        # The job fails if any threshold is breached.
+        run: bun run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: |
+            documentation/coverage/coverage-summary.json
+            documentation/coverage/index.html
+          retention-days: 14
+
+      - name: Post coverage summary to job
+        if: always()
+        run: |
+          SUMMARY=coverage/coverage-summary.json
+          if [ ! -f "$SUMMARY" ]; then
+            echo "⚠️  Coverage summary not found — tests may have failed before report generation."
+            exit 0
+          fi
+          LINES=$(node -e "const d=require('./$SUMMARY');console.log(d.total.lines.pct+'%')")
+          STMTS=$(node -e "const d=require('./$SUMMARY');console.log(d.total.statements.pct+'%')")
+          FUNCS=$(node -e "const d=require('./$SUMMARY');console.log(d.total.functions.pct+'%')")
+          BRNCH=$(node -e "const d=require('./$SUMMARY');console.log(d.total.branches.pct+'%')")
+          echo "### 📊 Coverage Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Metric | Coverage | Threshold |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|--------|----------|-----------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Lines | $LINES | 26% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Statements | $STMTS | 26% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Functions | $FUNCS | 27% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Branches | $BRNCH | 30% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "_Full HTML report available in the \`coverage-report\` artifact._" >> "$GITHUB_STEP_SUMMARY"
+
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, e2e-console, e2e-smoke]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, e2e-console, e2e-smoke, check-snippet-drift]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, e2e-console, e2e-smoke, check-wasm-budgets]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, rustfmt, lint-contracts, e2e-console, e2e-smoke]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, wasm-build-examples, lint-contracts, e2e-console, e2e-smoke]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, e2e-console, e2e-smoke, coverage]
     if: always()
     steps:
       - name: Check job statuses
@@ -406,10 +601,35 @@ jobs:
             exit 1
           fi
           if [ "${{ needs.e2e-smoke.result }}" != "success" ]; then
-            echo "❌ Playwright smoke tests failed"
+            echo "❌ Playwright core tests (smoke, a11y, navigation) failed"
+            exit 1
+          fi
+          if [ "${{ needs.rustfmt.result }}" != "success" ]; then
+            echo "❌ Rust format check failed"
+            exit 1
+          fi
+          if [ "${{ needs.lint-contracts.result }}" != "success" ]; then
+            echo "❌ Contract code lint failed"
             exit 1
           fi
           if [ "${{ needs.test-examples.result }}" != "success" ]; then
-            echo "⚠️  Code example tests failed (non-blocking)"
+            echo "❌ Code example tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.coverage.result }}" != "success" ]; then
+            echo "❌ Coverage check failed (thresholds not met)"
+            exit 1
+          fi
+          if [ "${{ needs.wasm-build-examples.result }}" != "success" ]; then
+            echo "❌ Wasm build of code examples failed"
+            exit 1
+          fi
+          if [ "${{ needs.check-wasm-budgets.result }}" != "success" ]; then
+            echo "❌ Wasm size budget check failed"
+            exit 1
+          fi
+          if [ "${{ needs.check-snippet-drift.result }}" != "success" ]; then
+            echo "❌ Snippet drift check failed"
+            exit 1
           fi
           echo "✅ All critical CI checks passed"

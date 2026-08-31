@@ -1,0 +1,184 @@
+---
+time: 15
+sidebar_position: 12
+title: Batch Operations
+description: Bound repeated Soroban operations to amortize shared costs without creating unbounded work.
+image: /img/soroban-social-card.png
+tags: [optimization, authorization, storage]
+---
+
+<PatternMeta
+  slug="batch-operations"
+  difficulty="intermediate"
+  category="Architecture"
+  status="stable"
+  lastReviewed="August 2026"
+/>
+
+## Overview
+
+Batching combines similar operations into one contract invocation. The
+[`batch-ops` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/batch-ops)
+transfers one sender's balance to several recipients while requiring authorization only once and
+reading and writing the sender's balance only once.
+
+The example limits a batch to **20 operations**. This is an application limit, not a Soroban
+protocol limit.
+
+<PatternCallout variant="info" title="When to batch">
+
+Batch when operations share authorization or storage setup and callers benefit from fewer contract
+invocations. Prefer separate calls when operations need independent atomicity, unrelated
+authorization, or highly variable resource costs.
+
+</PatternCallout>
+
+<PatternSection id="implementation" title="Implementation">
+
+Define one named limit and reject invalid batch sizes before changing state:
+
+~~~rust
+pub const MAX_BATCH_SIZE: u32 = 20;
+
+pub fn batch_transfer(
+    env: Env,
+    from: Address,
+    ops: Vec<TransferOp>,
+) -> Result<Vec<OpResult>, Error> {
+    from.require_auth();
+
+    if ops.is_empty() {
+        return Err(Error::EmptyBatch);
+    }
+    if ops.len() > MAX_BATCH_SIZE {
+        return Err(Error::BatchTooLarge);
+    }
+
+    let mut sender_balance = Self::balance_of(env.clone(), from.clone());
+    let mut results = Vec::new(&env);
+
+    for op in ops.iter() {
+        if op.amount <= 0 || sender_balance < op.amount {
+            results.push_back(OpResult::InsufficientBalance);
+            continue;
+        }
+
+        sender_balance -= op.amount;
+        let recipient_balance = Self::balance_of(env.clone(), op.to.clone());
+        env.storage().persistent().set(
+            &DataKey::Balance(op.to.clone()),
+            &(recipient_balance + op.amount),
+        );
+        results.push_back(OpResult::Ok);
+    }
+
+    env.storage()
+        .persistent()
+        .set(&DataKey::Balance(from), &sender_balance);
+
+    Ok(results)
+}
+~~~
+
+The loop is now predictable. Authorization and sender-balance storage costs are shared, while
+recipient reads and writes still grow linearly with successful operations.
+
+### Boundary tests
+
+The
+[`test_batch_transfer_accepts_batch_at_exactly_the_limit`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/batch-ops/src/lib.rs)
+test constructs exactly `MAX_BATCH_SIZE` operations and verifies that all **20** succeed. The
+companion over-limit test constructs 21 operations, expects `Error::BatchTooLarge`, and confirms
+that the sender's balance did not change.
+
+~~~rust
+let mut ops = Vec::new(&env);
+for _ in 0..MAX_BATCH_SIZE {
+    ops.push_back(TransferOp {
+        to: Address::generate(&env),
+        amount: 1,
+    });
+}
+
+let results = client.batch_transfer(&sender, &ops);
+assert_eq!(results.len(), MAX_BATCH_SIZE);
+~~~
+
+<PatternCallout variant="warning" title="A boundary test is not a budget measurement">
+
+This proves the contract accepts 20 items; it does not prove every possible 20-item batch fits every
+network resource budget. Authorization, ledger footprint, contract changes, SDK upgrades, and
+network configuration can change the measured cost.
+
+</PatternCallout>
+
+</PatternSection>
+
+<PatternSection id="instruction-budget" title="Instruction and resource budget">
+
+Soroban meters CPU instructions, memory, ledger reads and writes, event data, and transaction size.
+A caller-controlled loop consumes more of the transaction-wide budget for every item, including
+work performed by nested contract calls.
+
+Choose a production batch limit by measurement:
+
+1. Build optimized Wasm for the SDK and protocol version being deployed.
+2. Simulate sizes from 1 through the proposed maximum against realistic ledger state.
+3. Include a worst case: distinct recipients, successful writes, full authorization, and any
+   downstream contract calls.
+4. Record CPU instructions, memory, ledger entries and bytes, transaction size, and resource fee.
+5. Set the application cap below the measured failure point, leaving upgrade and configuration
+   margin.
+6. Repeat after upgrades and keep exact-limit and over-limit tests in CI.
+
+Do not derive `MAX_BATCH_SIZE` from a copied network instruction-limit number. Network limits are
+configuration, while the contract guard is part of its API and upgrade policy. See
+[Gas and Resource Management](/docs/concepts/gas-and-resources) for profiling guidance.
+
+</PatternSection>
+
+<PatternSection id="failure-semantics" title="Failure semantics">
+
+- `EmptyBatch` and `BatchTooLarge` reject the call before balance changes.
+- A non-positive or overdrawing transfer returns `OpResult::InsufficientBalance`, is skipped, and
+  does not stop later valid operations.
+- Results preserve input order.
+
+A direct off-chain caller cannot undo successful items after the transaction commits. If a use case
+requires all-or-nothing behavior, validate every item before the first write or provide a separate
+atomic entry point.
+
+</PatternSection>
+
+<PatternSection id="security" title="Security considerations">
+
+- Require the batch owner's authorization before processing any item.
+- Run batch-level validation before writes or external calls.
+- Cap every caller-controlled loop and include nested work in the estimate.
+- Document ordering and partial-success semantics for clients.
+- Decide whether duplicate recipients are valid; this example accumulates their transfers.
+
+</PatternSection>
+
+<PatternSection id="run-example" title="Run the example">
+
+The crate currently targets `soroban-sdk = "22.0.0"` and is not in the examples workspace, whose
+members use a newer SDK. Track SDK migration and workspace membership as a separate follow-up so
+this documentation change does not silently alter contract behavior.
+
+After that compatibility follow-up is resolved, run:
+
+~~~bash
+./scripts/test-examples.sh batch-ops
+~~~
+
+</PatternSection>
+
+<PatternSection id="related" title="Related patterns">
+
+- [Complete batch-ops example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/batch-ops)
+- [Contract Optimization Playbook](/docs/patterns/optimization-playbook)
+- [Gas and Resource Management](/docs/concepts/gas-and-resources)
+- [Authorization and Access Control](/docs/patterns/authorization)
+
+</PatternSection>

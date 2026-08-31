@@ -31,6 +31,7 @@ test.describe('search page a11y (chromium)', () => {
     await page.goto('/search?q=setup');
 
     const input = page.locator(SEARCH_INPUT).first();
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await expect(input).toBeVisible({ timeout: 5000 });
 
     const results = await new AxeBuilder({ page })
@@ -46,11 +47,16 @@ test.describe('search page a11y (chromium)', () => {
     await page.goto('/search?q=zzznoresultssurelymissingzzz');
 
     const input = page.locator(SEARCH_INPUT).first();
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await expect(input).toBeVisible({ timeout: 5000 });
 
     // Confirm we are actually in the zero-results state before scanning.
     await expect
       .poll(async () => await page.locator(SEARCH_RESULTS).count(), { timeout: 10_000 })
+      .poll(
+        async () => await page.locator('.main-wrapper .container.margin-vert--lg article').count(),
+        { timeout: 10_000 },
+      )
       .toBe(0);
 
     const results = await new AxeBuilder({ page })

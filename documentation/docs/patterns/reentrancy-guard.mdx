@@ -1,3 +1,4 @@
+```mdx
 ---
 sidebar_position: 12
 title: Reentrancy Guard Pattern
@@ -44,6 +45,17 @@ This pattern demonstrates how to implement a **Reentrancy Guard** in Soroban usi
 
 When a function executes external calls (e.g., notifying external receiver contracts or transferring tokens), set a lock flag `DataKey::Locked = true` before the external call, and reset `DataKey::Locked = false` upon completion.
 
+First, define the contract interface for the external receiver:
+
+```rust
+#[contractclient(name = "ReceiverClient")]
+pub trait ReceiverInterface {
+    fn on_withdraw(env: Env, vault: Address, amount: i128);
+}
+```
+
+Define storage keys and errors:
+
 ```rust
 #[contracttype]
 #[derive(Clone)]
@@ -60,46 +72,269 @@ pub enum Error {
     InsufficientBalance = 2,
     InvalidAmount = 3,
 }
+```
+
+#### Deposit and Balance Functions
+
+Helper functions to manage balances:
+
+```rust
+pub fn deposit(env: Env, user: Address, amount: i128) -> Result<(), Error> {
+    user.require_auth();
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    let current_balance = Self::balance(env.clone(), user.clone());
+    let new_balance = current_balance
+        .checked_add(amount)
+        .expect("balance overflow");
+    env.storage()
+        .persistent()
+        .set(&DataKey::Balance(user), &new_balance);
+    Ok(())
+}
+
+pub fn balance(env: Env, user: Address) -> i128 {
+    env.storage()
+        .persistent()
+        .get(&DataKey::Balance(user))
+        .unwrap_or(0)
+}
+
+pub fn is_locked(env: Env) -> bool {
+    env.storage()
+        .instance()
+        .get(&DataKey::Locked)
+        .unwrap_or(false)
+}
+```
+
+#### Guarded Withdraw
+
+The main guarded function:
+
+```rust
+pub fn withdraw(
+    env: Env,
+    user: Address,
+    amount: i128,
+    receiver: Address,
+) -> Result<(), Error> {
+    user.require_auth();
+
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+
+    // 1. Mutex Check: ensure contract is not already locked
+    if env.storage().instance().get(&DataKey::Locked).unwrap_or(false) {
+        return Err(Error::ReentrancyDetected);
+    }
+
+    // 2. Set Mutex Lock
+    env.storage().instance().set(&DataKey::Locked, &true);
+
+    // 3. Check balance
+    let user_balance = Self::balance(env.clone(), user.clone());
+    if user_balance < amount {
+        // Release lock before returning error
+        env.storage().instance().set(&DataKey::Locked, &false);
+        return Err(Error::InsufficientBalance);
+    }
+
+    // 4. External Call / Interaction phase: notify receiver contract
+    let client = ReceiverClient::new(&env, &receiver);
+    client.on_withdraw(&env.current_contract_address(), &amount);
+
+    // 5. Update State (Effects phase)
+    let new_balance = user_balance - amount;
+    env.storage()
+        .persistent()
+        .set(&DataKey::Balance(user.clone()), &new_balance);
+
+    // 6. Release Mutex Lock
+    env.storage().instance().set(&DataKey::Locked, &false);
+
+    Ok(())
+}
+```
+
+#### Vulnerable Version (For Comparison)
+
+The `withdraw_vulnerable` function omits the mutex lock, allowing reentrancy:
+
+```rust
+pub fn withdraw_vulnerable(
+    env: Env,
+    user: Address,
+    amount: i128,
+    receiver: Address,
+) -> Result<(), Error> {
+    user.require_auth();
+
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+
+    let user_balance = Self::balance(env.clone(), user.clone());
+    if user_balance < amount {
+        return Err(Error::InsufficientBalance);
+    }
+
+    // ❌ External call WITHOUT mutex locking!
+    let client = ReceiverClient::new(&env, &receiver);
+    client.on_withdraw(&env.current_contract_address(), &amount);
+
+    // Update state after external call
+    let new_balance = user_balance - amount;
+    env.storage()
+        .persistent()
+        .set(&DataKey::Balance(user.clone()), &new_balance);
+
+    Ok(())
+}
+```
+
+### Attacker Contract Simulation
+
+To test the guard, an `AttackerContract` simulates reentrancy:
+
+```rust
+#[contract]
+pub struct AttackerContract;
 
 #[contractimpl]
-impl ReentrancyGuardVault {
-    pub fn withdraw(
-        env: Env,
-        user: Address,
-        amount: i128,
-        receiver: Address,
-    ) -> Result<(), Error> {
-        user.require_auth();
+impl AttackerContract {
+    pub fn set_attack_mode(env: Env, target_user: Address, use_vulnerable_target: bool) {
+        env.storage()
+            .instance()
+            .set(&symbol_short!("user"), &target_user);
+        env.storage()
+            .instance()
+            .set(&symbol_short!("mode"), &use_vulnerable_target);
+        env.storage()
+            .instance()
+            .set(&symbol_short!("count"), &0u32);
+    }
 
-        // 1. Check Mutex Lock
-        if env.storage().instance().get(&DataKey::Locked).unwrap_or(false) {
-            return Err(Error::ReentrancyDetected);
+    pub fn attack_count(env: Env) -> u32 {
+        env.storage()
+            .instance()
+            .get(&symbol_short!("count"))
+            .unwrap_or(0)
+    }
+
+    pub fn on_withdraw(env: Env, vault: Address, amount: i128) {
+        let count: u32 = env
+            .storage()
+            .instance()
+            .get(&symbol_short!("count"))
+            .unwrap_or(0);
+
+        if count < 1 {
+            env.storage()
+                .instance()
+                .set(&symbol_short!("count"), &(count + 1));
+
+            let target_user: Address = env
+                .storage()
+                .instance()
+                .get(&symbol_short!("user"))
+                .expect("user target not configured");
+
+            let use_vulnerable: bool = env
+                .storage()
+                .instance()
+                .get(&symbol_short!("mode"))
+                .unwrap_or(false);
+
+            let vault_client = ReentrancyGuardVaultClient::new(&env, &vault);
+
+            if use_vulnerable {
+                let _ = vault_client.try_withdraw_vulnerable(
+                    &target_user,
+                    &amount,
+                    &env.current_contract_address(),
+                );
+            } else {
+                let _ = vault_client.try_withdraw(
+                    &target_user,
+                    &amount,
+                    &env.current_contract_address(),
+                );
+            }
         }
-
-        // 2. Set Mutex Lock
-        env.storage().instance().set(&DataKey::Locked, &true);
-
-        let user_balance = Self::balance(env.clone(), user.clone());
-        if user_balance < amount {
-            env.storage().instance().set(&DataKey::Locked, &false);
-            return Err(Error::InsufficientBalance);
-        }
-
-        // 3. External Call / Interaction
-        let client = ReceiverClient::new(&env, &receiver);
-        client.on_withdraw(&env.current_contract_address(), &amount);
-
-        // 4. Update Internal State
-        env.storage().persistent().set(&DataKey::Balance(user.clone()), &(user_balance - amount));
-
-        // 5. Release Mutex Lock
-        env.storage().instance().set(&DataKey::Locked, &false);
-
-        Ok(())
     }
 }
 ```
 
-See the full tested implementation in [`examples/reentrancy-guard`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/reentrancy-guard).
+### Tests
+
+The example includes tests demonstrating both the guarded and vulnerable behavior:
+
+```rust
+#[test]
+fn test_guarded_withdraw_success() {
+    let (env, _vault_id, user, vault_client, _attacker_id, _attacker_client) = setup_env();
+
+    vault_client.deposit(&user, &1000);
+    assert_eq!(vault_client.balance(&user), 1000);
+
+    let dummy_id = env.register(DummyReceiver, ());
+
+    vault_client.withdraw(&user, &400, &dummy_id);
+    assert_eq!(vault_client.balance(&user), 600);
+    assert!(!vault_client.is_locked());
+}
+
+#[test]
+fn test_reentrancy_attack_blocked() {
+    let (_env, _vault_id, user, vault_client, attacker_id, attacker_client) = setup_env();
+
+    vault_client.deposit(&user, &1000);
+    assert_eq!(vault_client.balance(&user), 1000);
+
+    // Configure attacker to attack via guarded withdraw
+    attacker_client.set_attack_mode(&user, &false);
+
+    // User initiates withdrawal with attacker as receiver
+    vault_client.withdraw(&user, &500, &attacker_id);
+
+    // Attacker tried to reenter but was blocked
+    assert_eq!(attacker_client.attack_count(), 1);
+
+    // Balance reflects only one deduction
+    assert_eq!(vault_client.balance(&user), 500);
+    assert!(!vault_client.is_locked());
+}
+
+#[test]
+fn test_vulnerable_withdraw_allows_reentrancy() {
+    let (_env, _vault_id, user, vault_client, attacker_id, attacker_client) = setup_env();
+
+    vault_client.deposit(&user, &1000);
+
+    // Configure attacker to attack via vulnerable withdraw
+    attacker_client.set_attack_mode(&user, &true);
+
+    // User initiates vulnerable withdrawal
+    vault_client.withdraw_vulnerable(&user, &500, &attacker_id);
+
+    // Attacker reentered successfully
+    assert_eq!(attacker_client.attack_count(), 1);
+
+    // Vulnerable withdraw allowed double deduction (500 + 500)
+    assert_eq!(vault_client.balance(&user), 0);
+}
+```
 
 </PatternSection>
+
+<PatternSection id="full-example" title="Full Example">
+
+The complete tested implementation, including the `DummyReceiver` used in the first test, is available in the repository:
+
+[`examples/reentrancy-guard`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/reentrancy-guard)
+
+</PatternSection>
+```

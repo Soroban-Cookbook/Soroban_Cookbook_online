@@ -1,0 +1,54 @@
+Drift found in contributing.md
+Drift found in components\buttons.mdx
+Drift found in concepts\authorization.md
+Drift found in concepts\cross-contract-invocation.md
+Drift found in concepts\error-handling.md
+concepts\event-emission-audit.md is in docs/ but not in version-22.0/
+Drift found in concepts\events.md
+concepts\randomness.md is in docs/ but not in version-22.0/
+concepts\time-and-scheduling.md is in docs/ but not in version-22.0/
+Drift found in contributing\add-tested-example.md
+contributing\analytics-events.md is in docs/ but not in version-22.0/
+Drift found in contributing\image-optimization.md
+contributing\offline-behavior.md is in docs/ but not in version-22.0/
+contributing\performance-budgets.md is in docs/ but not in version-22.0/
+Drift found in design-system\buttons.mdx
+getting-started\browser-server-compilation.md is in docs/ but not in version-22.0/
+Drift found in getting-started\debugging.md
+Drift found in getting-started\deploy-mainnet.md
+getting-started\development-tools.md is in docs/ but not in version-22.0/
+Drift found in getting-started\first-contract.md
+Drift found in getting-started\setup-linux.md
+Drift found in getting-started\setup-macos.md
+Drift found in getting-started\setup-windows.md
+Drift found in getting-started\setup.md
+legal\privacy.md is in docs/ but not in version-22.0/
+Drift found in patterns\authorization.mdx
+Drift found in patterns\basic-token.mdx
+Drift found in patterns\contract-factory.mdx
+patterns\contract-registry.mdx is in docs/ but not in version-22.0/
+Drift found in patterns\error-handling.mdx
+Drift found in patterns\error-recovery.mdx
+patterns\escrow-basic.mdx is in docs/ but not in version-22.0/
+patterns\escrow-multiparty.mdx is in docs/ but not in version-22.0/
+Drift found in patterns\hello-world.mdx
+Drift found in patterns\lifecycle-upgrades.mdx
+patterns\multi-token-vault.mdx is in docs/ but not in version-22.0/
+Drift found in patterns\optimization-playbook.mdx
+Drift found in patterns\oracle-consumer.mdx
+Drift found in patterns\overview.md
+patterns\reentrancy-guard.mdx is in docs/ but not in version-22.0/
+patterns\streaming-payments.mdx is in docs/ but not in version-22.0/
+Drift found in patterns\timelock-vault.mdx
+patterns\token-snapshot.mdx is in docs/ but not in version-22.0/
+planning\code-playground.md is in docs/ but not in version-22.0/
+planning\video-content-review.md is in docs/ but not in version-22.0/
+planning\video-tutorial-first-contract.md is in docs/ but not in version-22.0/
+planning\video-tutorial-getting-started.md is in docs/ but not in version-22.0/
+Drift found in responsive\breakpoints.mdx
+responsive\mobile-audit.mdx is in docs/ but not in version-22.0/
+Drift found in security\code-audit.md
+security\contract-auth-audit.md is in docs/ but not in version-22.0/
+Drift found in security\defi-patterns.md
+Drift found in security\fundamentals.md
+security\upgrade-checklist.md is in docs/ but not in version-22.0/

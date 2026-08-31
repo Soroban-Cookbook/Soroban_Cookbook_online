@@ -82,11 +82,7 @@ impl TimelockVault {
         depositor.require_auth();
 
         // Prevent re-initialisation.
-        if env
-            .storage()
-            .instance()
-            .has(&DataKey::Depositor)
-        {
+        if env.storage().instance().has(&DataKey::Depositor) {
             return Err(Error::AlreadyInitialised);
         }
 
@@ -105,15 +101,11 @@ impl TimelockVault {
         env.storage()
             .instance()
             .set(&DataKey::Beneficiary, &beneficiary);
-        env.storage()
-            .instance()
-            .set(&DataKey::Amount, &amount);
+        env.storage().instance().set(&DataKey::Amount, &amount);
         env.storage()
             .instance()
             .set(&DataKey::UnlockTime, &unlock_time);
-        env.storage()
-            .instance()
-            .set(&DataKey::Claimed, &false);
+        env.storage().instance().set(&DataKey::Claimed, &false);
 
         Ok(())
     }
@@ -135,26 +127,26 @@ impl TimelockVault {
             return Err(Error::AlreadyClaimed);
         }
 
+        let unlock_time: u64 = env.storage().instance().get(&DataKey::UnlockTime).unwrap();
         let unlock_time: u64 = env
             .storage()
             .instance()
             .get(&DataKey::UnlockTime)
-            .unwrap();
+            .ok_or(Error::NotInitialised)?;
         let now = env.ledger().timestamp();
         if now < unlock_time {
             return Err(Error::NotUnlockedYet);
         }
 
+        let amount: i128 = env.storage().instance().get(&DataKey::Amount).unwrap();
         let amount: i128 = env
             .storage()
             .instance()
             .get(&DataKey::Amount)
-            .unwrap();
+            .ok_or(Error::NotInitialised)?;
 
         // Mark claimed before any external interaction (checks-effects pattern).
-        env.storage()
-            .instance()
-            .set(&DataKey::Claimed, &true);
+        env.storage().instance().set(&DataKey::Claimed, &true);
 
         Ok(amount)
     }
@@ -166,11 +158,12 @@ impl TimelockVault {
     pub fn cancel(env: Env) -> Result<i128, Error> {
         Self::assert_initialised(&env)?;
 
+        let depositor: Address = env.storage().instance().get(&DataKey::Depositor).unwrap();
         let depositor: Address = env
             .storage()
             .instance()
             .get(&DataKey::Depositor)
-            .unwrap();
+            .ok_or(Error::NotInitialised)?;
         depositor.require_auth();
 
         let claimed: bool = env
@@ -182,11 +175,12 @@ impl TimelockVault {
             return Err(Error::AlreadyClaimed);
         }
 
+        let unlock_time: u64 = env.storage().instance().get(&DataKey::UnlockTime).unwrap();
         let unlock_time: u64 = env
             .storage()
             .instance()
             .get(&DataKey::UnlockTime)
-            .unwrap();
+            .ok_or(Error::NotInitialised)?;
         let now = env.ledger().timestamp();
         if now >= unlock_time {
             // Once unlocked the beneficiary has the right to claim; depositor
@@ -194,15 +188,14 @@ impl TimelockVault {
             return Err(Error::Unauthorised);
         }
 
+        let amount: i128 = env.storage().instance().get(&DataKey::Amount).unwrap();
         let amount: i128 = env
             .storage()
             .instance()
             .get(&DataKey::Amount)
-            .unwrap();
+            .ok_or(Error::NotInitialised)?;
 
-        env.storage()
-            .instance()
-            .set(&DataKey::Claimed, &true);
+        env.storage().instance().set(&DataKey::Claimed, &true);
 
         Ok(amount)
     }
@@ -212,21 +205,23 @@ impl TimelockVault {
     /// Return the Unix timestamp at which the vault unlocks.
     pub fn unlock_time(env: Env) -> Result<u64, Error> {
         Self::assert_initialised(&env)?;
+        Ok(env.storage().instance().get(&DataKey::UnlockTime).unwrap())
         Ok(env
             .storage()
             .instance()
             .get(&DataKey::UnlockTime)
-            .unwrap())
+            .ok_or(Error::NotInitialised)?)
     }
 
     /// Return the locked amount.
     pub fn amount(env: Env) -> Result<i128, Error> {
         Self::assert_initialised(&env)?;
+        Ok(env.storage().instance().get(&DataKey::Amount).unwrap())
         Ok(env
             .storage()
             .instance()
             .get(&DataKey::Amount)
-            .unwrap())
+            .ok_or(Error::NotInitialised)?)
     }
 
     /// Return whether the vault has been claimed (or cancelled).
@@ -240,21 +235,23 @@ impl TimelockVault {
     /// Return the beneficiary address.
     pub fn beneficiary(env: Env) -> Result<Address, Error> {
         Self::assert_initialised(&env)?;
+        Ok(env.storage().instance().get(&DataKey::Beneficiary).unwrap())
         Ok(env
             .storage()
             .instance()
             .get(&DataKey::Beneficiary)
-            .unwrap())
+            .ok_or(Error::NotInitialised)?)
     }
 
     /// Return how many seconds remain until unlock, or 0 if already unlocked.
     pub fn time_remaining(env: Env) -> Result<u64, Error> {
         Self::assert_initialised(&env)?;
+        let unlock_time: u64 = env.storage().instance().get(&DataKey::UnlockTime).unwrap();
         let unlock_time: u64 = env
             .storage()
             .instance()
             .get(&DataKey::UnlockTime)
-            .unwrap();
+            .ok_or(Error::NotInitialised)?;
         let now = env.ledger().timestamp();
         Ok(if now >= unlock_time {
             0

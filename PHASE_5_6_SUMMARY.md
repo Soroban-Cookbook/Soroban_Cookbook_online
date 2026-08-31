@@ -5,6 +5,7 @@
 **Status:** ✅ Complete
 
 ### Deliverables
+
 - Created 5 dedicated category landing pages:
   - `/patterns/tokens` - Token Standards & Patterns
   - `/patterns/defi` - DeFi Patterns & Protocols
@@ -13,6 +14,7 @@
   - `/patterns/utility` - Utility & Infrastructure Patterns
 
 ### Key Features
+
 - Hero sections with category descriptions
 - Pattern preview grids using PatternPreview component
 - Responsive design (375px-1920px)
@@ -20,19 +22,23 @@
 - Consistent styling across all pages
 
 ### Related PR
+
 - PR #2: "Phase 5: Add dedicated category landing pages"
 
 ---
 
-## Phase 6: Manual Testing Protocol
+## Phase 6: Manual Testing Protocol & Video Review
 
 **Status:** ✅ Complete
 
 ### Deliverables
+
 - Comprehensive manual testing protocol at `docs/qa/manual-test-protocol.md`
 - 12 major testing categories with 100+ checkpoints
+- Video content review checklist for issue #347
 
 ### Testing Coverage
+
 - Navigation & site structure
 - Search functionality
 - Theme switching (light/dark)
@@ -46,22 +52,34 @@
 - External integrations
 - Release verification
 
+### Video Content Review (#347)
+
+- Review checklist at `docs/planning/video-content-review.md`
+- Covers Getting Started and First Contract tutorials
+- SDK v22 accuracy verification
+- Cross-video consistency checks
+
 ### Key Features
+
 - Testing sign-off table for release management
 - Quick testing script for fast iterations
 - Issue reporting template
+- Video review sign-off process
 - Related documentation links
 
 ### Related PR
+
 - PR #3: "Phase 6: Add manual testing protocol and QA checklist"
+- Issue #347: Video content review tracking
 
 ---
 
 ## Summary
 
 Both phases are complete and ready for production. The Soroban Cookbook now has:
+
 - ✅ Complete category landing page infrastructure
 - ✅ Formal QA procedures for releases
 - ✅ Enhanced user navigation and exploration
 - ✅ Structured quality assurance processes
-
+- ✅ Video content review process for #347

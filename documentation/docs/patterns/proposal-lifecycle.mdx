@@ -1,8 +1,8 @@
 ---
 time: 25
 sidebar_position: 7
-title: Proposal Lifecycle (DAO State Machine)
-description: Model a DAO proposal as an explicit state machine — Pending → Active → Succeeded/Defeated → Executed.
+title: Proposal Lifecycle (simple-dao)
+description: Model a simple-dao proposal as an explicit state machine — Pending → Active → Succeeded/Defeated → Executed, with Pending → Cancelled.
 image: /img/soroban-social-card.png
 ---
 
@@ -19,11 +19,12 @@ import TabItem from '@theme/TabItem';
 
 ## Overview
 
-Governance contracts need a clear, auditable state machine so that proposals can only advance through valid transitions. This pattern encodes the full lifecycle as a `#[contracttype]` enum and enforces transitions at the contract boundary, making invalid states unrepresentable on-chain.
+The `simple-dao` example uses a clear, auditable state machine so that proposals can only advance through valid transitions. This pattern encodes the full lifecycle as a `#[contracttype]` enum and enforces transitions at the contract boundary, making invalid states unrepresentable on-chain.
 
 ```text
 Pending ──► Active ──► Succeeded ──► Executed
                   └──► Defeated
+Pending ──► Cancelled
 ```
 
 <PatternSection id="prerequisites" title="Prerequisites">
@@ -57,6 +58,7 @@ pub enum ProposalState {
     Active,     // voting is open
     Succeeded,  // more for-votes than against
     Defeated,   // equal or more against-votes
+    Cancelled,  // proposer withdrew before voting opened
     Executed,   // on-chain action has been carried out
 }
 
@@ -84,6 +86,13 @@ impl SimpleDao {
         let state: ProposalState = env.storage().instance().get(&DataKey::State).unwrap();
         assert!(state == ProposalState::Pending, "must be Pending to activate");
         env.storage().instance().set(&DataKey::State, &ProposalState::Active);
+    }
+
+    /// Pending → Cancelled: withdraw the proposal before voting opens.
+    pub fn cancel(env: Env) {
+        let state: ProposalState = env.storage().instance().get(&DataKey::State).unwrap();
+        assert!(state == ProposalState::Pending, "must be Pending to cancel");
+        env.storage().instance().set(&DataKey::State, &ProposalState::Cancelled);
     }
 
     /// Record a vote while Active.
@@ -120,6 +129,7 @@ impl SimpleDao {
         env.storage().instance().set(&DataKey::State, &ProposalState::Executed);
     }
 
+    /// Get the current proposal state.
     pub fn get_state(env: Env) -> ProposalState {
         env.storage().instance().get(&DataKey::State).unwrap()
     }
@@ -197,6 +207,38 @@ mod tests {
     }
 
     #[test]
+    fn test_cancel_pending_proposal() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.cancel();
+        assert_eq!(client.get_state(), ProposalState::Cancelled);
+    }
+
+    #[test]
+    #[should_panic(expected = "must be Pending to cancel")]
+    fn test_cannot_cancel_active_proposal() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.cancel();
+    }
+
+    #[test]
+    #[should_panic(expected = "must be Succeeded to execute")]
+    fn test_double_execute_panics() {
+        let (env, id) = setup();
+        let client = SimpleDaoClient::new(&env, &id);
+        client.create();
+        client.activate();
+        client.vote(&true);
+        client.finalize();
+        client.execute();
+        client.execute();
+    }
+
+    #[test]
     #[should_panic(expected = "must be Pending to activate")]
     fn test_cannot_activate_twice() {
         let (env, id) = setup();
@@ -236,9 +278,10 @@ mod tests {
 
 <PatternSection id="security" title="Security considerations">
 
-- **Authorization**: Production DAOs must guard `activate`, `finalize`, and `execute` with `require_auth()` on a governor address or multi-sig. The example omits this for clarity.
+- **Authorization**: Production DAOs must guard `activate`, `finalize`, and `execute` with `require_auth()` on a governor address or multi-sig, and `cancel` with the proposer's `require_auth()`. The example omits this for clarity.
+- **Cancellation**: Only a `Pending` proposal can be cancelled; once voting opens, the proposal must go through `finalize` instead. In production, define who can cancel and enforce it with authorization.
 - **Tie handling**: The current rule (`for > against`) treats ties as defeats. Make this explicit in your governance spec.
-- **Double execution**: Once `Executed`, the state cannot regress. Add any further idempotency guards inside the `execute` body.
+- **Double execution**: Once `Executed`, the state cannot regress; a second `execute` call panics. Add any further idempotency guards inside the `execute` body.
 - **Sybil resistance**: Vote weighting (token-weighted, NFT-gated) must be added before production use.
 
 <PatternCallout variant="warning" title="Production checklist">

@@ -1,8 +1,7 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, IntoVal, Symbol,
-    Vec,
+    contract, contractimpl, contracttype, symbol_short, Address, BytesN, Env, IntoVal, Symbol, Vec,
 };
 
 #[contracttype]
@@ -113,9 +112,7 @@ mod tests {
 
     fn setup_factory(env: &Env) -> (Address, ContractFactoryClient<'static>) {
         env.mock_all_auths();
-        let wasm_hash = env
-            .deployer()
-            .upload_contract_wasm(child_wasm::WASM);
+        let wasm_hash = env.deployer().upload_contract_wasm(child_wasm::WASM);
         let factory_id = env.register(ContractFactory, ());
         let factory = ContractFactoryClient::new(env, &factory_id);
         factory.initialize(&wasm_hash);

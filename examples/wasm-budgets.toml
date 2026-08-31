@@ -1,0 +1,54 @@
+# WASM size budgets for every example contract.
+#
+# Each workspace member crate ships a `.wasm` built for the Soroban target
+# (`wasm32v1-none`, the current supported target as of soroban-sdk 27).
+# CI release-builds every example and fails when a binary exceeds its budget
+# here, so size regressions are visible instead of silent.
+#
+# Budgets are per-crate, in BYTES, measured against a release build with:
+#
+#   cargo build --release --target wasm32v1-none
+#
+# Every crate already pins size-friendly release settings
+# (`opt-level = "z"`, `lto`, `strip`, `panic = "abort"`).
+#
+# Soroban's hard size limit is 65,536 bytes (64 KiB); a contract larger than
+# that cannot be deployed. Budgets below keep ~25% headroom over the measured
+# baseline so ordinary maintenance does not trip them, but a meaningful
+# regression will fail CI. When a contract genuinely needs more room after
+# optimisation, raise its budget here and document why on the corresponding
+# PR — see `documentation/docs/patterns/optimization-playbook.mdx`.
+#
+# Validate locally with:
+#
+#   bash scripts/check-wasm-budgets.sh
+
+[budgets]
+hello-world = 1919
+counter = 2089
+authorization = 2303
+registry = 5229
+error-handling = 5040
+upgradeable = 4977
+emergency-stop = 6280
+access-control = 8297
+multi-token-vault = 8957
+token-wrapper = 11267
+contract-factory = 13472
+reentrancy-guard = 14910
+escrow-multiparty = 14070
+token-transfer = 17007
+multisig-wallet = 20220
+staking = 17559
+token-snapshot = 19973
+simple-voting = 21287
+timelock-vault = 18563
+flash-loan = 18568
+escrow-basic = 19105
+htlc-swap = 19488
+balance-snapshot = 21900
+oracle-consumer = 22330
+stream-payment = 22397
+token-vesting = 22977
+constant-product-amm = 25360
+simple-dao = 36633

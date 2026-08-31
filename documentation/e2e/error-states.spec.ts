@@ -70,6 +70,10 @@ test.describe('Search no-results', () => {
     if (await emptyHint.count()) {
       await expect(emptyHint).toBeVisible({ timeout: 5_000 });
     }
+    const emptyHint = page
+      .getByText(/no documents were found|no results|nothing found|0 results/i)
+      .first();
+    await expect(emptyHint).toBeVisible({ timeout: 10_000 });
   });
 });
 
@@ -77,6 +81,9 @@ test.describe('Newsletter validation errors', () => {
   test('shows validation error for empty email', async ({ page }) => {
     await revealNewsletter(page);
 
+    // NewsletterSignup is lazy-mounted once it scrolls into view, so bring it
+    // into the viewport before asserting on it.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const section = page.locator('section').filter({ hasText: /stay in the loop/i });
     await section.first().getByRole('button', { name: /subscribe/i }).click();
 
@@ -86,6 +93,9 @@ test.describe('Newsletter validation errors', () => {
   test('shows validation error for invalid email', async ({ page }) => {
     await revealNewsletter(page);
 
+    // NewsletterSignup is lazy-mounted once it scrolls into view, so bring it
+    // into the viewport before asserting on it.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const section = page.locator('section').filter({ hasText: /stay in the loop/i });
     await section.first().locator('input[type="email"]').fill('not-an-email');
     await section.first().getByRole('button', { name: /subscribe/i }).click();

@@ -2,6 +2,8 @@
 name = "upgradeable-v2"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example v2 implementation used to demonstrate admin-controlled contract upgrades."
+keywords = ["soroban", "example", "upgradeable"]
 publish = false
 
 [workspace]
@@ -11,7 +13,7 @@ crate-type = ["cdylib"]
 doctest = false
 
 [dependencies]
-soroban-sdk = "22.0.0"
+soroban-sdk = "27.0.3"
 
 [profile.release]
 opt-level = "z"

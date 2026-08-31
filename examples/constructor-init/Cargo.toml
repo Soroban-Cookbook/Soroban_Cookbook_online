@@ -1,0 +1,24 @@
+[package]
+name = "constructor-init"
+version = "0.1.0"
+edition = "2021"
+description = "Constructor arguments (__constructor) vs delayed initialize, with double-init tests"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+
+[dev-dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true

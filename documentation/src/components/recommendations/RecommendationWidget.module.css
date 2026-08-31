@@ -83,6 +83,8 @@
 .cardDescription {
   font-size: 0.875rem;
   color: #4b5563;
+  /* Infima gray-600 is #8d949e — 3.1:1 on white. emphasis-600 is theme-aware. */
+  color: var(--ifm-color-emphasis-600);
   margin-bottom: 1.25rem;
   flex-grow: 1;
   line-height: 1.5;
@@ -98,6 +100,8 @@
   align-items: center;
   font-size: 0.75rem;
   color: #4b5563;
+  /* Infima gray-500 is #bec3c9 — 1.8:1 on white. emphasis-600 is theme-aware. */
+  color: var(--ifm-color-emphasis-600);
   border-top: 1px solid var(--ifm-hr-border-color);
   padding-top: 0.75rem;
 }

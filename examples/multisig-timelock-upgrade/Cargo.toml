@@ -1,0 +1,28 @@
+[package]
+name = "multisig-timelock-upgrade"
+version = "0.1.0"
+edition = "2021"
+description = "Execute a call only after threshold signatures and an unlock time"
+license = "Apache-2.0"
+repository = "https://github.com/CosmWasm/cw-plus"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+default = ["library"]
+
+[dependencies]
+cosmwasm-std = "1.1.0"
+cosmwasm-storage = "1.1.0"
+cw-storage-plus = "0.16.0"
+cw2 = "0.16.0"
+cw0 = "0.16.0"
+schemars = "0.8.11"
+serde = { version = "1.0.145", default-features = false, features = ["derive"] }
+this-error = "1.0.31"
+
+[dev-dependencies]
+cw-multi-test = "0.16.0"
+anyhow = "1.0.65"

@@ -8,6 +8,10 @@ import { attachConsoleGuard } from './helpers/console';
  * Selectors used here are deliberately stable hooks:
  *   - search input          → `input[name="q"]` / `input[type="search"]`
  *   - per-hit results       → `.container.margin-vert--lg article`
+ * Selectors used here are deliberately stable hooks defined in
+ * src/css/search-experience.css:
+ *   - search input          → `input[name="q"]` inside `.main-wrapper .container.margin-vert--lg`
+ *   - per-hit results       → `.main-wrapper .container.margin-vert--lg article`
  *
  * Avoid requiring a `<main>` landmark — search-local uses
  * `theme-layout-main` without role=main (same as smoke.spec.ts).
@@ -22,6 +26,7 @@ test.describe('search results page (/search)', () => {
     const guard = attachConsoleGuard(page);
     await page.goto('/search');
     const input = page.locator(SEARCH_INPUT).first();
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await expect(input).toBeVisible();
     guard.assertClean('/search');
   });
@@ -29,6 +34,7 @@ test.describe('search results page (/search)', () => {
   test('empty /search (no query param) renders no result articles', async ({ page }) => {
     await page.goto('/search');
     const articles = page.locator(SEARCH_RESULTS);
+    const articles = page.locator('.main-wrapper .container.margin-vert--lg article');
     // Allow a short settle window for the plugin to clear results.
     await expect.poll(async () => await articles.count(), { timeout: 10_000 }).toBe(0);
   });
@@ -37,6 +43,7 @@ test.describe('search results page (/search)', () => {
     const guard = attachConsoleGuard(page);
     await page.goto('/search?q=setup');
     const articles = page.locator(SEARCH_RESULTS);
+    const articles = page.locator('.main-wrapper .container.margin-vert--lg article');
     await expect(articles.first()).toBeVisible({ timeout: 5000 });
     const count = await articles.count();
     expect(count).toBeGreaterThan(0);
@@ -46,6 +53,7 @@ test.describe('search results page (/search)', () => {
   test('first result link points to a real /docs/ page', async ({ page }) => {
     await page.goto('/search?q=hello');
     const firstResult = page.locator(SEARCH_RESULTS).first();
+    const firstResult = page.locator('.main-wrapper .container.margin-vert--lg article').first();
     await expect(firstResult).toBeVisible({ timeout: 5000 });
     const href = await firstResult.locator('a').first().getAttribute('href');
     expect(href, `first result href: ${href}`).toMatch(/^\/docs\//);
@@ -59,6 +67,10 @@ test.describe('search results page (/search)', () => {
     await expect.poll(async () => await articles.count(), { timeout: 10_000 }).toBe(0);
     // The input is still there, so the user can refine.
     const input = page.locator(SEARCH_INPUT).first();
+    const articles = page.locator('.main-wrapper .container.margin-vert--lg article');
+    await expect.poll(async () => await articles.count(), { timeout: 10_000 }).toBe(0);
+    // The input is still there, so the user can refine.
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await expect(input).toBeVisible();
     guard.assertClean('/search (empty state)');
   });
@@ -66,6 +78,7 @@ test.describe('search results page (/search)', () => {
   test('typing into the input and pressing Enter updates the URL', async ({ page }) => {
     await page.goto('/search');
     const input = page.locator(SEARCH_INPUT).first();
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await input.fill('soroban testing');
     await input.press('Enter');
     // WebKit may not navigate on Enter for unbound search inputs — fall back.
@@ -80,6 +93,9 @@ test.describe('search results page (/search)', () => {
   test('clicking a result article link navigates to a docs page that loads', async ({ page }) => {
     await page.goto('/search?q=setup');
     const firstLink = page.locator(`${SEARCH_RESULTS} a`).first();
+    const firstLink = page
+      .locator('.main-wrapper .container.margin-vert--lg article a')
+      .first();
     await expect(firstLink).toBeVisible({ timeout: 5000 });
     await firstLink.click();
     await expect(page).toHaveURL(/\/docs\//);
