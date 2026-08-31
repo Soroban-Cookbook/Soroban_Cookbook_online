@@ -20,6 +20,8 @@ From a clone of this repository:
 
 ```bash
 cd examples/hello-world
+stellar contract init my-first-contract
+cd my-first-contract
 ```
 
 That crate uses `soroban-sdk` `27.0.3` (see its `Cargo.toml`) and is a member of the `examples` Cargo workspace.
@@ -75,6 +77,9 @@ Notes that match this file:
 The same pattern is documented with tabbed snippets on [Hello World Storage](../patterns/hello-world.mdx).
 
 ## Testing the contract
+```bash
+stellar contract build
+```
 
 The crate defines two tests:
 
@@ -165,6 +170,57 @@ See [Building and Compilation](./building-and-compilation.md) for flags, profile
 - [Deploy to testnet](./deploy-testnet.md)
 - [Learn about storage](../concepts/storage.md)
 - [Explore patterns](../patterns/overview.md)
+## Next Steps
+
+- [Contract Testing Guide](./contract-testing) - Learn how to write and run tests
+- [Building and Compilation](./building-and-compilation) — compile your contract to WASM
+- [Deploy to testnet](./deploy-testnet)
+- [Constructor Arguments (`__constructor`) vs. delayed `initialize`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/constructor-init/src/lib.rs) — pass setup values to your contract at deploy time with `__constructor`, and see why the older `initialize` pattern needs a double-init guard
+- [Learn about storage](../concepts/storage)
+- [Explore patterns](../patterns/overview)
+
+## Knowledge Check
+
+Test what you've learned about creating your first Soroban contract.
+
+<Quiz title="First Contract Knowledge Check" questions={[
+  {
+    id: "fc-q1",
+    question: "What command initializes a new Soroban smart contract project?",
+    options: [
+      "stellar init my-first-contract",
+      "stellar contract init my-first-contract",
+      "cargo new my-first-contract",
+      "stellar new my-first-contract",
+    ],
+    correctIndex: 1,
+    explanation: "The correct command is `stellar contract init my-first-contract`. This initializes a new Soroban project with the proper Cargo.toml, src/lib.rs, and Cargo.lock structure.",
+  },
+  {
+    id: "fc-q2",
+    question: "What file format does Soroban compile contracts into?",
+    options: [
+      "Native binary (.exe)",
+      "WebAssembly (.wasm)",
+      "JavaScript (.js)",
+      "LLVM IR (.ll)",
+    ],
+    correctIndex: 1,
+    explanation: "Soroban contracts are compiled to WebAssembly (.wasm), enabling efficient and secure execution on the Stellar network.",
+  },
+  {
+    id: "fc-q3",
+    question: "How do you run tests for your Soroban contract?",
+    options: [
+      "stellar test",
+      "cargo test",
+      "rustc --test src/lib.rs",
+      "npm test",
+    ],
+    correctIndex: 1,
+    explanation: "Soroban uses standard Rust testing. You run `cargo test`, and tests are defined in a `#[cfg(test)] mod test` block within your contract source file.",
+  },
+]} />
 
 ## Resources
 

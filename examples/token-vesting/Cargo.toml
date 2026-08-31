@@ -2,12 +2,15 @@
 name = "token-vesting"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example vesting contract that releases a token balance on a schedule."
+keywords = ["soroban", "example", "token-vesting"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 soroban-sdk = "27.0.3"
+
 
 [dev-dependencies]
 soroban-sdk = { version = "27.0.3", features = ["testutils"] }

@@ -21,6 +21,9 @@ Before you begin, ensure you have:
 - **Stellar CLI** (`stellar`) - Command-line interface for contract build and deploy
 - **wasm32-unknown-unknown** - Required WASM target (see checklist below)
 - **Code Editor** - VS Code or your preferred editor, with [rust-analyzer](#rust-analyzer)
+- **Rust** - Latest stable version
+- **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
+- **Code Editor** - VS Code or your preferred editor
 - **Git** - Version control
 - **Build Tools** - Essential development packages
 
@@ -57,7 +60,7 @@ sudo pacman -Syu
 
 ### 2. Install Build Tools and Dependencies
 
-You'll need essential build tools and libraries to compile Rust and Soroban CLI.
+You'll need essential build tools and libraries to compile Rust and Stellar CLI.
 
 **Ubuntu/Debian:**
 
@@ -117,6 +120,7 @@ You should see version numbers for both commands.
 ### 4. Install Stellar CLI
 
 Install the Stellar CLI using Cargo (same command as [Building and Compilation](./building-and-compilation.md)):
+Install the Stellar CLI with Wasm optimization support using Cargo:
 
 ```bash
 cargo install --locked stellar-cli --features opt
@@ -200,6 +204,7 @@ Use this checklist to confirm your environment is ready:
 - [ ] Stellar CLI installed: `stellar --version` returns a version number
 - [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
 - [ ] rust-analyzer can resolve the `examples` workspace
+- [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Build tools available: `gcc --version` returns a version number
 - [ ] Internet connectivity: `curl https://www.google.com` succeeds

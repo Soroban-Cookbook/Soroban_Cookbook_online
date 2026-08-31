@@ -1,0 +1,6 @@
+.bookmarkButton {
+  cursor: pointer;
+}
+.active {
+  color: #3578e5;
+}

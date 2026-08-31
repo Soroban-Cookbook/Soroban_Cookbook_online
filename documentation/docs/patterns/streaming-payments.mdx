@@ -1,0 +1,160 @@
+---
+time: 25
+sidebar_position: 7
+title: Streaming Payments
+description: Linear token streaming with continuous accrual and withdrawable balance
+difficulty: intermediate
+tags: []
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Streaming Payments
+
+A **streaming payment** contract allows tokens to accrue linearly over time, with the recipient able to withdraw the currently available portion at any time. This pattern is useful for payroll, subscriptions, vesting without cliffs, and other scenarios where value transfers continuously.
+
+## Overview
+
+Unlike token vesting (which typically releases tokens at milestones or with a cliff), streaming payments continuously accrue balance. The recipient can withdraw repeatedly without waiting for a single release event.
+
+### Streaming vs Vesting
+
+| Aspect | Streaming Payments | Token Vesting |
+|--------|-------------------|---------------|
+| **Balance accrual** | Continuous linear accrual | Discrete releases (milestones/cliffs) |
+| **Withdrawal frequency** | Unlimited withdrawals | Typically limited releases |
+| **Cliff** | No cliff | Often includes a cliff |
+| **Use case** | Payroll, subscriptions | Employee equity, grants |
+| **Recipient control** | Withdraw anytime | Release at schedule points |
+
+## Architecture
+
+```
+StreamPayment Contract
+├── initialize(sender, recipient, token, total_amount, end_time)
+├── withdraw() -> amount
+├── available_amount() -> amount
+├── stream() -> Stream
+└── withdrawable_at(stream, timestamp) -> amount
+```
+
+### Stream Record
+
+```rust
+pub struct Stream {
+    pub sender: Address,      // Who funded the stream
+    pub recipient: Address,   // Who can withdraw
+    pub token: Address,       // Stellar asset contract
+    pub start_time: u64,      // When the stream begins
+    pub end_time: u64,        // When full amount is available
+    pub total_amount: i128,   // Total tokens deposited
+    pub withdrawn_amount: i128, // Tokens already withdrawn
+}
+```
+
+## Implementation
+
+### Core Logic
+
+The withdrawable amount at any timestamp is calculated as:
+
+```rust
+pub fn withdrawable_at(stream: &Stream, timestamp: u64) -> Result<i128, Error> {
+    if timestamp < stream.start_time {
+        return Ok(0);
+    }
+
+    let total_released = if timestamp >= stream.end_time {
+        stream.total_amount
+    } else {
+        let elapsed = i128::from(timestamp - stream.start_time);
+        let duration = i128::from(stream.end_time - stream.start_time);
+        stream.total_amount.checked_mul(elapsed).map(|a| a / duration)?
+    };
+
+    let available = total_released.checked_sub(stream.withdrawn_amount)?;
+    Ok(available)
+}
+```
+
+### Key Properties
+
+1. **Before start**: `withdrawable = 0`
+2. **During stream**: `withdrawable = total * elapsed / duration - withdrawn`
+3. **At/after end**: `withdrawable = total - withdrawn`
+4. **Never exceeds total**: The contract prevents over-withdrawal
+
+## Testing
+
+The implementation includes comprehensive tests covering:
+
+```rust
+#[test]
+fn partial_withdrawal_during_stream() {
+    let fixture = setup();
+    initialize(&fixture);
+
+    // At 50% through the stream, 50% should be available
+    set_time(&fixture.env, START_TIME + 500);
+    assert_eq!(fixture.client.available_amount(), 5_000);
+    assert_eq!(fixture.client.withdraw(), 5_000);
+    assert_eq!(token_client(&fixture).balance(&fixture.recipient), 5_000);
+
+    // After withdrawing, available should be 0
+    assert_eq!(fixture.client.available_amount(), 0);
+}
+
+#[test]
+fn repeated_withdrawals_accrue_correctly() {
+    let fixture = setup();
+    initialize(&fixture);
+
+    // Withdraw at 25%, 50%, 75%, 100%
+    set_time(&fixture.env, START_TIME + 250);
+    assert_eq!(fixture.client.withdraw(), 2_500);
+
+    set_time(&fixture.env, START_TIME + 500);
+    assert_eq!(fixture.client.withdraw(), 2_500);
+
+    set_time(&fixture.env, START_TIME + 750);
+    assert_eq!(fixture.client.withdraw(), 2_500);
+
+    set_time(&fixture.env, END_TIME);
+    assert_eq!(fixture.client.withdraw(), 2_500);
+
+    // Total withdrawn should equal total amount
+    assert_eq!(fixture.client.stream().withdrawn_amount, TOTAL_AMOUNT);
+}
+```
+
+### Test Coverage
+
+- [x] Stream initialization and funding
+- [x] No funds withdrawable before start
+- [x] Partial withdrawal during stream
+- [x] `withdrawable_at(t)` calculation at multiple points
+- [x] Remaining balance after partial withdrawal
+- [x] Full withdrawal at/after stream end
+- [x] No withdrawal beyond total amount
+- [x] Unauthorized withdrawal fails
+- [x] Repeated withdrawals
+- [x] Boundary conditions at start/end
+
+## Example Files
+
+- **Contract**: `examples/stream-payment/src/lib.rs`
+- **Tests**: Included in the contract file
+- **Cargo.toml**: `examples/stream-payment/Cargo.toml`
+
+## Related Patterns
+
+- [Token Vesting](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/token-vesting) - Discrete vesting with cliffs
+- [Escrow](./escrow-basic.mdx) - Conditional token release
+- [Authorization](./authorization.mdx) - Access control patterns
+
+## Resources
+
+- [Soroban Token Interface](https://developers.stellar.org/docs/smart-contracts/tokens)
+- [Time and Scheduling](../concepts/time-and-scheduling.md)
+- [Storage Concepts](../concepts/storage.md)

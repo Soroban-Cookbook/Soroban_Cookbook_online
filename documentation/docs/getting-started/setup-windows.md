@@ -129,6 +129,7 @@ cargo --version
 ### Step 6: Install Stellar CLI
 
 Install using Cargo (same command as [Building and Compilation](./building-and-compilation.md)):
+Install using Cargo with Wasm optimization features:
 
 ```bash
 cargo install --locked stellar-cli --features opt
@@ -221,6 +222,22 @@ rustup target list | grep wasm32-unknown-unknown
 ```
 
 Expected output includes `stellar` version output (whatever you installed) and `wasm32-unknown-unknown` in `rustup target list --installed`. Do not treat sample version numbers as a required pin.
+Expected output:
+
+```
+=== WSL Verification ===
+  * Ubuntu                            Running           2
+
+=== Rust Verification ===
+rustc 1.75.0 (1d8b05fc5 2023-12-21)
+cargo 1.75.0 (ecb9851af 2023-10-18)
+
+=== Stellar CLI Verification ===
+stellar 21.0.0
+
+=== WebAssembly Target Verification ===
+wasm32-unknown-unknown (installed)
+```
 
 ---
 
@@ -393,6 +410,7 @@ Use this checklist to confirm your setup is complete:
 - [ ] Stellar CLI installed: `stellar --version` returns a version number
 - [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
 - [ ] rust-analyzer can resolve `examples/Cargo.toml`
+- [ ] WebAssembly target: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] VS Code Remote WSL extension installed (optional but recommended)
 
@@ -404,6 +422,7 @@ Use this checklist to confirm your setup is complete:
 - [ ] Stellar CLI installed: `stellar --version` returns a version number
 - [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
 - [ ] rust-analyzer can resolve `examples/Cargo.toml`
+- [ ] WebAssembly target: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Git line endings configured: `git config --global core.autocrlf` returns `true`
 
@@ -667,6 +686,7 @@ cargo clean
 | `rustup toolchain list`                    | List Rust toolchains   |
 
 ### Stellar CLI Commands (Same on WSL and Native)
+### Stellar Commands (Same on WSL and Native)
 
 | Command                             | Purpose                    |
 | ----------------------------------- | -------------------------- |

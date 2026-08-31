@@ -68,6 +68,8 @@ Work through every item on this checklist before touching mainnet. Do not skip i
 - [ ] At least one peer has reviewed the contract logic and the security assumptions
 - [ ] Upgrade authority (if any) is locked to a hardware-wallet-controlled **or multi-sig / timelocked** admin — see [Required reading](#required-reading--safety-checklist)
 - [ ] Emergency stop (`pause` / `unpause` + `fail_if_paused`) is implemented, or immutability is an explicit accepted risk
+- [ ] Upgrade authority (if any) is locked to a hardware-wallet-controlled admin address
+- [ ] For upgrades: complete the [WASM Upgrade Verification Checklist](../security/upgrade-checklist.md)
 
 ### Testnet validation
 

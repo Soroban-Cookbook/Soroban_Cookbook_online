@@ -26,7 +26,7 @@ Use this page before major releases, dependency upgrades, or deployment changes.
 
 ### Out of scope
 
-- Soroban smart contract examples outside the documentation app
+- Soroban smart contract examples outside the documentation app — their `require_auth` coverage is tracked separately in [Contract require_auth Audit](./contract-auth-audit.md)
 - External Stellar, Soroban, Discord, or GitHub services linked from the docs
 - The hosting provider's internal infrastructure
 

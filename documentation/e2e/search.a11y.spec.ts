@@ -25,7 +25,7 @@ test.describe('search page a11y (chromium)', () => {
     test.skip(browserName !== 'chromium', 'axe-core scan is chromium only');
     await page.goto('/search?q=setup');
 
-    const input = page.locator('main .container.margin-vert--lg input[name="q"]');
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await expect(input).toBeVisible({ timeout: 5000 });
 
     const results = await new AxeBuilder({ page })
@@ -40,13 +40,13 @@ test.describe('search page a11y (chromium)', () => {
     test.skip(browserName !== 'chromium', 'axe-core scan is chromium only');
     await page.goto('/search?q=zzznoresultssurelymissingzzz');
 
-    const input = page.locator('main .container.margin-vert--lg input[name="q"]');
+    const input = page.locator('.main-wrapper .container.margin-vert--lg input[name="q"]');
     await expect(input).toBeVisible({ timeout: 5000 });
 
     // Confirm we are actually in the zero-results state before scanning.
     await expect
       .poll(
-        async () => await page.locator('main .container.margin-vert--lg article').count(),
+        async () => await page.locator('.main-wrapper .container.margin-vert--lg article').count(),
         { timeout: 10_000 },
       )
       .toBe(0);

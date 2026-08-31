@@ -236,11 +236,9 @@ impl SimpleDao {
             .get(&DataKey::Proposal(proposal_id))
             .expect("proposal not found");
 
+        config.admin.require_auth();
         assert!(!proposal.cancelled, "proposal already cancelled");
-        assert!(
-            proposal.queued_at == 0,
-            "proposal already queued"
-        );
+        assert!(proposal.queued_at == 0, "proposal already queued");
 
         let state = proposal.current_state(&config, env.ledger().timestamp());
         assert_eq!(
@@ -253,8 +251,7 @@ impl SimpleDao {
         env.storage()
             .instance()
             .set(&DataKey::Proposal(proposal_id), &proposal);
-        env.events()
-            .publish((TOPIC_PROPOSAL_QUEUED,), proposal_id);
+        env.events().publish((TOPIC_PROPOSAL_QUEUED,), proposal_id);
     }
 
     /// Execute a proposal whose timelock has elapsed.  Iterates through
@@ -273,6 +270,7 @@ impl SimpleDao {
             .get(&DataKey::Proposal(proposal_id))
             .expect("proposal not found");
 
+        config.admin.require_auth();
         assert!(!proposal.executed, "already executed");
         assert!(!proposal.cancelled, "proposal already cancelled");
 

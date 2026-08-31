@@ -112,11 +112,19 @@ impl EscrowMultiparty {
             return Err(Error::InvalidAmount);
         }
 
-        env.storage().instance().set(&DataKey::Depositor, &depositor);
-        env.storage().instance().set(&DataKey::Recipient, &recipient);
-        env.storage().instance().set(&DataKey::Arbitrator, &arbitrator);
+        env.storage()
+            .instance()
+            .set(&DataKey::Depositor, &depositor);
+        env.storage()
+            .instance()
+            .set(&DataKey::Recipient, &recipient);
+        env.storage()
+            .instance()
+            .set(&DataKey::Arbitrator, &arbitrator);
         env.storage().instance().set(&DataKey::Amount, &amount);
-        env.storage().instance().set(&DataKey::State, &State::Pending);
+        env.storage()
+            .instance()
+            .set(&DataKey::State, &State::Pending);
 
         Ok(())
     }
@@ -132,7 +140,9 @@ impl EscrowMultiparty {
         Self::require_state(&env, State::Pending)?;
 
         let amount = Self::amount(&env)?;
-        env.storage().instance().set(&DataKey::State, &State::Released);
+        env.storage()
+            .instance()
+            .set(&DataKey::State, &State::Released);
         Ok(amount)
     }
 
@@ -147,7 +157,9 @@ impl EscrowMultiparty {
         Self::require_state(&env, State::Pending)?;
 
         let amount = Self::amount(&env)?;
-        env.storage().instance().set(&DataKey::State, &State::Cancelled);
+        env.storage()
+            .instance()
+            .set(&DataKey::State, &State::Cancelled);
         Ok(amount)
     }
 
@@ -171,7 +183,9 @@ impl EscrowMultiparty {
         }
 
         Self::require_state(&env, State::Pending)?;
-        env.storage().instance().set(&DataKey::State, &State::Disputed);
+        env.storage()
+            .instance()
+            .set(&DataKey::State, &State::Disputed);
         Ok(())
     }
 
@@ -297,8 +311,19 @@ mod tests {
     fn funded(amount: i128) -> (Env, Actors, EscrowMultipartyClient<'static>) {
         let (env, actors, client) = setup();
         client
-            .deposit(&actors.depositor, &actors.recipient, &actors.arbitrator, &amount)
+            .deposit(
+                &actors.depositor,
+                &actors.recipient,
+                &actors.arbitrator,
+                &amount,
+            )
             .expect("deposit failed");
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &amount,
+        );
         (env, actors, client)
     }
 
@@ -327,7 +352,12 @@ mod tests {
     fn test_deposit_rejects_negative_amount() {
         let (_, actors, client) = setup();
         let err = client
-            .try_deposit(&actors.depositor, &actors.recipient, &actors.arbitrator, &-1)
+            .try_deposit(
+                &actors.depositor,
+                &actors.recipient,
+                &actors.arbitrator,
+                &-1,
+            )
             .unwrap_err();
         assert_eq!(err, Ok(Error::InvalidAmount));
     }
@@ -336,7 +366,12 @@ mod tests {
     fn test_deposit_rejects_double_init() {
         let (_, actors, client) = funded(500);
         let err = client
-            .try_deposit(&actors.depositor, &actors.recipient, &actors.arbitrator, &500)
+            .try_deposit(
+                &actors.depositor,
+                &actors.recipient,
+                &actors.arbitrator,
+                &500,
+            )
             .unwrap_err();
         assert_eq!(err, Ok(Error::AlreadyInitialised));
     }
