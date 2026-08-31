@@ -2,48 +2,27 @@
 time: 25
 sidebar_position: 5
 title: Contract Testing Guide
-description: Comprehensive guide to writing, structuring, and running tests for Soroban smart contracts. Learn unit testing patterns, helpers, mocking, and best practices.
+description: Write Soroban contract tests with Env::default(), env.register, generated clients, auth mocks, and snapshot helpers that match the examples in this repo.
 image: /img/soroban-social-card.png
 ---
 
 # Contract Testing Guide
 
-Testing is essential for smart contract development. This guide covers test structure, patterns, helpers, mocking, and best practices for Soroban contracts.
+This guide shows the testing patterns used in this repository today:
 
-## Test Structure
+- `Env::default()` for a fresh Soroban sandbox
+- `env.register(...)` to deploy a contract into that sandbox
+- generated clients such as `HelloWorldClient`
+- `env.mock_all_auths()` for auth-heavy tests
+- snapshot tests that set the ledger and verify historical reads
 
-Soroban contracts use standard Rust testing with the `#[cfg(test)]` module pattern. Tests compile to native code during `cargo test` for fast feedback.
+If you want to run every example crate the same way CI does, use `./scripts/test-examples.sh`.
 
-### Basic Test Module
+## The basic test shape
 
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use soroban_sdk::Env;
+Every contract test starts with a clean `Env`, registers the contract, and creates a client.
 
-    #[test]
-    fn test_example() {
-        let env = Env::default();
-        let contract_id = env.register(MyContract, ());
-        let client = MyContractClient::new(&env, &contract_id);
-        
-        // Test assertions here
-    }
-}
-```
-
-Each test:
-- Creates a fresh sandbox `Env::default()`
-- Registers the contract with `env.register(ContractName, ())`
-- Creates a client for contract interaction
-- Runs assertions
-
-## Unit Testing Examples
-
-### Counter Contract
-
-The counter contract demonstrates basic state management testing:
+The smallest example in this repo is `examples/hello-world`.
 
 ```rust
 #[cfg(test)]
@@ -52,61 +31,47 @@ mod tests {
     use soroban_sdk::Env;
 
     #[test]
-    fn test_initial_value_is_zero() {
+    fn test_default_greeting() {
         let env = Env::default();
-        let contract_id = env.register(Counter, ());
-        let client = CounterClient::new(&env, &contract_id);
+        let contract_id = env.register(HelloWorld, ());
+        let client = HelloWorldClient::new(&env, &contract_id);
 
-        assert_eq!(client.get(), 0);
+        assert_eq!(
+            client.hello(),
+            String::from_str(&env, "Hello, Soroban!")
+        );
     }
 
     #[test]
-    fn test_increment_increases_count() {
+    fn test_custom_greeting() {
         let env = Env::default();
-        let contract_id = env.register(Counter, ());
-        let client = CounterClient::new(&env, &contract_id);
+        let contract_id = env.register(HelloWorld, ());
+        let client = HelloWorldClient::new(&env, &contract_id);
 
-        assert_eq!(client.increment(), 1);
-        assert_eq!(client.increment(), 2);
-        assert_eq!(client.increment(), 3);
-    }
+        client.set_message(&String::from_str(&env, "Greetings from Soroban!"));
 
-    #[test]
-    fn test_reset_returns_to_zero() {
-        let env = Env::default();
-        let contract_id = env.register(Counter, ());
-        let client = CounterClient::new(&env, &contract_id);
-
-        client.increment();
-        client.increment();
-        assert_eq!(client.get(), 2);
-
-        client.reset();
-        assert_eq!(client.get(), 0);
-    }
-
-    #[test]
-    fn test_get_does_not_change_state() {
-        let env = Env::default();
-        let contract_id = env.register(Counter, ());
-        let client = CounterClient::new(&env, &contract_id);
-
-        client.increment();
-        assert_eq!(client.get(), 1);
-        assert_eq!(client.get(), 1); // Value unchanged
+        assert_eq!(
+            client.hello(),
+            String::from_str(&env, "Greetings from Soroban!")
+        );
     }
 }
 ```
 
-**Key patterns:**
-- Test one behavior per test function
-- Use descriptive test names (`test_*`)
-- Verify state before and after operations
-- Test edge cases (initial state, zero values)
+The important part is the flow:
 
-### Token Transfer Contract
+1. Create `Env::default()`
+2. Register the contract with `env.register(ContractName, ())`
+3. Build the generated client with `ContractNameClient::new(&env, &contract_id)`
+4. Call methods through the client and assert on the results
 
-Complex contracts benefit from test helpers and setup functions:
+That pattern replaces the older `register_contract` style from earlier SDK examples.
+
+## Testing auth-heavy contracts
+
+When a contract uses `require_auth`, the repo usually enables auth mocking in tests that are not specifically checking permission failures.
+
+`examples/token-transfer` is a good example.
 
 ```rust
 #[cfg(test)]
@@ -116,19 +81,10 @@ mod tests {
 
     fn setup() -> (Env, TokenTransferClient<'static>) {
         let env = Env::default();
-        env.mock_all_auths(); // Allow all operations without auth
+        env.mock_all_auths();
         let contract_id = env.register(TokenTransfer, ());
         let client = TokenTransferClient::new(&env, &contract_id);
         (env, client)
-    }
-
-    #[test]
-    fn test_mint_increases_balance() {
-        let (env, client) = setup();
-        let alice = Address::generate(&env);
-
-        client.mint(&alice, &500);
-        assert_eq!(client.balance(&alice), 500);
     }
 
     #[test]
@@ -145,334 +101,128 @@ mod tests {
     }
 
     #[test]
-    fn test_initial_balance_is_zero() {
+    fn test_transfer_from_fails_on_insufficient_allowance() {
         let (env, client) = setup();
         let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        let carol = Address::generate(&env);
 
-        assert_eq!(client.balance(&alice), 0);
+        client.mint(&alice, &1000);
+        client.approve(&alice, &bob, &200);
+
+        let result = client.try_transfer_from(&bob, &alice, &carol, &300);
+
+        assert_eq!(result, Err(Ok(Error::InsufficientAllowance)));
+        assert_eq!(client.balance(&alice), 1000);
+        assert_eq!(client.allowance(&alice, &bob), 200);
     }
 }
 ```
 
-**Key patterns:**
-- Create a `setup()` helper for common initialization
-- Use `Address::generate(&env)` to create test addresses
-- Mock authentication with `env.mock_all_auths()`
-- Test state consistency across operations
+Use `env.mock_all_auths()` when the test should focus on contract behavior instead of signature checking.
 
-## Test Helpers and Utilities
+If you want to test auth failures themselves, skip the mock and assert on the `try_*` result.
 
-### Address Generation
+## Testing snapshots
 
-Generate unique test addresses:
+Some contracts in this repo store point-in-time state and expose snapshot reads. The snapshot examples show two important ideas:
 
-```rust
-let alice = Address::generate(&env);
-let bob = Address::generate(&env);
-```
+- set the ledger before taking a snapshot
+- verify the historical read is frozen after later state changes
 
-### Authentication Mocking
-
-Mock all authentication checks to bypass authorization in tests:
+From `examples/balance-snapshot`:
 
 ```rust
-env.mock_all_auths();
-```
-
-This allows tests to invoke functions that require authorization without providing valid signatures.
-
-### Setup Functions
-
-Reduce boilerplate with setup helpers:
-
-```rust
-fn setup_with_balances() -> (Env, TokenTransferClient<'static>) {
-    let env = Env::default();
-    env.mock_all_auths();
-    let contract_id = env.register(TokenTransfer, ());
-    let client = TokenTransferClient::new(&env, &contract_id);
-    
-    let alice = Address::generate(&env);
-    let bob = Address::generate(&env);
-    client.mint(&alice, &1000);
-    client.mint(&bob, &500);
-    
-    (env, client)
-}
-```
-
-### Result Assertion Helpers
-
-Use `try_*` methods to test error conditions:
-
-```rust
-#[test]
-fn test_transfer_fails_on_insufficient_balance() {
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-    let bob = Address::generate(&env);
-
-    client.mint(&alice, &100);
-    let result = client.try_transfer(&alice, &bob, &200);
-
-    // Assert specific error was returned
-    assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
-    
-    // Verify state rolled back
-    assert_eq!(client.balance(&alice), 100);
-    assert_eq!(client.balance(&bob), 0);
-}
-```
-
-## Error Testing
-
-### Testing Expected Errors
-
-Use `try_*` contract methods to test error paths:
-
-```rust
-#[test]
-fn test_validation_errors() {
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-    let bob = Address::generate(&env);
-
-    client.mint(&alice, &100);
-
-    // Test invalid amount (zero)
-    let result = client.try_transfer(&alice, &bob, &0);
-    assert_eq!(result, Err(Ok(Error::InvalidAmount)));
-
-    // Test invalid amount (negative)
-    let result = client.try_transfer(&alice, &bob, &-50);
-    assert_eq!(result, Err(Ok(Error::InvalidAmount)));
-}
-
-#[test]
-fn test_self_transfer_is_rejected() {
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-
-    client.mint(&alice, &100);
-    let result = client.try_transfer(&alice, &alice, &50);
-    assert_eq!(result, Err(Ok(Error::SelfTransfer)));
-}
-```
-
-### Testing State Rollback
-
-Verify that failed operations don't leave the contract in an inconsistent state:
-
-```rust
-#[test]
-fn test_failed_transfer_does_not_change_state() {
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-    let bob = Address::generate(&env);
-
-    client.mint(&alice, &100);
-    let original_balance = client.balance(&alice);
-
-    // Try invalid operation
-    client.try_transfer(&alice, &bob, &200);
-
-    // Verify balance unchanged
-    assert_eq!(client.balance(&alice), original_balance);
-}
-```
-
-## Running Tests
-
-### Basic Test Commands
-
-```bash
-# Run all tests
-cargo test
-
-# Run specific test
-cargo test test_increment_increases_count
-
-# Run with output
-cargo test -- --nocapture
-
-# Run single-threaded (for debugging)
-cargo test -- --test-threads=1 --nocapture
-```
-
-### Testing in CI
-
-The repository includes a test script for CI:
-
-```bash
-scripts/test-examples.sh
-```
-
-This script runs `cargo test` for all examples in the `examples/` directory.
-
-## Test Coverage
-
-Check test coverage using `tarpaulin`:
-
-```bash
-# Install tarpaulin
-cargo install cargo-tarpaulin
-
-# Generate coverage report
-cargo tarpaulin --out Html --output-dir coverage
-```
-
-Aim for:
-- **80%+ coverage** of contract logic
-- **100% coverage** of error paths
-- All public functions tested
-- Edge cases covered
-
-## Best Practices
-
-### 1. Test One Behavior Per Test
-
-Each test should verify a single behavior:
-
-```rust
-// Good: Tests one behavior
-#[test]
-fn test_increment_returns_new_value() {
-    let (env, client) = setup();
-    assert_eq!(client.increment(), 1);
-}
-
-// Avoid: Tests multiple behaviors
-#[test]
-fn test_many_things() {
-    let (env, client) = setup();
-    client.increment();
-    client.increment();
-    client.reset();
-    // Hard to debug if this fails
-}
-```
-
-### 2. Use Descriptive Test Names
-
-Test names should describe what is being tested:
-
-```rust
-// Good
-#[test]
-fn test_transfer_fails_on_insufficient_balance() { }
-
-// Avoid
-#[test]
-fn test_transfer_error() { }
-```
-
-### 3. Arrange-Act-Assert Pattern
-
-Structure tests clearly:
-
-```rust
-#[test]
-fn test_example() {
-    // Arrange: Setup state
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-    client.mint(&alice, &100);
-
-    // Act: Perform the operation
-    let result = client.transfer(&alice, &bob, &50);
-
-    // Assert: Verify the outcome
-    assert_eq!(result, Ok(()));
-    assert_eq!(client.balance(&alice), 50);
-}
-```
-
-### 4. Test Edge Cases
-
-Always test boundary conditions:
-
-```rust
-#[test]
-fn test_zero_and_negative_amounts() {
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-    
-    client.mint(&alice, &100);
-
-    // Edge case: zero amount
-    assert_eq!(client.try_transfer(&alice, &bob, &0), Err(Ok(Error::InvalidAmount)));
-
-    // Edge case: negative amount
-    assert_eq!(client.try_transfer(&alice, &bob, &-1), Err(Ok(Error::InvalidAmount)));
-}
-```
-
-### 5. Test State Consistency
-
-Verify contract invariants after operations:
-
-```rust
-#[test]
-fn test_balances_sum_is_preserved() {
-    let (env, client) = setup();
-    let alice = Address::generate(&env);
-    let bob = Address::generate(&env);
-
-    client.mint(&alice, &1000);
-    let total_before = client.balance(&alice) + client.balance(&bob);
-
-    client.transfer(&alice, &bob, &300);
-    let total_after = client.balance(&alice) + client.balance(&bob);
-
-    // Total balance preserved (conservation law)
-    assert_eq!(total_before, total_after);
-}
-```
-
-### 6. Use Fixtures for Complex Setup
-
-Fixtures reduce duplication in complex test scenarios:
-
-```rust
-struct TestContext {
-    env: Env,
-    client: TokenTransferClient<'static>,
-    alice: Address,
-    bob: Address,
-}
-
-impl TestContext {
-    fn new() -> Self {
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{
+        testutils::{Address as _, Ledger, LedgerInfo},
+        vec, Env,
+    };
+
+    fn setup() -> (Env, BalanceSnapshotClient<'static>) {
         let env = Env::default();
         env.mock_all_auths();
-        let contract_id = env.register(TokenTransfer, ());
-        let client = TokenTransferClient::new(&env, &contract_id);
-        
+        let contract_id = env.register(BalanceSnapshot, ());
+        let client = BalanceSnapshotClient::new(&env, &contract_id);
+        (env, client)
+    }
+
+    fn set_ledger(env: &Env, seq: u32, timestamp: u64) {
+        env.ledger().set(LedgerInfo {
+            timestamp,
+            protocol_version: 22,
+            sequence_number: seq,
+            network_id: Default::default(),
+            base_reserve: 10,
+            min_temp_entry_ttl: 1,
+            min_persistent_entry_ttl: 1,
+            max_entry_ttl: 6_312_000,
+        });
+    }
+
+    #[test]
+    fn test_snapshot_preserves_historical_state() {
+        let (env, client) = setup();
         let alice = Address::generate(&env);
         let bob = Address::generate(&env);
-        
-        client.mint(&alice, &1000);
-        client.mint(&bob, &500);
-        
-        TestContext { env, client, alice, bob }
-    }
-}
 
-#[test]
-fn test_with_fixture() {
-    let ctx = TestContext::new();
-    // Use ctx.client, ctx.alice, ctx.bob
+        client.mint(&alice, &1000);
+
+        let snapshot_id = client.take_snapshot(&vec![&env, alice.clone(), bob.clone()]);
+
+        client.transfer(&alice, &bob, &400);
+
+        assert_eq!(client.snapshot_balance(&snapshot_id, &alice), Some(1000));
+        assert_eq!(client.snapshot_balance(&snapshot_id, &bob), Some(0));
+        assert_eq!(client.balance(&alice), 600);
+        assert_eq!(client.balance(&bob), 400);
+    }
 }
 ```
 
-## Related Topics
+The same pattern works for `examples/token-snapshot`:
 
+- create a helper that registers the contract
+- set the ledger before the snapshot if you need stable metadata
+- assert on snapshot counts, balances, and metadata
+
+## Running tests
+
+To run one example crate directly:
+
+```bash
+cargo test --manifest-path examples/hello-world/Cargo.toml
+```
+
+To run every example crate the way CI does:
+
+```bash
+./scripts/test-examples.sh
+```
+
+To run a single example through the shared script:
+
+```bash
+./scripts/test-examples.sh hello-world
+```
+
+The script also handles examples that need extra build steps first, such as `contract-factory` and `upgradeable`.
+
+## Good habits
+
+- Keep the `setup()` helper small and reusable.
+- Use one behavior per test when possible.
+- Prefer `try_*` methods when you want to assert on failures.
+- Assert that state is unchanged after rejected operations.
+- Use snapshot-specific helpers for historical reads instead of reusing current-balance assertions.
 - [Local Testing and Simulation](./local-testing-and-simulation.md) - Canonical local workflow
 - [Testing Error Scenarios](./testing-errors.md) - Error testing patterns
 - [Building and Compilation](./building-and-compilation.md) - Build system details
 
-## Resources
+## Related docs
 
-- [Soroban SDK Testing Docs](https://docs.rs/soroban-sdk)
-- [Example Contracts](https://github.com/stellar/soroban-examples)
-- [Rust Testing Guide](https://doc.rust-lang.org/book/ch11-00-testing.html)
+- [Local Testing and Simulation](./local-testing-and-simulation.md)
+- [Testing Error Scenarios](./testing-errors.md)
+- [Adding a Tested Code Example](/docs/contributing/add-tested-example)
