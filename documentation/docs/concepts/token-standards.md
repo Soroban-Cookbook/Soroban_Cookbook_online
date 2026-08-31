@@ -10,6 +10,9 @@ keywords:
 image: /img/soroban-social-card.png
 ---
 
+> **Note:** This concept page covers the high-level differences between token models in Soroban. For concrete implementation templates and examples, see the [Token Standards Pattern](../patterns/token-standards).
+
+
 # Soroban Token Standards Overview
 
 Soroban token implementations generally follow two tracks:
@@ -60,7 +63,14 @@ This pattern is effective when your business logic exceeds standard token semant
 2. Need protocol-specific transfer or policy logic: choose custom.
 3. Need both: start with SAC-compatible behavior, then isolate custom extensions in auxiliary contracts.
 
+## Deep dives
+
+- **[Stellar Asset Contract (SAC)](./stellar-asset-contract.md)** — wrapping, SAC IDs, admin authority, CLI references, and when **not** to write a custom token.
+- **[SEP-41 Token Standard](./sep-41-token-standard.md)** — interface method table, metadata, allowances, transfers/burns, and events.
+
 ## Related reading
 
+- [Stellar Asset Contract (SAC)](./stellar-asset-contract.md)
+- [SEP-41 Token Standard](./sep-41-token-standard.md)
 - [Pattern Library](../patterns/overview)
 - [Advanced Soroban Testing Strategies](./testing-strategies.md)

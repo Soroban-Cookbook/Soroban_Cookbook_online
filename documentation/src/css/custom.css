@@ -47,7 +47,7 @@
   --ifm-color-emphasis-200: #e5e7eb;
   --ifm-color-emphasis-300: #d1d5db;
   --ifm-color-emphasis-400: #9ca3af;
-  --ifm-color-emphasis-500: #6b7280;
+  --ifm-color-emphasis-500: #4b5563;
   --ifm-color-emphasis-600: #4b5563;
   --ifm-color-emphasis-700: #374151;
   --ifm-color-emphasis-800: #1f2937;
@@ -69,6 +69,8 @@
 
   /* Sidebar */
   --ifm-menu-color: #374151;
+  /* Darker than primary so active links pass 4.5:1 on Infima's #f2f2f2 active bg */
+  --ifm-menu-color-active: #1b5e3a;
   /* Primary (#2e8555) on the active menu background (#f2f2f2) is 4.1:1;
      primary-darker reaches 5.3:1 and still reads as brand green. */
   --ifm-menu-color-active: #277148;
@@ -838,4 +840,16 @@ html {
   .theme-doc-sidebar-container a.scroll-spy-active {
     transition: none;
   }
+}
+
+/* ── In-text link distinguishability (WCAG 1.4.1 / axe link-in-text-block) ── */
+.markdown a,
+.theme-doc-markdown a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.markdown a:hover,
+.theme-doc-markdown a:hover {
+  text-decoration-thickness: 2px;
 }

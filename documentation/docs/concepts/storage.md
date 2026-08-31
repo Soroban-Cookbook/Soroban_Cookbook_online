@@ -15,7 +15,7 @@ Soroban contracts use three storage types: **instance**, **persistent**, and **t
 
 - **Instance storage**: contract-owned data that survives between transactions and is scoped to the contract instance.
 - **Persistent storage**: ledger-backed state for user data, collections, and durable application state.
-- **Temporary storage**: in-transaction scratch space that disappears at the end of execution.
+- **Temporary storage**: the cheapest storage type, with its own TTL — permanently deleted once that TTL lapses, not merely at the end of the current transaction (see [TTL and Rent](#ttl-and-rent) below).
 
 Choosing the right storage pattern improves gas efficiency, reduces contract complexity, and makes future migrations easier.
 
@@ -137,11 +137,11 @@ impl TokenLedger {
 
 ### Temporary storage
 
-Temporary storage is for data that only needs to exist during one transaction. It is the cheapest storage type and is automatically cleared when the transaction finishes.
+Temporary storage is the cheapest storage type. Like persistent storage, a temporary entry has its own TTL and survives across transactions — but once that TTL lapses the entry is permanently deleted, with no restore path. Use it for data your contract can safely regenerate or that is only meaningful for a bounded window.
 
-- Best for intermediate results, loop state, caches, and transactional scratch space.
-- Never use it for state that must be recovered later.
-- Good for avoiding repeated computation within a single invocation.
+- Best for intermediate results, loop state, caches, and short-lived, recreatable state.
+- Never use it for state that must be recoverable indefinitely — use persistent storage for that.
+- Good for avoiding repeated computation within a single invocation, or across a small number of invocations before it expires.
 
 When to use temporary storage:
 
@@ -229,8 +229,33 @@ Concrete heuristics:
 - **Transactional scratch space**: temporary storage keeps intermediate values available without creating permanent on-chain state.
 - **Audit trails and history**: persistent storage is the only safe choice when you need recoverable state after execution.
 
+## TTL and Rent
+
+Every ledger entry — instance, persistent, or temporary — has a **time-to-live** (TTL), measured in ledgers. Nothing extends a TTL automatically; a contract has to call `extend_ttl` before an entry's TTL runs out, and that's the closest thing Soroban has to "paying rent."
+
+What happens when a TTL reaches zero differs by storage type:
+
+- A **temporary** entry is permanently deleted. There is no restore path — reading it afterwards behaves exactly as if the key had never been set.
+- A **persistent** entry (including the contract instance itself, and everything in instance storage) is *archived*, not deleted. The network transparently restores it the next time a contract call touches the key, but that restoration costs more than an ordinary read or write.
+
+```rust
+// Extend a persistent key's TTL to 5000 ledgers, but only if its current
+// TTL is currently below 1000 ledgers (a no-op otherwise).
+env.storage()
+    .persistent()
+    .extend_ttl(&my_key, 1000, 5000);
+
+// Extend the whole contract instance's TTL the same way.
+env.storage().instance().extend_ttl(2000, 10_000);
+```
+
+The common pattern is to call `extend_ttl` from within the normal contract calls that already touch that data — so storage the contract still cares about keeps renewing itself, and storage nobody touches quietly expires and stops costing rent.
+
+See the [`examples/storage-ttl/`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/storage-ttl) example for a full walkthrough — extending TTL on all three storage kinds, inspecting remaining TTL with `get_ttl` in tests, and tests demonstrating both temporary-entry deletion and persistent-entry auto-restoration after their TTLs lapse.
+
 ## Related resources
 
+- [Storage TTL and State Archival](/docs/concepts/storage-ttl) — managing entry lifetimes and archival costs
 - [Hello World Storage](/docs/patterns/hello-world) — simple instance storage example
 - [Error Recovery](/docs/patterns/error-recovery) — storage usage in resilient smart contracts
 - [Authorization](/docs/concepts/authorization)

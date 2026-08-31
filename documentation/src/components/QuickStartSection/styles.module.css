@@ -7,7 +7,7 @@
 }
 
 .codeBlock {
-  background: var(--ifm-background-surface-color);
+  /* Theme background comes from prism style prop — do not override. */
   overflow-x: auto;
   border-radius: 4px;
   padding: 1rem;

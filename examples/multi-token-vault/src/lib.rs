@@ -76,7 +76,12 @@ impl MultiTokenVault {
     ///
     /// # Errors
     /// * [`Error::InvalidAmount`] — `amount` is zero or negative.
-    pub fn deposit(env: Env, depositor: Address, token: Address, amount: i128) -> Result<(), Error> {
+    pub fn deposit(
+        env: Env,
+        depositor: Address,
+        token: Address,
+        amount: i128,
+    ) -> Result<(), Error> {
         depositor.require_auth();
 
         if amount <= 0 {
@@ -84,21 +89,13 @@ impl MultiTokenVault {
         }
 
         let balance_key = DataKey::Balance(depositor.clone(), token.clone());
-        let current: i128 = env
-            .storage()
-            .instance()
-            .get(&balance_key)
-            .unwrap_or(0_i128);
+        let current: i128 = env.storage().instance().get(&balance_key).unwrap_or(0_i128);
         env.storage()
             .instance()
             .set(&balance_key, &(current + amount));
 
         let total_key = DataKey::VaultTotal(token);
-        let vault_total: i128 = env
-            .storage()
-            .instance()
-            .get(&total_key)
-            .unwrap_or(0_i128);
+        let vault_total: i128 = env.storage().instance().get(&total_key).unwrap_or(0_i128);
         env.storage()
             .instance()
             .set(&total_key, &(vault_total + amount));
@@ -129,11 +126,7 @@ impl MultiTokenVault {
         }
 
         let balance_key = DataKey::Balance(withdrawer.clone(), token.clone());
-        let current: i128 = env
-            .storage()
-            .instance()
-            .get(&balance_key)
-            .unwrap_or(0_i128);
+        let current: i128 = env.storage().instance().get(&balance_key).unwrap_or(0_i128);
 
         if current < amount {
             return Err(Error::InsufficientBalance);
@@ -144,11 +137,7 @@ impl MultiTokenVault {
         env.storage().instance().set(&balance_key, &new_balance);
 
         let total_key = DataKey::VaultTotal(token);
-        let vault_total: i128 = env
-            .storage()
-            .instance()
-            .get(&total_key)
-            .unwrap_or(0_i128);
+        let vault_total: i128 = env.storage().instance().get(&total_key).unwrap_or(0_i128);
         env.storage()
             .instance()
             .set(&total_key, &(vault_total - amount));

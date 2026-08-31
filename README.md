@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/status-MVP-orange?style=for-the-badge)
 
-A user-friendly documentation website for the [Soroban Cookbook](https://github.com/Soroban-Cookbook/Soroban-Cookbook-), transforming how developers learn Soroban smart contract development through interactive examples and progressive learning paths.
+A user-friendly documentation website for the [Soroban Cookbook](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online), transforming how developers learn Soroban smart contract development through interactive examples and progressive learning paths.
 
 ## Features
 
@@ -19,6 +19,12 @@ A user-friendly documentation website for the [Soroban Cookbook](https://github.
 
 - ✨ Interactive Code Playgrounds
 - 🔍 Smart Search
+
+## Prerequisites
+
+- **Rust:** `rustc` and `cargo` installed.
+- **Soroban SDK:** All smart contract examples in this repository are built and tested using **Soroban SDK version 27.x**.
+- **Node.js / Bun:** Required to build and run the documentation website.
 
 ## 🚀 Quick Start
 
@@ -217,7 +223,7 @@ We also have a [Pull Request Template](.github/pull_request_template.md) to help
 
 - [ ] Monaco Editor integration
 - [ ] Live code playground
-- [ ] Algolia DocSearch
+- [x] Local search (`@easyops-cn/docusaurus-search-local`) — offline-capable, no external API keys required
 - [ ] Custom React components
 
 ### Phase 4: Advanced Features
@@ -229,7 +235,7 @@ We also have a [Pull Request Template](.github/pull_request_template.md) to help
 
 ## 📚 Resources
 
-- [Soroban Cookbook GitHub](https://github.com/Soroban-Cookbook/Soroban-Cookbook-)
+- [Soroban Cookbook GitHub](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online)
 - [Soroban Documentation](http://web.archive.org/web/20240623060346/https://developers.stellar.org/docs/smart-contracts)
 - [Stellar Developer Portal](https://developers.stellar.org/)
 - [Stellar Discord](https://discord.gg/stellardev)
@@ -269,7 +275,7 @@ The example code in `examples/` is also covered by the MIT license. If any examp
 - Built with [Docusaurus](https://docusaurus.io)
 - Styled with [Tailwind CSS](https://tailwindcss.com)
 - Powered by [Stellar](https://stellar.org)
-- Content from [Soroban Cookbook](https://github.com/Soroban-Cookbook/Soroban-Cookbook-)
+- Content from [Soroban Cookbook](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online)
 
 ---
 
