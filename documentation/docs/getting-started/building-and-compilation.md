@@ -7,28 +7,47 @@ sidebar_position: 4
 
 This guide walks through the complete compilation pipeline for Soroban contracts: from Rust source code to a deployable WebAssembly (WASM) artifact. You will learn how each build step works, how to control build flags for debug versus release output, and how to diagnose common compilation errors.
 
+OS-specific install steps, rust-analyzer, and WASM target checklists are in the [Environment Setup](./setup.md) guides: [Linux](./setup-linux.md), [macOS](./setup-macos.md), [Windows](./setup-windows.md).
+
+## Repository toolchain
+
+This cookbook **does not currently ship** a `rust-toolchain` or `rust-toolchain.toml` pin at the repository root. CI installs **Rust stable** and the `wasm32-unknown-unknown` target via `dtolnay/rust-toolchain@stable` in [`.github/workflows/ci.yml`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/.github/workflows/ci.yml). Example crates use **Rust edition 2021** and **soroban-sdk 27.0.3** (see `examples/hello-world/Cargo.toml`).
+
+Use rustup's latest **stable** toolchain when contributing. Do not invent a different pin unless the repository adds a toolchain file.
+
 ## Prerequisites
 
 Before building, make sure you have the following installed:
 
 - **Rust** (stable toolchain) — [install via rustup](https://www.rust-lang.org/tools/install)
-- **wasm32-unknown-unknown target** — required to compile to WASM
-- **Soroban CLI** — used to invoke the optimised build pipeline
+- **wasm32-unknown-unknown target** — required by this repository's examples, CI, and `scripts/test-examples.sh`
+- **Stellar CLI** (`stellar`) — used to invoke the contract build pipeline
 
 ```bash
-# Add the WASM compilation target
+# Add the WASM compilation target used by this repository
 rustup target add wasm32-unknown-unknown
 
-# Install the Soroban CLI (requires Cargo)
+# Install the Stellar CLI (requires Cargo)
 cargo install --locked stellar-cli --features opt
 ```
 
-Verify the installation:
+Verify the installation (print whatever versions you actually have; do not treat the comments as a required pin):
 
 ```bash
-rustc --version          # e.g. rustc 1.77.0
-stellar --version        # e.g. stellar 21.0.0
+rustc --version
+stellar --version
+rustup target list --installed
 ```
+
+`rustup target list --installed` must include `wasm32-unknown-unknown`. You can also inspect the full catalog:
+
+```bash
+rustup target list
+```
+
+Look for `wasm32-unknown-unknown (installed)`.
+
+The current Stellar CLI binary is `stellar`. The older `soroban` CLI is the same product line: **`soroban contract build` is now `stellar contract build`**. Use `stellar` for all new work. Some newer CLI releases may default to a different WASM target (for example `wasm32v1-none`); **this cookbook's CI and examples compile for `wasm32-unknown-unknown`**. When building cookbook crates with Cargo, pass that target explicitly as shown below.
 
 ## How Soroban compilation works
 
@@ -40,16 +59,16 @@ Rust source (.rs)
       ▼  cargo build --target wasm32-unknown-unknown --release
 Raw WASM artifact (target/.../release/*.wasm)
       │
-      ▼  stellar contract optimize  (uses wasm-opt)
-Optimised WASM (*.optimized.wasm) — smaller, faster
+      ▼  stellar contract build   (cargo + WASM optimize by default)
+Optimised WASM (*.wasm in the cargo target dir, copied if --out-dir is set)
       │
       ▼  stellar contract deploy
 Deployed contract (on-chain)
 ```
 
-`stellar contract build` is a convenience wrapper that runs both the `cargo build` and optimisation steps for you.
+`stellar contract build` compiles crates with `crate-type = ["cdylib"]` for the WASM target and **optimizes the generated WASM by default**. The older standalone `stellar contract optimize` / `soroban contract optimize` commands are deprecated in current Stellar CLI help; prefer `stellar contract build` (pass `--optimize=false` only when you need a faster unoptimized iteration).
 
-## Building with the Soroban CLI (recommended)
+## Building with the Stellar CLI (recommended)
 
 The simplest way to build a contract is with the `stellar contract build` command from inside the project directory:
 
@@ -58,17 +77,24 @@ cd my-contract
 stellar contract build
 ```
 
-This command:
+This command (from current Stellar CLI help):
 
-1. Compiles the Rust workspace for the `wasm32-unknown-unknown` target with release optimisations.
-2. Runs `wasm-opt` to shrink the binary.
-3. Places the final artifact in `target/wasm32-unknown-unknown/release/`.
+1. Builds crates referenced by `Cargo.toml` that have `cdylib` as their crate-type.
+2. Uses the **release** profile unless you pass `--profile`.
+3. Optimizes the generated WASM by default (`--optimize` defaults to `true`).
+4. Writes artifacts to the Cargo target directory. With `--out-dir`, it also copies the WASM files there.
 
-Expected output:
+For this repository, the examples workspace lives at `examples/`. Build Hello World with:
+
+```bash
+cd examples
+stellar contract build --package hello-world
+```
+
+The Cargo-produced artifact path used by this repo's tests is:
 
 ```
-Compiling my-contract v0.1.0
-Finished release [optimized] target(s) in 3.21s
+examples/target/wasm32-unknown-unknown/release/hello_world.wasm
 ```
 
 ### Specifying the output directory
@@ -77,13 +103,17 @@ Finished release [optimized] target(s) in 3.21s
 stellar contract build --out-dir ./artifacts
 ```
 
+`--out-dir` copies WASM files to the given directory **in addition to** the Cargo target directory.
+
 ### Building a specific contract in a workspace
 
-In a Cargo workspace with multiple contracts, build only one at a time:
+In a Cargo workspace with multiple contracts, build only one package:
 
 ```bash
-stellar contract build --package my-token
+stellar contract build --package hello-world
 ```
+
+If `--package` is omitted, the CLI builds every `cdylib` crate in the workspace. Other useful flags from current CLI help: `--manifest-path`, `--profile`, `--locked`, `--features`, `--all-features`, `--no-default-features`, `--print-commands-only`.
 
 ## Building with Cargo directly
 
@@ -165,14 +195,20 @@ cargo build --target wasm32-unknown-unknown --release --all-features
 
 ## Optimising the WASM binary
 
-The Soroban CLI's `stellar contract optimize` sub-command runs `wasm-opt` from the Binaryen toolchain. It significantly reduces the binary's size and improves execution speed:
+Current Stellar CLI **optimizes during `stellar contract build` by default**. Skip that only for fast local iteration:
+
+```bash
+stellar contract build --optimize=false
+```
+
+`stellar contract optimize` still exists in CLI help but is **deprecated** in favour of `build --optimize`. If you compiled with Cargo only (no `stellar contract build`), you can still run:
 
 ```bash
 stellar contract optimize \
-  --wasm target/wasm32-unknown-unknown/release/my_contract.wasm
+  --wasm target/wasm32-unknown-unknown/release/hello_world.wasm
 ```
 
-This writes `my_contract.optimized.wasm` alongside the original. Always deploy the optimised artifact.
+That writes a sibling `*.optimized.wasm` when using the deprecated command. Prefer deploying the artifact produced by `stellar contract build`.
 
 ## Output structure
 
@@ -187,8 +223,7 @@ my-contract/
 └── target/
     └── wasm32-unknown-unknown/
         └── release/
-            ├── my_contract.wasm               ← raw artifact
-            ├── my_contract.optimized.wasm     ← deploy this
+            ├── hello_world.wasm               ← contract WASM (optimized when built with stellar contract build)
             └── ...                            ← linker / debug files
 ```
 
@@ -197,17 +232,17 @@ my-contract/
 Before deploying, inspect the contract interface to confirm the ABI is correct:
 
 ```bash
-stellar contract inspect \
-  --wasm target/wasm32-unknown-unknown/release/my_contract.optimized.wasm
+stellar contract info interface \
+  --wasm target/wasm32-unknown-unknown/release/hello_world.wasm
 ```
 
-Example output:
+`stellar contract inspect` still exists but is **deprecated** in current CLI help; use `stellar contract info` (`interface`, `meta`, `hash`, and related subcommands).
+
+Example interface for this repository's Hello World crate:
 
 ```
-Functions:
-  initialize(admin: Address) -> ()
-  transfer(from: Address, to: Address, amount: i128) -> ()
-  balance(account: Address) -> i128
+hello() -> String
+set_message(message: String)
 ```
 
 ## Reducing binary size
@@ -223,7 +258,7 @@ If your contract is larger than expected, try these techniques in order:
 | `panic = "abort"`                 | Removes formatting from panics       |
 | Remove unused dependencies        | Audit `Cargo.toml` with `cargo tree` |
 | Minimise `std` / use `#![no_std]` | Reduces runtime overhead             |
-| Run `stellar contract optimize`   | Applies wasm-opt passes              |
+| Run `stellar contract build`      | Optimizes WASM by default            |
 
 ## Common build errors and remediation
 
@@ -266,7 +301,7 @@ soroban-sdk = "27.0.3"
 
 **Cause:** The binary exceeds on-chain size limits (currently 64 KB for the compressed artifact).
 
-**Fix:** Apply the optimisation settings in the [reducing binary size](#reducing-binary-size) table above, then re-run `stellar contract optimize`.
+**Fix:** Apply the optimisation settings in the [reducing binary size](#reducing-binary-size) table above, then re-run `stellar contract build`.
 
 ---
 
@@ -340,43 +375,45 @@ Then run `cargo build` (no `--release`) for fast iteration.
 ## Complete build workflow example
 
 ```bash
-# 1. Create a new contract
-stellar contract init my-counter
-cd my-counter
+# 1. In this repository, use the canonical Hello World crate
+cd examples
 
-# 2. Compile
-stellar contract build
+# 2. Compile the hello-world package
+stellar contract build --package hello-world
 
-# 3. Verify the artifact
-ls -lh target/wasm32-unknown-unknown/release/my_counter.optimized.wasm
+# 3. Verify the artifact (workspace target dir)
+ls -lh target/wasm32-unknown-unknown/release/hello_world.wasm
 
 # 4. Inspect the ABI
-stellar contract inspect \
-  --wasm target/wasm32-unknown-unknown/release/my_counter.optimized.wasm
+stellar contract info interface \
+  --wasm target/wasm32-unknown-unknown/release/hello_world.wasm
 
 # 5. Run unit tests (native target — fast feedback loop)
-cargo test
+cargo test --package hello-world
 
-# 6. Deploy to testnet
-stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/my_counter.optimized.wasm \
-  --source my-testnet-account \
-  --network testnet
+# Optional: scaffold a new empty project (not the cookbook crate)
+# stellar contract init my-counter
 ```
+
+Deploy only after tests pass. Testnet steps are in [Deploy to Testnet](/docs/getting-started/deploy-testnet). Do not put private keys or seed phrases in these commands or in the repository.
 
 ## Build checklist
 
+- [ ] Stable Rust via rustup (`rustc --version`) — this repo has no `rust-toolchain.toml`
 - [ ] `wasm32-unknown-unknown` target installed (`rustup target list --installed`)
-- [ ] Soroban CLI installed (`stellar --version`)
+- [ ] Stellar CLI installed (`stellar --version`) — not the legacy `soroban` binary name
 - [ ] `[profile.release]` configured with size and safety settings
 - [ ] `cargo test` passes on the native target
 - [ ] `stellar contract build` completes without errors
-- [ ] Optimised artifact size is below 64 KB compressed
-- [ ] ABI inspected and matches expectations
-- [ ] Artifact deployed successfully to testnet
+- [ ] Artifact size is within on-chain limits after optimization
+- [ ] ABI inspected with `stellar contract info interface` and matches the crate
+- [ ] Artifact validated on testnet before any mainnet attempt
 
 ## Next steps
 
+- [Environment Setup](/docs/getting-started/setup) — Linux, macOS, and Windows toolchains, WASM target, rust-analyzer
+- [Development Tools](/docs/getting-started/development-tools) — Stellar CLI, rust-analyzer, repository toolchain
+- [Your First Contract](/docs/getting-started/first-contract) — Hello World crate walkthrough
 - [Local Testing and Simulation](/docs/getting-started/local-testing-and-simulation) — test before deploying
 - [Deploy to Testnet](/docs/getting-started/deploy-testnet) — put your compiled contract on the network
 - [Contract Interaction](/docs/getting-started/contract-interaction) — invoke functions on a deployed contract

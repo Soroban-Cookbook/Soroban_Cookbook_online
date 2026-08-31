@@ -7,7 +7,7 @@ description: Set up your Soroban development environment on Windows — guides f
 
 # Windows Environment Setup
 
-Set up your Soroban development environment on Windows. This guide covers both WSL (Windows Subsystem for Linux) - the recommended approach - and native Windows installation.
+Set up your Soroban development environment on Windows. This guide covers both WSL (Windows Subsystem for Linux) - the recommended approach - and native Windows installation. After setup, follow [Building and Compilation](./building-and-compilation.md) and [Development Tools](./development-tools.md).
 
 <PrerequisitesChecker />
 
@@ -33,6 +33,9 @@ Before you begin, ensure you have:
 - **Internet connection** - For downloading dependencies
 - **Disk space** - At least 5GB free (WSL) or 3GB (native)
 - **RAM** - Minimum 4GB (8GB+ recommended)
+- **Rust** - Latest **stable** toolchain (this repo has no `rust-toolchain.toml`; CI uses stable)
+- **Stellar CLI** (`stellar`) and **wasm32-unknown-unknown** — see the steps below
+- **rust-analyzer** — see [Development Tools](./development-tools.md#rust-analyzer)
 
 ## Part 1: WSL 2 Setup (Recommended)
 
@@ -125,6 +128,7 @@ cargo --version
 
 ### Step 6: Install Stellar CLI
 
+Install using Cargo (same command as [Building and Compilation](./building-and-compilation.md)):
 Install using Cargo with Wasm optimization features:
 
 ```bash
@@ -139,21 +143,39 @@ Verify installation:
 stellar --version
 ```
 
-### Step 7: Configure WebAssembly Target
+The older `soroban` binary name is superseded. **`soroban contract build` is now `stellar contract build`.**
 
-Add the WebAssembly target:
+### Step 7: Configure the WebAssembly target (required)
+
+This repository's examples, CI, and `scripts/test-examples.sh` compile for **`wasm32-unknown-unknown`**. Add that target:
 
 ```bash
 rustup target add wasm32-unknown-unknown
 ```
 
-Verify:
+Verify with the same command used on Linux and macOS:
+
+```bash
+rustup target list --installed
+```
+
+The list **must** include `wasm32-unknown-unknown`. You can also filter:
 
 ```bash
 rustup target list | grep wasm32-unknown-unknown
 ```
 
-### Step 8: Access Your Windows Files from WSL
+### Step 8: rust-analyzer
+
+Install the [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) extension (use VS Code Remote - WSL so the extension runs inside WSL). This cookbook's Rust workspace is `examples/Cargo.toml`:
+
+```json
+{
+  "rust-analyzer.linkedProjects": ["examples/Cargo.toml"]
+}
+```
+
+### Step 9: Access Your Windows Files from WSL
 
 Your Windows drives are automatically mounted in WSL. Access them via:
 
@@ -165,7 +187,7 @@ cd /mnt/c/Users/YourUsername
 cd ~
 ```
 
-### Step 9: Set Up Your Development Workspace
+### Step 10: Set Up Your Development Workspace
 
 Create a workspace directory:
 
@@ -195,9 +217,11 @@ echo "=== Stellar CLI Verification ==="
 stellar --version
 echo ""
 echo "=== WebAssembly Target Verification ==="
+rustup target list --installed
 rustup target list | grep wasm32-unknown-unknown
 ```
 
+Expected output includes `stellar` version output (whatever you installed) and `wasm32-unknown-unknown` in `rustup target list --installed`. Do not treat sample version numbers as a required pin.
 Expected output:
 
 ```
@@ -276,19 +300,35 @@ Verify:
 stellar --version
 ```
 
-### Step 5: Configure WebAssembly Target
+### Step 5: Configure the WebAssembly target (required)
 
 ```powershell
 rustup target add wasm32-unknown-unknown
 ```
 
-Verify:
+Verify (same check as Linux and macOS):
 
 ```powershell
-rustup target list | grep wasm32-unknown-unknown
+rustup target list --installed
 ```
 
-### Step 6: Configure Git Line Endings
+You can also filter:
+
+```powershell
+rustup target list | Select-String "wasm32-unknown-unknown"
+```
+
+### Step 6: rust-analyzer
+
+Install the rust-analyzer VS Code extension. If you open this cookbook at the repository root:
+
+```json
+{
+  "rust-analyzer.linkedProjects": ["examples/Cargo.toml"]
+}
+```
+
+### Step 7: Configure Git Line Endings
 
 **Important**: Configure Git to handle line endings correctly:
 
@@ -298,7 +338,7 @@ git config --global core.autocrlf true
 
 This prevents issues when working with Unix-based tools.
 
-### Step 7: Set Up Your Development Workspace
+### Step 8: Set Up Your Development Workspace
 
 Create a workspace directory:
 
@@ -320,6 +360,7 @@ Write-Host "=== Stellar CLI Verification ===" -ForegroundColor Green
 stellar --version
 Write-Host ""
 Write-Host "=== WebAssembly Target Verification ===" -ForegroundColor Green
+rustup target list --installed
 rustup target list | Select-String "wasm32-unknown-unknown"
 Write-Host ""
 Write-Host "=== Git Verification ===" -ForegroundColor Green
@@ -367,6 +408,8 @@ Use this checklist to confirm your setup is complete:
 - [ ] Rust installed: `rustc --version` returns a version number
 - [ ] Cargo installed: `cargo --version` returns a version number
 - [ ] Stellar CLI installed: `stellar --version` returns a version number
+- [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
+- [ ] rust-analyzer can resolve `examples/Cargo.toml`
 - [ ] WebAssembly target: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] VS Code Remote WSL extension installed (optional but recommended)
@@ -377,6 +420,8 @@ Use this checklist to confirm your setup is complete:
 - [ ] Cargo installed: `cargo --version` returns a version number
 - [ ] Build tools installed: Visual Studio Build Tools present
 - [ ] Stellar CLI installed: `stellar --version` returns a version number
+- [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
+- [ ] rust-analyzer can resolve `examples/Cargo.toml`
 - [ ] WebAssembly target: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Git line endings configured: `git config --global core.autocrlf` returns `true`
@@ -637,9 +682,10 @@ cargo clean
 | `rustc --version`                          | Check Rust version     |
 | `cargo --version`                          | Check Cargo version    |
 | `rustup target add wasm32-unknown-unknown` | Add WebAssembly target |
-| `rustup target list`                       | List available targets |
+| `rustup target list --installed`           | Show installed targets (must include wasm32-unknown-unknown) |
 | `rustup toolchain list`                    | List Rust toolchains   |
 
+### Stellar CLI Commands (Same on WSL and Native)
 ### Stellar Commands (Same on WSL and Native)
 
 | Command                             | Purpose                    |
@@ -689,9 +735,10 @@ cargo clean
 Now that your Windows environment is set up:
 
 1. [Create your first contract](./first-contract.md)
-2. [Deploy to testnet](./deploy-testnet.md)
-3. [Learn core concepts](../concepts/overview)
-4. [Explore patterns](../patterns/overview)
+2. [Building and Compilation](./building-and-compilation.md)
+3. [Development Tools](./development-tools.md)
+4. [Deploy to testnet](./deploy-testnet.md)
+5. [Learn core concepts](../concepts/overview)
 
 ## Additional Resources
 

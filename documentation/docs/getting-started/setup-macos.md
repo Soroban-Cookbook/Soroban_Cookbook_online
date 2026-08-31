@@ -1,11 +1,12 @@
 ---
 time: 25
-title: setup-macos
+title: Setup on macOS
+description: Set up your Soroban development environment on macOS — Intel and Apple Silicon.
 ---
 
 # macOS Environment Setup
 
-Set up your Soroban development environment on macOS. This guide covers Intel and Apple Silicon (M1/M2/M3) Macs running macOS 11 (Big Sur) or later.
+Set up your Soroban development environment on macOS. This guide covers Intel and Apple Silicon (M1/M2/M3) Macs running macOS 11 (Big Sur) or later. After setup, follow [Building and Compilation](./building-and-compilation.md) and [Development Tools](./development-tools.md).
 
 <PrerequisitesChecker />
 
@@ -17,6 +18,10 @@ Before you begin, ensure you have:
 - **macOS 11 (Big Sur) or later** - Both Intel and Apple Silicon supported
 - **Xcode Command Line Tools** - Required for compilation
 - **Homebrew** - Package manager for macOS
+- **Rust** - Latest **stable** toolchain via rustup (this repo has no `rust-toolchain.toml`; CI uses stable)
+- **Stellar CLI** (`stellar`) - Command-line interface for contract build and deploy
+- **wasm32-unknown-unknown** - Required WASM target (see checklist below)
+- **Code Editor** - VS Code or your preferred editor, with [rust-analyzer](#rust-analyzer)
 - **Rust** - Latest stable version
 - **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
 - **Code Editor** - VS Code or your preferred editor
@@ -130,6 +135,7 @@ Both commands should return version numbers.
 
 ### 5. Install Stellar CLI
 
+Install the Stellar CLI using Cargo (same command as [Building and Compilation](./building-and-compilation.md)):
 Install the Stellar CLI with Wasm optimization support using Cargo:
 
 ```bash
@@ -144,15 +150,23 @@ Verify installation:
 stellar --version
 ```
 
-### 6. Configure WebAssembly Target
+The older `soroban` binary name is superseded. **`soroban contract build` is now `stellar contract build`.**
 
-Add the WebAssembly target to your Rust toolchain:
+### 6. Configure the WebAssembly target (required)
+
+This repository's examples, CI (`.github/workflows/ci.yml`), and `scripts/test-examples.sh` compile for **`wasm32-unknown-unknown`**. Add that target:
 
 ```bash
 rustup target add wasm32-unknown-unknown
 ```
 
-Verify the target was added:
+Verify with the same command used on Linux and Windows:
+
+```bash
+rustup target list --installed
+```
+
+The output **must** include `wasm32-unknown-unknown`. You can also filter the full catalog:
 
 ```bash
 rustup target list | grep wasm32-unknown-unknown
@@ -160,7 +174,19 @@ rustup target list | grep wasm32-unknown-unknown
 
 You should see `wasm32-unknown-unknown (installed)`.
 
-### 7. Set Up Your Development Workspace
+### 7. rust-analyzer
+
+Install the [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) extension. This cookbook's Rust workspace is `examples/Cargo.toml`. If you open the repository root in VS Code, link that workspace:
+
+```json
+{
+  "rust-analyzer.linkedProjects": ["examples/Cargo.toml"]
+}
+```
+
+Confirm `soroban_sdk` resolves, then run `cargo test --package hello-world` from `examples/`.
+
+### 8. Set Up Your Development Workspace
 
 Create a workspace directory for your Soroban projects:
 
@@ -189,6 +215,7 @@ echo "=== Stellar CLI Verification ==="
 stellar --version
 
 echo "=== WebAssembly Target Verification ==="
+rustup target list --installed
 rustup target list | grep wasm32-unknown-unknown
 
 echo "=== Git Verification ==="
@@ -203,9 +230,11 @@ Use this checklist to confirm your environment is ready:
 
 - [ ] Xcode Command Line Tools: `xcode-select --version` returns a version number
 - [ ] Homebrew installed: `brew --version` returns a version number
-- [ ] Rust installed: `rustc --version` returns a version number
+- [ ] Rust installed: `rustc --version` returns a version number (stable toolchain; no repo `rust-toolchain.toml`)
 - [ ] Cargo installed: `cargo --version` returns a version number
 - [ ] Stellar CLI installed: `stellar --version` returns a version number
+- [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
+- [ ] rust-analyzer can resolve the `examples` workspace
 - [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Internet connectivity: `curl https://www.google.com` succeeds
@@ -384,9 +413,9 @@ rustc --version
 
 **Solution**:
 ```bash
-# Ensure you have native toolchain
-rustup target list | grep wasm32-unknown-unknown
-# Should show: wasm32-unknown-unknown (installed)
+# Ensure you have the cookbook WASM target
+rustup target list --installed
+# Must include: wasm32-unknown-unknown
 
 # Update toolchain
 rustup update
@@ -400,6 +429,7 @@ cargo build --release
 
 #### Stellar CLI Installation Hangs or Times Out
 
+**Problem**: `cargo install --locked stellar-cli --features opt` takes too long or times out
 **Problem**: `cargo install --locked stellar-cli` takes too long or times out
 
 **Solution**:
@@ -411,6 +441,7 @@ cargo install --locked stellar-cli --features opt -v
 ping -c 3 github.com
 ```
 
+#### "stellar Command Not Found"
 #### "Stellar Command Not Found"
 
 **Problem**: `stellar: command not found`
@@ -534,10 +565,11 @@ brew cleanup
 **Problem**: Rust analyzer not working in VS Code
 
 **Solution**:
-1. Install "Rust-analyzer" extension in VS Code
-2. Install "CodeLLDB" extension for debugging
-3. Reload VS Code
-4. Check that Rust path is correct:
+1. Install the rust-analyzer extension in VS Code
+2. If you opened this cookbook at the repository root, set `"rust-analyzer.linkedProjects": ["examples/Cargo.toml"]`
+3. Install CodeLLDB if you need debugging
+4. Reload VS Code
+5. Check that Rust is on PATH:
 
 ```bash
 # In VS Code Terminal
@@ -611,9 +643,10 @@ cargo build -v --timings
 Now that your macOS environment is ready:
 
 1. [Create your first contract](./first-contract.md)
-2. [Learn core concepts](../concepts/overview)
-3. [Deploy to testnet](./deploy-testnet.md)
-4. [Explore patterns](../patterns/overview)
+2. [Building and Compilation](./building-and-compilation.md)
+3. [Development Tools](./development-tools.md)
+4. [Learn core concepts](../concepts/overview)
+5. [Deploy to testnet](./deploy-testnet.md)
 
 ## Additional Resources
 
