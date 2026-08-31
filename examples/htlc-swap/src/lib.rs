@@ -121,11 +121,7 @@ impl HtlcSwap {
         token_b_client.transfer(&caller, &env.current_contract_address(), &swap.amount_b);
 
         let token_a_client = token::Client::new(&env, &swap.token_a);
-        token_a_client.transfer(
-            &env.current_contract_address(),
-            &caller,
-            &swap.amount_a,
-        );
+        token_a_client.transfer(&env.current_contract_address(), &caller, &swap.amount_a);
 
         env.storage().persistent().remove(&key);
 
@@ -162,11 +158,7 @@ impl HtlcSwap {
         env.storage().persistent().set(&key, &swap);
 
         let token_a_client = token::Client::new(&env, &swap.token_a);
-        token_a_client.transfer(
-            &env.current_contract_address(),
-            &caller,
-            &swap.amount_a,
-        );
+        token_a_client.transfer(&env.current_contract_address(), &caller, &swap.amount_a);
 
         env.storage().persistent().remove(&key);
 
@@ -187,10 +179,7 @@ mod tests {
         Bytes, Env,
     };
 
-    fn create_token(
-        env: &Env,
-        admin: &Address,
-    ) -> (Address, token::StellarAssetClient<'static>) {
+    fn create_token(env: &Env, admin: &Address) -> (Address, token::StellarAssetClient<'static>) {
         let asset = env.register_stellar_asset_contract(admin.clone());
         let sac = token::StellarAssetClient::new(env, &asset);
         (asset, sac)
@@ -199,7 +188,7 @@ mod tests {
     fn advance_time(env: &Env, timestamp: u64) {
         env.ledger().set(LedgerInfo {
             timestamp,
-            protocol_version: 22,
+            protocol_version: 27,
             sequence_number: env.ledger().sequence(),
             network_id: Default::default(),
             base_reserve: 10,
@@ -244,7 +233,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         client.claim(&bob, &swap_id, &secret);
 
@@ -264,7 +255,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         let result = client.try_refund(&alice, &swap_id);
         assert_eq!(result, Err(Ok(Error::TimelockNotExpired)));
@@ -284,7 +277,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         let wrong_secret = Bytes::from_array(&env, &[0x05, 0x06, 0x07, 0x08]);
         let result = client.try_claim(&bob, &swap_id, &wrong_secret);
@@ -298,7 +293,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         client.claim(&bob, &swap_id, &secret);
 
@@ -313,7 +310,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         client.claim(&bob, &swap_id, &secret);
 

@@ -1,17 +1,13 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execFileSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const docsRoot = path.resolve(__dirname, '../docs');
 const outputDir = path.resolve(__dirname, '../src/components/recommendations');
 const outputPath = path.join(outputDir, 'contentRegistry.json');
-
-// Ensure output dir exists
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+const isCheckMode = process.argv.includes('--check');
 
 function walk(dir, files = []) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -195,22 +191,63 @@ function parseMarkdownFile(filePath) {
   };
 }
 
-const files = walk(docsRoot);
-const registry = [];
-for (const file of files) {
-  const meta = parseMarkdownFile(file);
-  if (meta) {
-    registry.push(meta);
+function buildRegistry() {
+  const files = walk(docsRoot);
+  const registry = [];
+  for (const file of files) {
+    const meta = parseMarkdownFile(file);
+    if (meta) {
+      registry.push(meta);
+    }
+  }
+  return registry;
+}
+
+function writeRegistryFile(registry, filePath) {
+  fs.writeFileSync(filePath, `${JSON.stringify(registry, null, 2)}\n`, 'utf8');
+}
+
+function normalizeLineEndings(text) {
+  return text.replace(/\r\n/g, '\n');
+}
+
+function ensureOutputDir() {
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
   }
 }
 
-fs.writeFileSync(outputPath, `${JSON.stringify(registry, null, 2)}\n`, 'utf8');
-try {
-  const prettierBin = path.resolve(__dirname, '../node_modules/.bin/prettier');
-  if (fs.existsSync(prettierBin)) {
-    execFileSync(prettierBin, ['--write', outputPath], { stdio: 'inherit' });
+function checkRegistryOutput(registry) {
+  if (!fs.existsSync(outputPath)) {
+    console.error(`contentRegistry.json is missing at ${outputPath}`);
+    console.error('Run `node scripts/generate-content-registry.mjs` to regenerate it.');
+    process.exit(1);
   }
-} catch (err) {
-  console.warn('Prettier format skipped for content registry:', err.message);
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'content-registry-'));
+  const tempPath = path.join(tempDir, 'contentRegistry.json');
+  try {
+    writeRegistryFile(registry, tempPath);
+    const expected = normalizeLineEndings(fs.readFileSync(tempPath, 'utf8'));
+    const actual = normalizeLineEndings(fs.readFileSync(outputPath, 'utf8'));
+
+    if (actual !== expected) {
+      console.error(`contentRegistry.json is stale at ${outputPath}`);
+      console.error('Run `node scripts/generate-content-registry.mjs` and commit the updated file.');
+      process.exit(1);
+    }
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 }
-console.log(`Generated content registry with ${registry.length} items at ${outputPath}`);
+
+const registry = buildRegistry();
+
+if (isCheckMode) {
+  checkRegistryOutput(registry);
+  console.log(`contentRegistry.json is up to date at ${outputPath}`);
+} else {
+  ensureOutputDir();
+  writeRegistryFile(registry, outputPath);
+  console.log(`Generated content registry with ${registry.length} items at ${outputPath}`);
+}

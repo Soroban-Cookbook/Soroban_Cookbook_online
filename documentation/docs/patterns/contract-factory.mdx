@@ -187,6 +187,8 @@ let salt = env.storage().temporary().get::<(), u64>(&()).unwrap_or(0);
 let salt_bytes = salt.to_le_bytes().to_vec();
 ```
 
+The salt, combined with the factory's own address, is what determines each child's contract ID — see [Contract IDs & Deploy Salt](../concepts/contract-ids.md) for how that derivation works and how to predict a child's address before deploying it.
+
 ### Storage Optimization
 
 - **Persistent storage**: For tracking important metadata
@@ -297,6 +299,7 @@ pub fn get_child_by_index(env: Env, index: u32) -> Address {
 - [Error Handling](./error-handling.mdx)
 - [Custom Types](./custom-types.mdx)
 - [Contract Registry](./contract-registry.mdx) - Map stable names to contract addresses deployed by a factory
+- [Contract IDs & Deploy Salt](../concepts/contract-ids.md) - How the salt used above determines each child's address
 
 ## Resources
 

@@ -1,0 +1,324 @@
+---
+time: 30
+sidebar_position: 8
+title: Token Vesting
+description: Linear token vesting with a cliff — fund up front, release the vested portion over time.
+difficulty: intermediate
+tags:
+  - token
+  - vesting
+  - defi
+keywords:
+  - vesting
+  - cliff
+  - linear
+  - release
+  - schedule
+  - beneficiary
+  - funder
+  - soroban_sdk
+  - checked_mul
+  - require_auth
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="token-vesting"
+  difficulty="intermediate"
+  category="token"
+  status="stable"
+  lastReviewed="August 2026"
+/>
+
+## Overview
+
+A **token vesting** contract lets a funder deposit a full token allocation up front and then release only the *vested* portion to the beneficiary over time. Vesting progresses **linearly** between a start and an end timestamp, and a **cliff** blocks any release before a chosen point. This is the standard model for employee equity, investor grants, and team token allocations.
+
+<PatternCallout variant="info" title="When to use">
+
+Use this pattern when you want a one-time, fund-it-now / release-later schedule: full amount locked immediately, then unlocked proportionally over time. If you instead need continuous accrual with arbitrary withdrawals, see [Streaming Payments](/docs/patterns/streaming-payments).
+
+</PatternCallout>
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust stable and `cargo`
+- Soroban CLI installed ([setup guide](/docs/getting-started/setup))
+- Basic familiarity with Soroban contracts and the `soroban_sdk`
+- Understanding of `Address` authentication (`require_auth`) and the [SAC token interface](https://developers.stellar.org/docs/smart-contracts/tokens)
+
+</PatternSection>
+
+<PatternSection id="architecture" title="Architecture">
+
+The contract stores a single `VestingSchedule` and exposes four public functions:
+
+```
+TokenVesting Contract
+├── initialize(funder, beneficiary, token, total_amount, cliff_time, end_time)
+├── release() -> released_amount
+├── schedule() -> VestingSchedule
+├── vested_amount() -> amount
+└── releasable_amount() -> amount
+```
+
+### Vesting Schedule Record
+
+```rust
+pub struct VestingSchedule {
+    pub funder: Address,           // Address that funded the schedule
+    pub beneficiary: Address,      // Address entitled to release vested tokens
+    pub token: Address,            // Stellar asset contract held by this contract
+    pub start_time: u64,           // Ledger timestamp at which vesting began
+    pub cliff_time: u64,           // Earliest ledger timestamp a release is allowed
+    pub end_time: u64,             // Ledger timestamp at which the allocation is fully vested
+    pub total_amount: i128,        // Total tokens deposited for this schedule
+    pub released_amount: i128,     // Tokens already released to the beneficiary
+}
+```
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+### The Vesting Math
+
+The core is a single pure function, `vested_at`, which returns how many tokens are vested at a given ledger timestamp:
+
+```rust
+fn vested_at(schedule: &VestingSchedule, timestamp: u64) -> Result<i128, Error> {
+    // Before the cliff nothing has vested.
+    if timestamp < schedule.cliff_time {
+        return Ok(0);
+    }
+    // At/after the end, the whole allocation is vested.
+    if timestamp >= schedule.end_time {
+        return Ok(schedule.total_amount);
+    }
+
+    let elapsed = i128::from(timestamp - schedule.start_time);
+    let duration = i128::from(schedule.end_time - schedule.start_time);
+    // total_amount * elapsed can overflow when total_amount is near i128::MAX.
+    schedule
+        .total_amount
+        .checked_mul(elapsed)
+        .map(|product| product / duration)
+        .ok_or(Error::ArithmeticOverflow)
+}
+```
+
+In the linear phase the vested amount is:
+
+```
+vested(t) = floor( total_amount * (t - start_time) / (end_time - start_time) )
+```
+
+<PatternCallout variant="info" title="Integer division and the end-time fast path">
+
+The contract computes `total * elapsed / duration` with integer arithmetic, so the final division is rounded **down**. That is why `releasable_amount()` can be non-zero right up to `end_time`, and why `end_time` uses a fast path that returns `total_amount` directly — guaranteeing the **entire** allocation (including any remainder from integer division) is released exactly at `end_time`. The multiplication uses `checked_mul` and returns `Error::ArithmeticOverflow` when `total_amount × elapsed` would exceed `i128::MAX`.
+
+</PatternCallout>
+
+### Initialize
+
+The funder creates and funds the schedule in one call. The vesting **start** is the current ledger timestamp, so the funder controls when the clock starts by when they call `initialize`:
+
+```rust
+pub fn initialize(
+    env: Env,
+    funder: Address,
+    beneficiary: Address,
+    token: Address,
+    total_amount: i128,
+    cliff_time: u64,
+    end_time: u64,
+) -> Result<(), Error> {
+    if env.storage().instance().has(&DataKey::Schedule) {
+        return Err(Error::AlreadyInitialized);
+    }
+    if total_amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+
+    let start_time = env.ledger().timestamp();
+    if cliff_time < start_time || end_time <= cliff_time {
+        return Err(Error::InvalidSchedule);
+    }
+
+    funder.require_auth(); // only the funder may create the schedule
+
+    // ... persist the schedule ...
+
+    token::Client::new(&env, &token).transfer(
+        &funder,
+        &env.current_contract_address(),
+        &total_amount,
+    );
+
+    Ok(())
+}
+```
+
+### Release
+
+Only the **beneficiary** may release, and only the *newly vested* portion is paid each time:
+
+```rust
+pub fn release(env: Env) -> Result<i128, Error> {
+    let mut schedule = Self::load_schedule(&env)?;
+    schedule.beneficiary.require_auth(); // only the beneficiary may release
+
+    let now = env.ledger().timestamp();
+    if now < schedule.cliff_time {
+        return Err(Error::CliffNotReached);
+    }
+
+    let vested = Self::vested_at(&schedule, now)?;
+    let releasable = vested
+        .checked_sub(schedule.released_amount)
+        .ok_or(Error::ArithmeticOverflow)?;
+    if releasable <= 0 {
+        return Err(Error::NothingToRelease);
+    }
+
+    schedule.released_amount = vested; // track total vested so far
+    // ... persist the schedule, then transfer `releasable` to the beneficiary ...
+    Ok(releasable)
+}
+```
+
+### View Functions
+
+`schedule()` returns the full schedule, `vested_amount()` returns `vested_at(now)`, and `releasable_amount()` returns `vested - released` (or `0` before the cliff). All three return `Error::NotInitialized` if no schedule exists yet.
+
+### Key Properties
+
+1. **Before the cliff**: `vested = 0`, `release` returns `Error::CliffNotReached`.
+2. **In the linear phase**: `vested = total * (t - start) / (end - start)`, rounded down.
+3. **At/after `end_time`**: `vested = total` — the full allocation, including any integer-division remainder.
+4. **Each release pays only the delta**: `releasable = vested - released`, so no token is ever released twice.
+5. **One schedule, one fund**: re-`initialize` returns `Error::AlreadyInitialized`.
+
+</PatternSection>
+
+<PatternSection id="authorization" title="Authorization">
+
+| Action | Authorized actor | Check |
+|--------|------------------|-------|
+| `initialize` | **Funder** (the account funding the schedule) | `funder.require_auth()` |
+| `release` | **Beneficiary** (the account receiving tokens) | `beneficiary.require_auth()` |
+
+There is no separate admin role: the funder acts as the "admin" by being the only actor who can create and fund the schedule, and only the beneficiary can ever move tokens out of it. Time checks use the **current ledger timestamp** (`env.ledger().timestamp()`), so nobody can release early by supplying their own clock.
+
+</PatternSection>
+
+<PatternSection id="testing" title="Testing">
+
+Run the example tests from the repository root (the same command CI runs):
+
+```bash
+./scripts/test-examples.sh token-vesting
+
+# or directly:
+cargo test --manifest-path examples/token-vesting/Cargo.toml
+```
+
+The contract ships with tests covering the full schedule lifecycle and the overflow boundary:
+
+- [x] `initialize` funds the contract and records the schedule
+- [x] `initialize` rejects invalid amounts, invalid schedules, and re-initialization
+- [x] `release` is blocked before the cliff
+- [x] `release` at the cliff pays exactly the linearly vested portion
+- [x] Repeated releases transfer only newly vested tokens
+- [x] At `end_time` the full allocation is released exactly once
+- [x] `vested_at` returns `ArithmeticOverflow` for `i128::MAX` amounts mid-schedule
+- [x] `vested_at` at `end_time` returns `i128::MAX` without overflowing
+- [x] `releasable_amount` propagates overflow
+- [x] Boundary: a total amount just below the overflow threshold computes correctly
+- [x] View functions (`schedule`/`vested_amount`/`releasable_amount`) require initialization
+
+</PatternSection>
+
+<PatternSection id="security" title="Security Considerations">
+
+1. **Overflow handling**: `total_amount × elapsed` can overflow when the amount is near `i128::MAX`. The contract uses `checked_mul` and surfaces `ArithmeticOverflow` rather than silently wrapping.
+2. **Cliff validation**: `cliff_time` must be at or after the actual start (`cliff_time < start_time` is rejected) and `end_time` must be strictly after the cliff. Combined with `start_time` being the ledger timestamp, this prevents back-dated schedules.
+3. **Single funding**: the schedule is stored once; a second `initialize` is rejected, so the funder cannot "top up" or accidentally overwrite a schedule.
+4. **Trust model**: the funder must be trusted to fund the full amount up front (the transfer is part of `initialize`). The beneficiary is fully trusted to release at their convenience — there is no withdrawal cap beyond the schedule itself.
+5. **No cancellation**: this contract has no cancel/revoke path. If you need clawback, look at the SAC admin `clawback` or a timelock variant.
+
+</PatternSection>
+
+<PatternSection id="comparison" title="Vesting vs Streaming">
+
+| Aspect | Token Vesting | Streaming Payments |
+|--------|---------------|--------------------|
+| **Cliff** | Yes — nothing releases before the cliff | No — accrual starts immediately |
+| **Funds** | Full allocation funded up front | Full allocation funded up front |
+| **Withdrawals** | Discrete releases (`release()`) | Continuous (`withdraw()` anytime) |
+| **Use case** | Employee equity, investor grants | Payroll, subscriptions |
+
+</PatternSection>
+
+<PatternSection id="related-patterns" title="Related Patterns">
+
+- [Streaming Payments](/docs/patterns/streaming-payments) — linear accrual without a cliff
+- [Basic Token](/docs/patterns/basic-token) — the token interface this contract uses
+- [Timelock Vault](/docs/patterns/timelock-vault) — lock-and-release with absolute timestamps
+- [Authorization](/docs/patterns/authorization) — `require_auth` access control
+
+</PatternSection>
+
+<PatternSection id="deployment" title="Deployment Guide">
+
+### Build the Contract
+
+```bash
+stellar contract build --manifest-path examples/token-vesting/Cargo.toml
+```
+
+The optimised Wasm is written to
+`examples/target/wasm32-unknown-unknown/release/token_vesting.wasm`.
+
+### Deploy to Testnet
+
+```bash
+stellar contract deploy \
+  --wasm examples/target/wasm32-unknown-unknown/release/token_vesting.wasm \
+  --source my-testnet-account \
+  --network testnet
+```
+
+### Initialize
+
+```bash
+stellar contract invoke \
+  --id CABC... \
+  --source funder-account \
+  --network testnet \
+  -- initialize \
+  --funder "$(stellar keys address funder-account)" \
+  --beneficiary GBBD...your-beneficiary \
+  --token CTOKEN... \
+  --total_amount 1000000000 \
+  --cliff_time $(...unix-seconds...) \
+  --end_time $(...unix-seconds...)
+```
+
+### Release
+
+The beneficiary invokes `release` with their own key:
+
+```bash
+stellar contract invoke \
+  --id CABC... \
+  --source beneficiary-account \
+  --network testnet \
+  -- release
+```
+
+See [Deploy to Testnet](/docs/getting-started/deploy-testnet) for account setup and funding.
+
+</PatternSection>

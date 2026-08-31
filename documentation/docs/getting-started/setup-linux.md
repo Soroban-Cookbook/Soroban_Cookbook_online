@@ -7,7 +7,7 @@ description: Set up your Soroban development environment on Linux — complete g
 
 # Linux Environment Setup
 
-Set up your Soroban development environment on Linux to start building smart contracts. This guide covers Ubuntu/Debian-based distributions with notes for other Linux distros.
+Set up your Soroban development environment on Linux to start building smart contracts. This guide covers Ubuntu/Debian-based distributions with notes for other Linux distros. After setup, follow [Building and Compilation](./building-and-compilation.md) and [Development Tools](./development-tools.md).
 
 <PrerequisitesChecker />
 
@@ -17,8 +17,12 @@ Set up your Soroban development environment on Linux to start building smart con
 Before you begin, ensure you have:
 
 - **Linux OS** - Ubuntu 20.04+, Debian 11+, or other modern distributions
+- **Rust** - Latest **stable** toolchain via rustup (this repo has no `rust-toolchain.toml`; CI uses stable)
+- **Stellar CLI** (`stellar`) - Command-line interface for contract build and deploy
+- **wasm32-unknown-unknown** - Required WASM target (see checklist below)
+- **Code Editor** - VS Code or your preferred editor, with [rust-analyzer](#rust-analyzer)
 - **Rust** - Latest stable version
-- **Soroban CLI** - Command-line interface for Soroban
+- **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
 - **Code Editor** - VS Code or your preferred editor
 - **Git** - Version control
 - **Build Tools** - Essential development packages
@@ -56,7 +60,7 @@ sudo pacman -Syu
 
 ### 2. Install Build Tools and Dependencies
 
-You'll need essential build tools and libraries to compile Rust and Soroban CLI.
+You'll need essential build tools and libraries to compile Rust and Stellar CLI.
 
 **Ubuntu/Debian:**
 
@@ -113,12 +117,13 @@ cargo --version
 
 You should see version numbers for both commands.
 
-### 4. Install Soroban CLI
+### 4. Install Stellar CLI
 
-Install the Soroban CLI using Cargo:
+Install the Stellar CLI using Cargo (same command as [Building and Compilation](./building-and-compilation.md)):
+Install the Stellar CLI with Wasm optimization support using Cargo:
 
 ```bash
-cargo install --locked soroban-cli
+cargo install --locked stellar-cli --features opt
 ```
 
 This may take several minutes as it compiles from source.
@@ -126,24 +131,44 @@ This may take several minutes as it compiles from source.
 Verify installation:
 
 ```bash
-soroban --version
+stellar --version
 ```
 
-### 5. Configure WebAssembly Target
+The older `soroban` binary name is superseded. **`soroban contract build` is now `stellar contract build`.**
 
-Add the WebAssembly target to your Rust toolchain:
+### 5. Configure the WebAssembly target (required)
+
+This repository's examples, CI (`.github/workflows/ci.yml`), and `scripts/test-examples.sh` compile for **`wasm32-unknown-unknown`**. Add that target:
 
 ```bash
 rustup target add wasm32-unknown-unknown
 ```
 
-Verify the target was added:
+Verify with the same command used on macOS and Windows:
+
+```bash
+rustup target list --installed
+```
+
+The output **must** include `wasm32-unknown-unknown`. You can also filter the full catalog:
 
 ```bash
 rustup target list | grep wasm32-unknown-unknown
 ```
 
 You should see `wasm32-unknown-unknown (installed)`.
+
+### 6. rust-analyzer
+
+Install the [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) extension. This cookbook's Rust workspace is `examples/Cargo.toml`. If you open the repository root in VS Code, link that workspace:
+
+```json
+{
+  "rust-analyzer.linkedProjects": ["examples/Cargo.toml"]
+}
+```
+
+Confirm `soroban_sdk` resolves, then run `cargo test --package hello-world` from `examples/`.
 
 ## Verify Your Complete Setup
 
@@ -154,10 +179,11 @@ echo "=== Rust Verification ==="
 rustc --version
 cargo --version
 
-echo "=== Soroban CLI Verification ==="
-soroban --version
+echo "=== Stellar CLI Verification ==="
+stellar --version
 
 echo "=== WebAssembly Target Verification ==="
+rustup target list --installed
 rustup target list | grep wasm32-unknown-unknown
 
 echo "=== Git Verification ==="
@@ -173,9 +199,11 @@ All commands should return version information without errors.
 
 Use this checklist to confirm your environment is ready:
 
-- [ ] Rust installed: `rustc --version` returns a version number
+- [ ] Rust installed: `rustc --version` returns a version number (stable toolchain; no repo `rust-toolchain.toml`)
 - [ ] Cargo installed: `cargo --version` returns a version number
-- [ ] Soroban CLI installed: `soroban --version` returns a version number
+- [ ] Stellar CLI installed: `stellar --version` returns a version number
+- [ ] WebAssembly target installed: `rustup target list --installed` includes `wasm32-unknown-unknown`
+- [ ] rust-analyzer can resolve the `examples` workspace
 - [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Build tools available: `gcc --version` returns a version number
@@ -202,7 +230,7 @@ sudo apt install package-name
 
 ### PATH Issues
 
-**Problem:** `command not found: soroban` or `command not found: rustc`
+**Problem:** `command not found: stellar` or `command not found: rustc`
 
 **Solution:**
 
@@ -238,19 +266,16 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Cargo Installation Hangs or Times Out
 
-**Problem:** `cargo install soroban-cli` takes too long or times out
+**Problem:** `cargo install stellar-cli` takes too long or times out
 
 **Solution:**
 
 ```bash
 # Increase the timeout and use verbose output
-cargo install --locked soroban-cli -v
+cargo install --locked stellar-cli --features opt -v
 
 # If still failing, check your internet connection:
 ping -c 3 github.com
-
-# Try with a specific version if latest fails:
-cargo install --locked soroban-cli --version 20.0.0
 ```
 
 ### Build Fails with "linker not found"
@@ -327,9 +352,10 @@ rustup toolchain uninstall <toolchain-name>
 Now that your Linux environment is ready:
 
 1. [Create your first contract](./first-contract.md)
-2. [Learn core concepts](../concepts/overview)
-3. [Deploy to testnet](./deploy-testnet.md)
-4. [Explore patterns](../patterns/overview)
+2. [Building and Compilation](./building-and-compilation.md)
+3. [Development Tools](./development-tools.md)
+4. [Learn core concepts](../concepts/overview)
+5. [Deploy to testnet](./deploy-testnet.md)
 
 ## Additional Resources
 

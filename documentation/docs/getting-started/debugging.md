@@ -22,10 +22,10 @@ cargo build --release
 # 2. Note the environment
 rustc --version
 cargo --version
-soroban --version
+stellar --version
 
 # 3. Check system state
-which soroban
+which stellar
 echo $PATH
 echo $SOROBAN_RPC_URL
 ```
@@ -44,7 +44,7 @@ echo $SOROBAN_RPC_URL
 ```bash
 # Reduce scope systematically
 # Start with a minimal example
-soroban contract init test-minimal
+stellar contract init test-minimal
 cd test-minimal
 
 # Try building the minimal contract
@@ -93,15 +93,15 @@ cargo build --release
 
 ### Setup Issues
 
-#### Issue: `soroban: command not found`
+#### Issue: `stellar: command not found`
 
-**Problem**: Soroban CLI is not in your system PATH.
+**Problem**: Stellar CLI is not in your system PATH.
 
 **Diagnosis**:
 
 ```bash
-# Check if soroban is installed
-which soroban
+# Check if stellar is installed
+which stellar
 
 # Check Rust installation
 rustup --version
@@ -113,33 +113,28 @@ echo $PATH
 
 **Solutions**:
 
-1. **Install Soroban CLI** (if not installed):
+1. **Install Stellar CLI** (if not installed):
 
    ```bash
-   # macOS/Linux
-   curl -fsSL https://github.com/stellar/stellar-cli/raw/main/install.sh | sh
-   source ~/.bashrc  # or ~/.zshrc for zsh
-
-   # Windows (with WSL)
-   curl -fsSL https://github.com/stellar/stellar-cli/raw/main/install.sh | sh
-   source ~/.bashrc
+   # Install via Cargo with Wasm optimization
+   cargo install --locked stellar-cli --features opt
    ```
 
 2. **Update PATH** (if already installed):
 
    ```bash
-   # Linux/macOS - Add to ~/.bashrc or ~/.zshrc
-   export PATH="$HOME/.local/bin:$PATH"
-   source ~/.bashrc
+   # Linux/macOS - Add Cargo bin to ~/.bashrc or ~/.zshrc
+   export PATH="$HOME/.cargo/bin:$PATH"
+   source ~/.bashrc  # or source ~/.zshrc
 
-   # Windows - Add C:\Users\<YOUR_USER>\.local\bin to System PATH
+   # Windows - Add C:\Users\<YOUR_USER>\.cargo\bin to System PATH
    # Control Panel > System > Environment Variables > Edit PATH
    ```
 
 3. **Verify installation**:
    ```bash
-   soroban --version
-   soroban contract --help
+   stellar --version
+   stellar contract --help
    ```
 
 #### Issue: `error: could not find Soroban Rust SDK`
@@ -343,7 +338,7 @@ cargo update
 **Example**:
 
 ```bash
-$ soroban contract invoke --id <ID> -- transfer --amount 100
+$ stellar contract invoke --id <ID> -- transfer --amount 100
 error: ...
 ContractError: InvalidAmount
 ```
@@ -418,9 +413,9 @@ ContractError: InvalidAmount
 
 ```bash
 # Check transaction signatures
-soroban contract invoke \
+stellar contract invoke \
   --id <ID> \
-  --signers <PUBLIC_KEY> \
+  --source <ACCOUNT> \
   -- function args
 
 # Test with mock auth (for testing only)
@@ -643,21 +638,21 @@ cargo test -- --test-threads=1 --nocapture
 cargo test -- --nocapture --test-threads=1
 ```
 
-#### 3. Soroban CLI Debugging
+#### 3. Stellar CLI Debugging
 
 ```bash
 # Get verbose output
-soroban contract invoke \
+stellar contract invoke \
   --id <ID> \
   --source <KEY> \
   --verbose \
   -- function args
 
 # Test with local network
-soroban network add --rpc-url http://localhost:8000
+stellar network add --global local --rpc-url http://localhost:8000
 
 # Inspect contract state
-soroban contract inspect --id <ID>
+stellar contract inspect --id <ID>
 ```
 
 ### Debugging Strategies
@@ -728,7 +723,7 @@ pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<()
 
 | Issue                        | Quick Check                         | Common Fix                                    |
 | ---------------------------- | ----------------------------------- | --------------------------------------------- |
-| `soroban: command not found` | `which soroban`                     | Update PATH or reinstall                      |
+| `stellar: command not found` | `which stellar`                     | Update PATH or reinstall                      |
 | `linker 'cc' not found`      | `gcc --version`                     | Install build tools (`build-essential`, etc.) |
 | Type mismatch                | Check variable types at assignment  | Convert types with `as` or change type        |
 | Value moved                  | Look for missing `&` (borrow)       | Add `&` or `.clone()`                         |

@@ -2,10 +2,105 @@
 time: 20
 sidebar_position: 11
 title: API Security
-description: Security best practices for backend API endpoints
+description: How a website talks to Stellar RPC without leaking secrets, plus CORS and CSRF for Cookbook APIs
 ---
 
 # API Security
+
+This page covers two surfaces:
+
+1. A **browser dapp** calling Stellar RPC and asking Freighter to sign.
+2. **Cookbook site APIs** (newsletter and similar) — CSRF, CORS, and rate limits.
+
+If you are wiring `@stellar/stellar-sdk` in the browser, start here, then see the [JavaScript SDK](./js-sdk.md) page.
+
+## Never put secrets in the frontend
+
+The browser bundle is public. Anyone can open DevTools and copy what you shipped.
+
+Do **not** put any of these in frontend source, `VITE_*`, `NEXT_PUBLIC_*`, or other client-exposed env vars:
+
+- Stellar secret keys (`S…`)
+- `Keypair.fromSecret(...)`
+- Dedicated RPC / provider API tokens
+- Horizon or indexer keys meant for server use
+
+Signing in a website is Freighter-only. The dapp builds the transaction, Freighter signs it, the dapp submits the signed XDR. The dapp never sees the secret.
+
+```javascript
+import { Networks, TransactionBuilder } from '@stellar/stellar-sdk';
+import { signTransaction } from '@stellar/freighter-api';
+
+// The wallet holds the key. The page only receives signed XDR.
+const signed = await signTransaction(tx.toXDR(), {
+  networkPassphrase: Networks.TESTNET,
+});
+const signedTx = TransactionBuilder.fromXDR(
+  signed.signedTxXdr,
+  Networks.TESTNET,
+);
+```
+
+```javascript
+// NEVER — this puts the account in every visitor's browser
+// Keypair.fromSecret(secret)
+```
+
+A backend that invokes the CLI or SDK with a server-side key is a different (custodial) pattern. That key stays on the server. See [contract interaction](./contract-interaction.md).
+
+## Public vs dedicated RPC
+
+SDF publishes free RPC for development networks only:
+
+| Network | Public RPC | Notes |
+| --- | --- | --- |
+| Testnet | `https://soroban-testnet.stellar.org` | Fine for local dapp work |
+| Futurenet | `https://rpc-futurenet.stellar.org` | Protocol experiments |
+| Mainnet | none from SDF | Use a dedicated node or an ecosystem provider |
+
+`stellar-rpc` does not terminate TLS and does not implement CORS. Whoever exposes the URL (SDF, a provider, or your reverse proxy) owns those HTTP details.
+
+For production, pick a provider from the [Stellar RPC providers list](https://developers.stellar.org/docs/data/apis/rpc/providers), run your own node, or put a proxy in front of `stellar-rpc`. Names you will see on that list include Blockdaemon, Validation Cloud, QuickNode, Gateway, and others. **That list is a catalog of examples, not endorsements.** Link the official page rather than hard-coding vendor URLs (some public URLs embed tokens).
+
+## RPC allowlist
+
+Pin the client to HTTPS URLs you chose. Do not take an arbitrary RPC URL from query params, localStorage, or form input — a malicious node can lie about balances and intercept submissions.
+
+```javascript
+import { rpc } from '@stellar/stellar-sdk';
+
+const ALLOWED_RPC = new Set([
+  'https://soroban-testnet.stellar.org',
+]);
+
+export function createRpcServer(url) {
+  if (typeof url !== 'string' || url.length > 2048) {
+    throw new Error('RPC URL rejected');
+  }
+  if (!ALLOWED_RPC.has(url)) {
+    throw new Error('RPC URL is not on the allowlist');
+  }
+  return new rpc.Server(url);
+}
+```
+
+If the endpoint needs a secret header, keep that URL and header on a **same-origin backend**. The browser talks to `/rpc`; the server talks to the provider. Client-exposed env vars cannot hold that secret.
+
+`rpc.Server` rejects `http://` unless you pass `allowHttp: true`. Use that flag only against a local node. Production is HTTPS.
+
+## CORS for browser RPC
+
+JSON-RPC is `POST` with `Content-Type: application/json`. From a website that is a cross-origin call.
+
+- Public Testnet RPC is intended for development from browsers. If a simple POST works, you do not need extra headers.
+- A dedicated URL that requires `Authorization` or a vendor API header triggers a CORS **preflight**. If the provider does not allow your origin, the browser blocks the response. Do not “fix” that by pasting the API key into frontend code — that leaks the key and still fails if `Access-Control-Allow-Origin` is not your site.
+- Then proxy: browser → your backend (allowlisted origins) → RPC.
+
+If you run RPC yourself, put nginx/Caddy/a load balancer in front and set CORS there. `stellar-rpc` will not.
+
+The Cookbook site’s own API CORS rules are in [CORS Configuration](#cors-configuration) below. Never use `origin: *` on credentialed POST endpoints.
+
+## Cookbook site APIs
 
 When implementing backend services for the Soroban Cookbook (such as the newsletter endpoint), follow these security best practices to prevent common vulnerabilities.
 
@@ -370,6 +465,8 @@ npm outdated
 
 ## Resources
 
+- [Stellar RPC providers](https://developers.stellar.org/docs/data/apis/rpc/providers) — public and dedicated endpoints (catalog, not endorsements)
+- [Prompt Freighter to sign](https://developers.stellar.org/docs/build/guides/freighter/prompt-to-sign-tx)
 - [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 - [Node.js Security Best Practices](https://nodejs.org/en/docs/guides/security/)

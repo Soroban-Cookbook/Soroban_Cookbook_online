@@ -101,10 +101,24 @@ Validates deployment configuration and workflow syntax.
 - bun.lock missing
 - Required GitHub Actions missing from deploy workflow
 
-#### 5. CI Summary (`summary`)
+#### 5. Test Code Examples (`test-examples`)
+Validates that all Rust code examples compile and pass their tests.
+
+**Steps:**
+- Checkout code
+- Install Rust stable
+- Cache Cargo registry
+- Check every example crate has a README
+- Run example tests
+
+**Failure Conditions:**
+- Any example crate is missing a README
+- Any example test fails (`cargo test`)
+
+#### 6. CI Summary (`summary`)
 Aggregates results from all CI jobs and reports overall status.
 
-**Runs After:** All other jobs (lint-format, typecheck, build-docs, validate-deployment)
+**Runs After:** All other jobs (lint-format, typecheck, build-docs, validate-deployment, test-examples)
 
 **Failure Conditions:**
 - Any upstream job fails
@@ -251,6 +265,7 @@ To enforce CI checks, configure branch protection on `main`:
    - `CI / TypeScript Check`
    - `CI / Build Documentation`
    - `CI / Validate Deployment`
+   - `CI / Test Code Examples`
    - `CI / CI Summary`
 
 ## Troubleshooting
