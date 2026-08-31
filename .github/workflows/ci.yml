@@ -486,6 +486,15 @@ jobs:
           path: documentation/playwright-report
           retention-days: 7
 
+  check-snippet-drift:
+    name: Snippet Drift Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for drifted src= snippets
+        run: bash scripts/check-snippet-drift.sh
   coverage:
     name: Unit Test Coverage
     runs-on: ubuntu-latest
@@ -558,6 +567,7 @@ jobs:
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, e2e-console, e2e-smoke, check-snippet-drift]
     needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, e2e-console, e2e-smoke, check-wasm-budgets]
     needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, rustfmt, lint-contracts, e2e-console, e2e-smoke]
     needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, wasm-build-examples, lint-contracts, e2e-console, e2e-smoke]
@@ -616,6 +626,10 @@ jobs:
           fi
           if [ "${{ needs.check-wasm-budgets.result }}" != "success" ]; then
             echo "❌ Wasm size budget check failed"
+            exit 1
+          fi
+          if [ "${{ needs.check-snippet-drift.result }}" != "success" ]; then
+            echo "❌ Snippet drift check failed"
             exit 1
           fi
           echo "✅ All critical CI checks passed"
