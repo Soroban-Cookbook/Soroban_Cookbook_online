@@ -46,69 +46,71 @@ Comprehensive error handling patterns including Result types, fallback logic, gr
 
 Token staking with pro-rata reward distribution over epochs. Demonstrates lazy reward computation, epoch-based accounting, and efficient O(1) per-user storage without batch operations.
 
+### [Constant-Product AMM](/docs/patterns/constant-product-amm)
+
+<span class="sb-badge sb-badge--advanced">Advanced</span> <span class="sb-tag sb-tag--defi">DeFi</span> <span class="sb-badge sb-badge--stable">Stable</span>
+
+Full x·y=k AMM with swap, liquidity provision, and LP token accounting. Covers invariant math, integer rounding, and donation-attack mitigations.
+
 ## Pattern Categories
 
-### 🪙 [Token Standards](/patterns/tokens)
+### 🪙 Token Standards
 
 <span class="sb-tag sb-tag--token">Token</span>
 
 Explore fungible token standards, wrappers, and vault mechanisms for building robust token systems.
 
-- Basic token implementations
-- Token wrappers and bridges
-- Multi-token vaults
+- [Basic Token Implementation](/docs/patterns/basic-token)
+- [Token Standards](/docs/patterns/token-standards)
+- [Multi-Token Vault](/docs/patterns/multi-token-vault)
 
-### 💰 [DeFi Patterns](/patterns/defi)
+### 💰 DeFi Patterns
 
 <span class="sb-tag sb-tag--defi">DeFi</span>
 
 Build decentralized finance applications with liquidity pools, staking, atomic swaps, and lending protocols.
 
-- Liquidity pools (AMM)
-- **Staking contracts** with epoch-based rewards
-- Atomic swaps
-- Lending and borrowing
+- [Constant-Product AMM](/docs/patterns/constant-product-amm) — x·y=k liquidity pool
+- [Staking](/docs/patterns/staking) — epoch-based reward distribution
+- [Streaming Payments](/docs/patterns/streaming-payments)
+- [Timelock Vault](/docs/patterns/timelock-vault)
 
-### 🗳️ [Governance](/patterns/governance)
+### 🗳️ Governance
 
 <span class="sb-tag sb-tag--governance">Governance</span>
 
 Implement decentralized governance with voting systems, DAOs, and proposal mechanisms.
 
-- Voting systems
-- DAO implementations
-- Proposal factories
-- Token delegation
+- [Proposal Lifecycle](/docs/patterns/proposal-lifecycle)
 
-### 🎨 [NFT Patterns](/patterns/nft)
+### 🎨 NFT Patterns
 
 <span class="sb-tag sb-tag--nft">NFT</span>
 
-Create and manage non-fungible tokens with marketplaces and collection systems.
+Create and manage non-fungible tokens. NFT-specific pattern pages are planned — see the [Token Standards](/docs/patterns/token-standards) page for current token primitives.
 
-- NFT minting and transfers
-- Marketplace contracts
-- Collection management
-- Royalty mechanisms
+> **Note:** Dedicated NFT minting and marketplace patterns are tracked in the backlog. Contributions welcome — see the [Contributing Guide](#contributing).
 
-### 🔧 [Utility & Infrastructure](/patterns/utility)
+### 🔧 Utility & Infrastructure
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span>
 
 Build essential utility contracts for multi-signature wallets, escrow, and fund management.
 
-- Multi-signature wallets
-- Time-locked contracts
-- Escrow services
-- Registry systems
+- [Escrow (Basic)](/docs/patterns/escrow-basic)
+- [Escrow (Multi-party)](/docs/patterns/escrow-multiparty)
+- [Contract Registry](/docs/patterns/contract-registry)
+- [Contract Factory](/docs/patterns/contract-factory)
+- [Oracle Consumer](/docs/patterns/oracle-consumer)
 
 ### ⚡ Advanced Patterns
 
 <span class="sb-badge sb-badge--advanced">Advanced</span>
 
-- Cross-contract calls
-- Upgradeable contracts
-- Oracle integration
+- [Authorization & Access Control](/docs/patterns/authorization)
+- [Lifecycle & Upgrades](/docs/patterns/lifecycle-upgrades)
+- [Reentrancy Guard](/docs/patterns/reentrancy-guard)
+- [Optimization Playbook](/docs/patterns/optimization-playbook)
 
 ## Using Patterns
 
