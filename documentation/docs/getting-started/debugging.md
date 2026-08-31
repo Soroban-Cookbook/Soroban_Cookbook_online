@@ -800,6 +800,7 @@ Before asking for help, verify:
 
 - [Error Handling in Soroban](../concepts/error-handling.md) - Detailed error patterns
 - [Testing Error Scenarios](./testing-errors.md) - Comprehensive error testing
+- [RPC and Horizon](../concepts/rpc-and-horizon.md) - When to use Soroban RPC vs Horizon for simulation, events, and classic ops
 - [Soroban Documentation](https://developers.stellar.org/docs/build/smart-contracts) - Official docs
 - [Rust Book](https://doc.rust-lang.org/book/) - Rust fundamentals
 

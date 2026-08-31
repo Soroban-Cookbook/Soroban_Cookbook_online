@@ -573,6 +573,9 @@ const config: Config = {
       copyright: `Built by the community • Powered by Stellar • MIT License • © ${new Date().getFullYear()}`,
     },
     prism: {
+      // Always use a dark high-contrast theme — github light token colors
+      // fail WCAG AA on #f6f8fa backgrounds in axe audits.
+      theme: prismThemes.vsDark,
       theme: accessibleGithubPrismTheme,
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['rust', 'toml', 'bash'],

@@ -5,6 +5,7 @@ description: Implement secure authorization patterns in Soroban contracts — id
 ---
 
 # Authorization
+
 Authorization in Soroban ensures only expected identities can execute sensitive contract actions.
 
 ## Typical Access Patterns
@@ -26,6 +27,12 @@ Authorization in Soroban ensures only expected identities can execute sensitive 
 - Mint/burn operations in token-like contracts
 - Upgrading contract logic or config
 
+## Custom accounts
+
+Application contracts typically call `require_auth` on a caller's `Address`. When that address is a **contract account**, the Soroban host delegates authentication to the account's `__check_auth` implementation.
+
+That is a different trust and threat model than `require_auth` on a normal app contract alone. For diagrams, nonce/replay behavior, and policy pitfalls, see **[Custom Accounts](./custom-accounts.md)**.
+
 ## Related Examples
 
 The [multisig-wallet pattern](/docs/patterns/multisig-wallet) demonstrates M-of-N authorization, where a configurable threshold of signers must approve a transaction before it can be executed. See the [source code](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/multisig-wallet) for implementation details.
@@ -44,6 +51,7 @@ This is not a wallet product, and a minimal example should not be treated as one
 
 ## Next
 
+- [Custom Accounts](./custom-accounts.md)
 - [Authorization Trees and Sub-Invocations](./authorization-trees.md) — how authorization propagates across nested cross-contract calls
 - [Security Fundamentals](../security/fundamentals.md)
 - [Token Pattern Security Audit](../security/token-audit.md)

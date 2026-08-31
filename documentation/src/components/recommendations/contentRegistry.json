@@ -161,6 +161,17 @@
     "href": "/docs/concepts/cross-contract-invocation"
   },
   {
+    "id": "concepts/custom-accounts",
+    "title": "Custom Accounts",
+    "description": "How Soroban custom accounts implement __check_auth, how they differ from require_auth on normal contracts, and how to avoid replay, nonce, and authorization policy bugs.",
+    "category": "concepts",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": ["auth", "storage", "events", "errors"],
+    "href": "/docs/concepts/custom-accounts"
+  },
+  {
     "id": "concepts/error-handling",
     "title": "error-handling",
     "description": "Soroban tutorial on error-handling.",
@@ -205,6 +216,7 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
+    "tags": ["auth", "storage", "events", "errors", "tokens"],
     "tags": [
       "auth",
       "storage",
@@ -294,6 +306,39 @@
     "href": "/docs/concepts/randomness"
   },
   {
+    "id": "concepts/rpc-and-horizon",
+    "title": "RPC and Horizon",
+    "description": "When to use Soroban RPC versus Horizon for simulateTransaction, contract events, classic operations, and account data — with a decision table and official doc links.",
+    "category": "concepts",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": ["auth", "storage", "events", "optimization", "errors", "tokens", "upgrade"],
+    "href": "/docs/concepts/rpc-and-horizon"
+  },
+  {
+    "id": "concepts/sep-41-token-standard",
+    "title": "SEP-41 Token Standard",
+    "description": "SEP-41 fungible token interface for Soroban — methods, metadata, allowances, transfers, burns, events, and how SAC and custom tokens align with the specification.",
+    "category": "concepts",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": ["auth", "events", "tokens"],
+    "href": "/docs/concepts/sep-41-token-standard"
+  },
+  {
+    "id": "concepts/stellar-asset-contract",
+    "title": "Stellar Asset Contract (SAC)",
+    "description": "Deep-dive into the Stellar Asset Contract — classic assets, wrapping, SAC IDs, admin authority, CLI references, and when to prefer SAC over custom tokens.",
+    "category": "concepts",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": ["auth", "storage", "tokens", "upgrade"],
+    "href": "/docs/concepts/stellar-asset-contract"
+  },
+  {
     "id": "concepts/storage",
     "title": "Storage Patterns",
     "description": "Master Sorobans three storage types — instance, persistent, and temporary — and learn patterns for efficient, scalable contract state management.",
@@ -352,6 +397,7 @@
     "difficulty": "beginner",
     "status": "stable",
     "time": 10,
+    "tags": ["auth", "storage", "events", "errors", "tokens", "governance", "upgrade"],
     "tags": [
       "auth",
       "storage",

@@ -44,9 +44,14 @@
         "concepts/storage",
         "concepts/storage-ttl",
         "concepts/authorization",
+        "concepts/custom-accounts",
         "concepts/events",
         "concepts/gas-and-resources",
-        "concepts/cross-contract-invocation"
+        "concepts/cross-contract-invocation",
+        "concepts/token-standards",
+        "concepts/stellar-asset-contract",
+        "concepts/sep-41-token-standard",
+        "concepts/rpc-and-horizon"
       ]
     },
     {

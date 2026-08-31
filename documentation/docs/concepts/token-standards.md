@@ -63,7 +63,14 @@ This pattern is effective when your business logic exceeds standard token semant
 2. Need protocol-specific transfer or policy logic: choose custom.
 3. Need both: start with SAC-compatible behavior, then isolate custom extensions in auxiliary contracts.
 
+## Deep dives
+
+- **[Stellar Asset Contract (SAC)](./stellar-asset-contract.md)** — wrapping, SAC IDs, admin authority, CLI references, and when **not** to write a custom token.
+- **[SEP-41 Token Standard](./sep-41-token-standard.md)** — interface method table, metadata, allowances, transfers/burns, and events.
+
 ## Related reading
 
+- [Stellar Asset Contract (SAC)](./stellar-asset-contract.md)
+- [SEP-41 Token Standard](./sep-41-token-standard.md)
 - [Pattern Library](../patterns/overview)
 - [Advanced Soroban Testing Strategies](./testing-strategies.md)
