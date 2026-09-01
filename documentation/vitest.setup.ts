@@ -20,17 +20,6 @@ vi.mock('@docusaurus/Head', () => {
   };
 });
 
-vi.mock('@docusaurus/useDocusaurusContext', () => {
-  return {
-    default: () => ({
-      siteConfig: {
-        url: 'https://soroban-cookbook.dev',
-        baseUrl: '/',
-      },
-    }),
-  };
-});
-
 vi.mock('@docusaurus/plugin-content-docs/client', () => {
   return {
     useSidebarBreadcrumbs: () => [],
