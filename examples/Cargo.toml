@@ -1,36 +1,44 @@
 [workspace]
 members = [
     "access-control",
+    "airdrop-bitmap",
     "authorization",
     "balance-snapshot",
     "batch-ops",
     "constant-product-amm",
-    "cross-contract",
     "constructor-init",
     "contract-factory",
     "counter",
-    "custom-account",
     "cross-contract",
+    "custom-account",
+    "dutch-auction",
     "emergency-stop",
-    "events-catalog",
     "error-handling",
     "escrow-basic",
     "escrow-multiparty",
+    "events-catalog",
     "faucet",
     "flash-loan",
     "governor",
     "hello-world",
     "htlc-swap",
     "lending",
+    "marketplace",
+    "multi-token-vault",
+    "multisig-wallet",
     "oracle-consumer",
     "pagination",
+    "pausable-token",
+    "payment-splitter",
     "price-oracle",
     "rate-limit",
     "reentrancy-guard",
     "refundable-deposit",
     "registry",
+    "sac-client",
     "simple-dao",
     "simple-voting",
+    "soulbound-token",
     "staking",
     "storage-ttl",
     "stream-payment",
@@ -38,28 +46,16 @@ members = [
     "tiny-contract",
     "token-snapshot",
     "token-transfer",
-    "sac-client",
     "token-vesting",
     "token-wrapper",
+    "ttl-bumper",
     "twap-helper",
     "upgradeable",
-    "multi-token-vault",
-    "multisig-wallet",
-    "airdrop-bitmap",
 ]
 resolver = "2"
 
 [workspace.dependencies]
 soroban-sdk = { version = "27.0.3", features = ["testutils"] }
-    "soulbound-token",
-    "payment-splitter",
-    "ttl-bumper",
-    "pausable-token",
-    "marketplace",
-    "nft",
-    "royalty-splitter",
-]
-resolver = "2"
 
 # The release profile is declared once at the workspace root so it applies to
 # every example contract. Per-package `[profile.release]` tables are silently
@@ -76,4 +72,3 @@ debug-assertions = false
 panic = "abort"
 codegen-units = 1
 lto = true
-resolver = "2"
