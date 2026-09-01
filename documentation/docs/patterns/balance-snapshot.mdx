@@ -1,0 +1,28 @@
+---
+sidebar_position: 6
+title: Balance Snapshot
+description: Capture a holder's balance at a point in time for airdrops, dividends, and audits.
+---
+
+## When to use it
+
+A balance snapshot records the balance of each holder at a defined ledger. It
+lets an application calculate a deterministic airdrop or dividend entitlement
+without trusting balances that may change after the distribution is announced.
+
+The [`balance-snapshot` example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/balance-snapshot)
+is a balance-accounting pattern: it focuses on historical holdings. The
+[`token-snapshot` pattern](./token-snapshot) adds token-specific snapshot
+metadata, total supply, and claim tracking for governance or reward claims.
+
+| Concern | Balance snapshot | Token snapshot |
+| --- | --- | --- |
+| Primary use | Airdrops, dividends, audit checkpoints | Governance and claimable rewards |
+| Value captured | Holder balance at a ledger | Holder balance plus snapshot metadata |
+| Claim tracking | Application-specific | Contract-level claimed state |
+
+## Operational guidance
+
+Create the snapshot before announcing the distribution, use the recorded
+ledger as the immutable cutoff, and bound the holder set so snapshot creation
+does not exceed the transaction resource budget.

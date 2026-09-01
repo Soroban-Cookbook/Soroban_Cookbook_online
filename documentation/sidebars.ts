@@ -89,6 +89,7 @@ const sidebars: SidebarsConfig = {
         'patterns/basic-token',
         'patterns/token-wrapper',
         'patterns/token-snapshot',
+        'patterns/balance-snapshot',
         'patterns/custom-types',
         'patterns/token-standards',
         'patterns/authorization',
