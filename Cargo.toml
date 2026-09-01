@@ -1,4 +1,5 @@
 [workspace]
 members = [
     "examples/multisig-timelock-upgrade",
+    "examples/storage-kinds",
 ]
