@@ -92,6 +92,7 @@ const sidebars: SidebarsConfig = {
         'patterns/custom-types',
         'patterns/token-standards',
         'patterns/authorization',
+        'patterns/address-authorization',
         'patterns/error-handling',
         'patterns/error-recovery',
         'patterns/cross-contract',
