@@ -94,6 +94,16 @@ Deploy and track multiple contract instances from a single factory contract, wit
 
 Consume external price/data feeds from an oracle contract safely, including staleness checks and fallback handling.
 
+### [Constant-Product AMM](/docs/patterns/constant-product-amm)
+
+<span class="sb-badge sb-badge--advanced">Advanced</span> <span class="sb-tag sb-tag--defi">DeFi</span> <span class="sb-badge sb-badge--stable">Stable</span>
+
+Full x·y=k AMM with swap, liquidity provision, and LP token accounting. Covers invariant math, integer rounding, and donation-attack mitigations.
+
+## Pattern Categories
+
+### 🪙 Token Standards
+
 ## Pattern Categories
 
 ### 🔺 [Token Standards](/patterns/tokens)
@@ -103,16 +113,23 @@ Consume external price/data feeds from an oracle contract safely, including stal
 
 Explore fungible token standards, wrappers, and vault mechanisms for building robust token systems.
 
-- Basic token implementations
-- Token wrappers and bridges
-- Multi-token vaults
+- [Basic Token Implementation](/docs/patterns/basic-token)
+- [Token Standards](/docs/patterns/token-standards)
+- [Multi-Token Vault](/docs/patterns/multi-token-vault)
 
+### 💰 DeFi Patterns
 ### 😄 [DeFi Patterns](/patterns/defi)
 
 <span class="sb-tag sb-tag--defi">DeFi</span>
 
 Build decentralized finance applications with liquidity pools, staking, atomic swaps, and lending protocols.
 
+- [Constant-Product AMM](/docs/patterns/constant-product-amm) — x·y=k liquidity pool
+- [Staking](/docs/patterns/staking) — epoch-based reward distribution
+- [Streaming Payments](/docs/patterns/streaming-payments)
+- [Timelock Vault](/docs/patterns/timelock-vault)
+
+### 🗳️ Governance
 - Liquidity pools (AMM)
 - **Staking contracts**with epoch-based rewards
 - [Atomic swaps (HTLC)](/docs/patterns/htlc-swap)
@@ -125,6 +142,9 @@ Build decentralized finance applications with liquidity pools, staking, atomic s
 
 Implement decentralized governance with voting systems, DAOs, and proposal mechanisms.
 
+- [Proposal Lifecycle](/docs/patterns/proposal-lifecycle)
+
+### 🎨 NFT Patterns
 - Voting systems
 - DOA implementations
 - Proposal factories
@@ -139,13 +159,11 @@ Implement decentralized governance with voting systems, DAOs, and proposal mecha
 
 <span class="sb-tag sb-tag--nft">NFT</span>
 
-Create and manage non-fungible tokens with marketplaces and collection systems.
+Create and manage non-fungible tokens. NFT-specific pattern pages are planned — see the [Token Standards](/docs/patterns/token-standards) page for current token primitives.
 
-- NFT minting and transfers
-- Marketplace contracts
-- Collection management
-- Royalty mechanisms
+> **Note:** Dedicated NFT minting and marketplace patterns are tracked in the backlog. Contributions welcome — see the [Contributing Guide](#contributing).
 
+### 🔧 Utility & Infrastructure
 ### 🔤 Utility & Infrastructure
 ### 🤥 [Utility & Infrastructure](/patterns/utility)
 
@@ -153,6 +171,11 @@ Create and manage non-fungible tokens with marketplaces and collection systems.
 
 Build essential utility contracts for multi-signature wallets, escrow, and fund management.
 
+- [Escrow (Basic)](/docs/patterns/escrow-basic)
+- [Escrow (Multi-party)](/docs/patterns/escrow-multiparty)
+- [Contract Registry](/docs/patterns/contract-registry)
+- [Contract Factory](/docs/patterns/contract-factory)
+- [Oracle Consumer](/docs/patterns/oracle-consumer)
 - [Multi-signature wallets](/docs/patterns/multisig-wallet)
 - Time-locked contracts
 - Escrow services
@@ -163,9 +186,10 @@ Build essential utility contracts for multi-signature wallets, escrow, and fund 
 
 <span class="sb-badge sb-badge--advanced">Advanced</span>
 
-- Cross-contract calls
-- Upgradeable contracts
-- Oracle integration
+- [Authorization & Access Control](/docs/patterns/authorization)
+- [Lifecycle & Upgrades](/docs/patterns/lifecycle-upgrades)
+- [Reentrancy Guard](/docs/patterns/reentrancy-guard)
+- [Optimization Playbook](/docs/patterns/optimization-playbook)
 
 ## Using Patterns
 The patterns in this library provide practical, battle-tested Soroban contract examples covering common use cases such as storage, tokens, DeFi, access control, and governance. Each pattern is designed to be immediately useful and includes the following:
@@ -200,4 +224,5 @@ Start exploring:
 ## Resources
 
 - [Soroban Examples](https://github.com/stellar/soroban-examples)
+- [Community Patterns](https://github.com/Soroban-Cookbook)
 - [Community Patterns](https://github.com/Soroban-Cookbook)
