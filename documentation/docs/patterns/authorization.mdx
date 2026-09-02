@@ -4,10 +4,6 @@ sidebar_position: 5
 title: Authorization & Access Control Patterns
 description: Practical patterns for authorization, roles, and capability boundaries in Soroban contracts.
 image: /img/soroban-social-card.png
-# Phase 5 (issue #333): API keyword frontmatter for code-snippet search.
-# These identifiers appear in the code blocks below and are surfaced by the
-# search index alongside prose, allowing developers to find this page by
-# typing function names or SDK symbols directly.
 keywords:
   - require_auth
   - require_auth_for_args
@@ -37,12 +33,14 @@ import TabItem from '@theme/TabItem';
   difficulty="intermediate"
   category="Architecture"
   status="stable"
-  lastReviewed="May 2026"
+  lastReviewed="August 2026"
 />
 
 ## Overview
 
 This guide describes secure authorization and access-control patterns for Soroban smart contracts. It covers common patterns (role-based, capability-based), where to place checks, insecure anti-patterns, and guidance for testing authorization paths.
+
+The [`examples/authorization`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/authorization) crate is the canonical reference implementation for this page. It demonstrates a two-tier owner/admin model using `require_auth()`, with the pattern implemented and tested in a compact, auditable form.
 
 <PatternSection id="prerequisites" title="Prerequisites">
 
@@ -57,6 +55,27 @@ This guide describes secure authorization and access-control patterns for Soroba
 - Make authorization checks explicit and auditable.
 - Keep capability boundaries small and verifiable.
 - Prefer least-privilege defaults and fail-safe behavior.
+
+</PatternSection>
+
+<PatternSection id="crate-walkthrough" title="Crate walkthrough: examples/authorization">
+
+The [`examples/authorization/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/authorization/src/lib.rs) crate implements a minimal, two-tier ownership model:
+
+| Entrypoint | Auth required | Purpose |
+|---|---|---|
+| `initialize(owner)` | None (call-once pattern) | Store the owner address in persistent storage |
+| `set_admin(admin)` | `owner.require_auth()` | Owner-gated admin assignment |
+| `privileged_action()` | `admin.require_auth()` | Admin-gated privileged operation |
+
+### Current scope
+
+The crate intentionally covers the foundational `require_auth()` pattern. The following capabilities are **documented gaps** — tracked for future expansion:
+
+- **Sub-invocation authorization** (`require_auth_for_args`) — restricting authorization to a specific function signature and argument tuple, preventing authorization replay across calls.
+- **Authorization trees** — verifying auth from nested contract-to-contract calls (cross-contract invoke chains).
+- **Custom accounts** — contracts that implement custom signature verification (e.g., multisig wallets that satisfy `require_auth()` through `__check_auth`).
+- **Role-based access control (RBAC)** — a richer `Role` enum (`Admin`, `Manager`, `User`) with a `has_role`/`require_role` guard. See the companion [`examples/access-control`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control) crate for a full RBAC implementation.
 
 </PatternSection>
 
@@ -121,7 +140,9 @@ This pattern fails if initialization is incorrect, or if other methods forget th
 
 #### Secure: explicit role mapping and `require_auth()`
 
-```rust illustrative
+The following matches the actual [`examples/authorization/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/authorization/src/lib.rs) implementation exactly:
+
+```rust
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Address, Env};
 
@@ -154,19 +175,22 @@ impl AccessControl {
 }
 ```
 
-<div>
-
 Key points:
 
 - Use `Address::require_auth()` to assert caller identity.
 - Keep mapping keys explicit and minimal (`owner`, `admin`, or a small role map).
 - Prefer dedicated setter methods guarded by the highest privilege.
 
-</div>
+**Documented gaps in this crate:**
+- `require_auth_for_args` is not yet demonstrated — it further restricts authorization to a specific function+args tuple.
+- Auth trees (cross-contract `require_auth` propagation) are not covered.
+- Custom accounts (`__check_auth`) are not covered.
 
   </TabItem>
 
   <TabItem value="test" label="Tests">
+
+The tests below match the actual test suite in [`examples/authorization/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/authorization/src/lib.rs):
 
 ```rust
 #[cfg(test)]
@@ -175,28 +199,37 @@ mod tests {
     use soroban_sdk::{testutils::Address as _, Env};
 
     #[test]
-    fn test_admin_flow() {
+    fn test_initialize_and_set_admin() {
         let env = Env::default();
-        let contract_id = env.register_contract(None, AccessControl);
+        let contract_id = env.register(AccessControl, ());
         let client = AccessControlClient::new(&env, &contract_id);
 
         let owner = Address::generate(&env);
         let alice = Address::generate(&env);
         env.mock_all_auths();
 
-        // Initialize and set admin
         client.initialize(&owner);
-        env.set_source_account(&owner);
         client.set_admin(&alice);
+    }
 
-        // Admin action must be signed by admin
-        env.set_source_account(&alice);
+    #[test]
+    fn test_privileged_action() {
+        let env = Env::default();
+        let contract_id = env.register(AccessControl, ());
+        let client = AccessControlClient::new(&env, &contract_id);
+
+        let owner = Address::generate(&env);
+        let alice = Address::generate(&env);
+        env.mock_all_auths();
+
+        client.initialize(&owner);
+        client.set_admin(&alice);
         client.privileged_action();
     }
 }
 ```
 
-</TabItem>
+  </TabItem>
 </Tabs>
 
 <PatternSection id="anti-patterns" title="Anti-patterns">
@@ -228,5 +261,6 @@ mod tests {
 
 - Core concepts: see the [Authorization concept](/docs/concepts/authorization) page for signer primitives and examples.
 - [Security Fundamentals](/docs/security/fundamentals) — access control checklist
+- [`examples/access-control`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/access-control) — full RBAC implementation (companion to this pattern)
 
 </PatternSection>
