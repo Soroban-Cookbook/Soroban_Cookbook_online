@@ -70,6 +70,12 @@ Bound caller-controlled batches, amortize shared authorization and storage work,
 
 Two-party escrow holding funds until a release condition is met. The starting point before the multi-party escrow pattern.
 
+### [Pull Payment](/docs/patterns/pull-payment)
+
+<span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--security">Security</span> <span class="sb-badge sb-badge--stable">Stable</span>
+
+Credit beneficiaries in storage and let them withdraw on their own schedule instead of pushing transfers on release. Demonstrates Checks-Effects-Interactions and complements the reentrancy guard.
+
 ### [Timelock Vault](/docs/patterns/timelock-vault)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--utility">Utility</span> <span class="sb-badge sb-badge--stable">Stable</span>
