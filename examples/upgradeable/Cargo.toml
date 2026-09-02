@@ -3,7 +3,6 @@ license = "MIT"
 name = "upgradeable"
 version = "0.1.0"
 edition = "2021"
-description = "Soroban example contract demonstrating admin-controlled upgradeable contract patterns."
 description = "Soroban example admin-controlled upgradeable contract."
 keywords = ["soroban", "example", "upgradeable"]
 

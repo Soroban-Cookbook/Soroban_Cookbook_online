@@ -24,5 +24,3 @@ reorder_imports = true
 # such as `imports_granularity` / `group_imports` are nightly-only and are
 # deliberately NOT set here so the config behaves identically on the stable
 # toolchain used by CI.
-
-edition = "2021"

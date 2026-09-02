@@ -1,10 +1,9 @@
 [package]
-license = "MIT"
-name = "simple-voting"
+name = "dutch-auction"
 version = "0.1.0"
 edition = "2021"
-description = "Soroban example voting contract with vote delegation."
-keywords = ["soroban", "example", "simple-voting"]
+description = "Soroban example demonstrating a time-decaying Dutch auction with linear price interpolation."
+keywords = ["soroban", "example", "dutch-auction"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
