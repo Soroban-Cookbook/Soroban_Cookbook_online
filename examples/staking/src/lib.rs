@@ -104,11 +104,7 @@ impl Staking {
         if reward_per_epoch <= 0 {
             return Err(Error::InvalidReward);
         }
-        if env
-            .storage()
-            .instance()
-            .has(&DataKey::Admin)
-        {
+        if env.storage().instance().has(&DataKey::Admin) {
             return Err(Error::AlreadyInitialized);
         }
 
@@ -159,10 +155,7 @@ impl Staking {
         let mut info = Self::load_stake(&env, &staker);
         let pending = Self::pending_rewards(&env, &info, current_epoch)?;
         info.reward_debt = current_epoch;
-        info.amount = info
-            .amount
-            .checked_add(amount)
-            .ok_or(Error::Overflow)?;
+        info.amount = info.amount.checked_add(amount).ok_or(Error::Overflow)?;
         Self::save_stake(&env, &staker, &info);
 
         // Credit pending rewards immediately (simplified: add to stake balance)
@@ -369,7 +362,10 @@ impl Staking {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::{Address as _, Ledger, LedgerInfo}, Env};
+    use soroban_sdk::{
+        testutils::{Address as _, Ledger, LedgerInfo},
+        Env,
+    };
 
     /// Helper: register the contract, mock auths, and initialize with sensible defaults.
     /// epoch_len = 10 ledgers, reward = 1000 tokens/epoch.
@@ -386,7 +382,7 @@ mod tests {
     fn set_ledger_sequence(env: &Env, sequence: u32) {
         env.ledger().set(LedgerInfo {
             timestamp: env.ledger().timestamp(),
-            protocol_version: 22,
+            protocol_version: 27,
             sequence_number: sequence,
             network_id: Default::default(),
             base_reserve: 10,
@@ -560,7 +556,7 @@ mod tests {
         client.stake(&bob, &250);
 
         set_ledger_sequence(&env, 10); // 1 epoch
-        // reward_per_epoch = 1000; total = 1000
+                                       // reward_per_epoch = 1000; total = 1000
         assert_eq!(client.pending_reward(&alice), 750);
         assert_eq!(client.pending_reward(&bob), 250);
     }

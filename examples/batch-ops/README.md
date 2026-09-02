@@ -17,13 +17,6 @@ stellar contract build --manifest-path examples/batch-ops/Cargo.toml
 The optimised Wasm is written to
 `examples/target/wasm32-unknown-unknown/release/batch_ops.wasm`.
 
-> **Known issue** — this crate still declares `soroban-sdk = "22.0.0"` while the
-> rest of the examples workspace has moved to `27.0.3`, so it is not listed in
-> `examples/Cargo.toml`. Until that is reconciled, the cargo commands in this
-> README fail with `current package believes it's in a workspace when it's not`.
-> Bumping the SDK requirement and adding `batch-ops` to `workspace.members`
-> resolves it; its 8 tests pass once it is a member.
-
 ## Test
 
 ```bash
@@ -47,6 +40,7 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 
 ## Related documentation
 
-- [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) — the pattern page this example supports
+- [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) — conceptual guide featuring `batch-ops` as an instruction count case study at resource limits
+- [Optimization Playbook](https://soroban-cookbook.dev/docs/patterns/optimization-playbook) — systematic gas optimization techniques
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured

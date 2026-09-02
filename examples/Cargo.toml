@@ -3,30 +3,77 @@ members = [
     "access-control",
     "authorization",
     "balance-snapshot",
+    "batch-ops",
     "constant-product-amm",
+    "cross-contract",
+    "constructor-init",
     "contract-factory",
     "counter",
+    "custom-account",
+    "cross-contract",
     "emergency-stop",
+    "events-catalog",
     "error-handling",
     "escrow-basic",
     "escrow-multiparty",
+    "faucet",
     "flash-loan",
+    "governor",
     "hello-world",
     "htlc-swap",
+    "lending",
     "oracle-consumer",
+    "pagination",
+    "price-oracle",
+    "rate-limit",
     "reentrancy-guard",
+    "refundable-deposit",
     "registry",
     "simple-dao",
     "simple-voting",
     "staking",
+    "storage-ttl",
     "stream-payment",
     "timelock-vault",
+    "tiny-contract",
     "token-snapshot",
     "token-transfer",
+    "sac-client",
     "token-vesting",
     "token-wrapper",
+    "twap-helper",
     "upgradeable",
     "multi-token-vault",
     "multisig-wallet",
+    "airdrop-bitmap",
 ]
+resolver = "2"
+
+[workspace.dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+    "soulbound-token",
+    "payment-splitter",
+    "ttl-bumper",
+    "pausable-token",
+    "marketplace",
+    "nft",
+    "royalty-splitter",
+]
+resolver = "2"
+
+# The release profile is declared once at the workspace root so it applies to
+# every example contract. Per-package `[profile.release]` tables are silently
+# ignored by Cargo, which would otherwise fall back to the size-inefficient
+# default profile. These size-oriented settings produce small, stripped
+# binaries: `-Oz` code, debug symbols removed, and `panic = "abort"` (panicking
+# contracts are rejected on-chain, so an aborting binary is smaller and safer).
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true
 resolver = "2"

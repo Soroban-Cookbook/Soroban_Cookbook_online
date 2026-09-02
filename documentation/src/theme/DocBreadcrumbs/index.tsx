@@ -138,6 +138,8 @@ export default function DocBreadcrumbs(): React.JSX.Element | null {
   return (
     <>
       {/* Full breadcrumbs — visible on desktop via CSS media query.
+          display:none on mobile removes this from the a11y tree; do not set
+          aria-hidden here (it would leave focusable links inside a hidden tree). */}
           No aria-hidden: this variant is `display: none` below 640 px, which
           already removes it from the accessibility tree. Marking it hidden
           while it is on screen left its links focusable but unannounced

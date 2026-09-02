@@ -6,11 +6,6 @@ description: Emit and track contract events for observability, debugging, and of
 
 # Events
 
-title: Events
-description: Emitting and consuming events for observability and off-chain indexing.
-sidebar_position: 6
----
-
 Events provide a reliable audit trail of what happened in your contract and help indexers and UIs react to on-chain activity.
 
 ## Why Emit Events
@@ -33,8 +28,17 @@ Events provide a reliable audit trail of what happened in your contract and help
 - Access control changes
 - Error or rejection signals when appropriate
 
+## Querying events: RPC vs Horizon
+
+Contract events published with `env.events().publish` are retrieved through **Soroban RPC** (`getEvents`), not Horizon's classic operation feeds. Use Horizon for classic payments/operations. See **[RPC and Horizon](./rpc-and-horizon.md)** for a full decision table.
+## Example crate
+
+See the dedicated [Events Catalog example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/events-catalog) for a contract that uses stable event topics like `profile_set` and `profile_status`, with data payloads designed for indexers and UI listeners.
+
 ## Next
 
+- [RPC and Horizon](./rpc-and-horizon.md)
 - [Storage Patterns](./storage.md)
 - [Authorization](./authorization.md)
+- [SEP-41 Token Standard](./sep-41-token-standard.md)
 - [Event Emission Audit](./event-emission-audit.md)

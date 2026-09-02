@@ -1,6 +1,8 @@
 #![no_std]
 
-use soroban_sdk::{contract, contracterror, contractimpl, symbol_short, Address, Env, IntoVal, Symbol, Vec};
+use soroban_sdk::{
+    contract, contracterror, contractimpl, symbol_short, Address, Env, IntoVal, Symbol, Vec,
+};
 
 /// Error types for oracle operations
 #[contracterror]
@@ -201,10 +203,7 @@ impl OracleConsumer {
     }
 
     /// Get multiple prices in a single call (gas efficient)
-    pub fn get_prices(
-        env: Env,
-        assets: Vec<Symbol>,
-    ) -> Result<Vec<i128>, OracleError> {
+    pub fn get_prices(env: Env, assets: Vec<Symbol>) -> Result<Vec<i128>, OracleError> {
         let mut prices = soroban_sdk::vec![&env];
 
         for asset in assets.iter() {
@@ -248,7 +247,7 @@ mod tests {
             soroban_sdk::vec![
                 &env,
                 price,
-                6,                                      // 6 decimals
+                6,                                // 6 decimals
                 env.ledger().timestamp() as i128, // current timestamp
             ]
         }
@@ -296,8 +295,7 @@ mod tests {
 
         client.init(&oracle_id, &3600);
 
-        let (price, decimals, _timestamp) =
-            client.get_price_data(&Symbol::new(&env, "EUR"));
+        let (price, decimals, _timestamp) = client.get_price_data(&Symbol::new(&env, "EUR"));
 
         assert_eq!(price, 1_100_000);
         assert_eq!(decimals, 6);
@@ -313,13 +311,11 @@ mod tests {
         client.init(&oracle_id, &3600);
 
         // 100 USD = 100 * 1,000,000 / 10^6 = 100
-        let value = client
-            .calculate_value(&Symbol::new(&env, "USD"), &100);
+        let value = client.calculate_value(&Symbol::new(&env, "USD"), &100);
         assert_eq!(value, 100);
 
         // 0.5 BTC at $43,000 each
-        let btc_value = client
-            .calculate_value(&Symbol::new(&env, "BTC"), &500_000);
+        let btc_value = client.calculate_value(&Symbol::new(&env, "BTC"), &500_000);
         assert_eq!(btc_value, 21_500_000_000);
     }
 

@@ -1,0 +1,19 @@
+[package]
+name = "pull-payment"
+version = "0.1.0"
+edition = "2021"
+description = "Soroban example illustrating pull payments: credit a beneficiary, then let them withdraw, instead of pushing transfers on release."
+keywords = ["soroban", "example", "pull-payment", "payout"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = "27.0.3"
+
+[dev-dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+
+# Standalone workspace so this example builds and tests in isolation, independent
+# of the (currently in-flight) parent examples workspace.
+[workspace]

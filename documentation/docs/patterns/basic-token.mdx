@@ -47,6 +47,10 @@ Use this pattern to bootstrap a simple token system, understand state management
 
 </PatternCallout>
 
+<PatternCallout variant="note" title="Teaching Token">
+The `examples/token-transfer` example demonstrates a teaching token implementation. It is **not** the Stellar Asset Contract (SAC) used for production assets. For production, refer to the [Stellar Asset Contract (SAC)](./token-standards.mdx#sac) documentation.
+</PatternCallout>
+
 <PatternSection id="prerequisites" title="Prerequisites">
 
 - Rust stable and `cargo`
@@ -296,6 +300,8 @@ For production systems, use SAC. This pattern is ideal for learning and prototyp
 - [Error Handling](/docs/patterns/error-handling) — Taxonomy and propagation strategies
 - [Authorization](/docs/patterns/authorization) — Fine-grained access control patterns
 - [Custom Types](/docs/patterns/custom-types) — Extending data structures
+- [Token Pattern Security Audit](/docs/security/token-audit) — Checklist to run before deploying any token contract, including the unrestricted-minting and supply-cap gaps called out above
+- [Token Vesting](/docs/patterns/token-vesting) — Linear release schedules with a cliff, built on the token interface
 
 </PatternSection>
 
@@ -314,14 +320,13 @@ The compiled WASM binary is located at `target/wasm32-unknown-unknown/release/to
 
 1. **Generate or use an existing account**:
    ```bash
-   soroban keys generate token-admin
+   stellar keys generate --global token-admin
+   stellar keys fund token-admin --network testnet
    ```
 
-2. **Fund your account** via the [Stellar Testnet Faucet](https://laboratory.stellar.org/?network=testnet#account-creator).
-
-3. **Deploy the contract**:
+2. **Deploy the contract**:
    ```bash
-   soroban contract deploy \
+   stellar contract deploy \
      --wasm target/wasm32-unknown-unknown/release/token_transfer.wasm \
      --network testnet \
      --source token-admin
@@ -329,37 +334,37 @@ The compiled WASM binary is located at `target/wasm32-unknown-unknown/release/to
 
    This returns a contract ID (e.g., `CABC...`).
 
-4. **Interact with the contract**:
+3. **Interact with the contract**:
    ```bash
-   soroban contract invoke \
+   stellar contract invoke \
      --id CABC... \
      --network testnet \
      --source token-admin \
      -- mint \
-     --to $(soroban keys address token-admin) \
+     --to $(stellar keys address token-admin) \
      --amount 1000
    ```
 
 ### Query Balance
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id CABC... \
   --network testnet \
   --source token-admin \
   -- balance \
-  --of $(soroban keys address token-admin)
+  --of $(stellar keys address token-admin)
 ```
 
 ### Transfer Tokens
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id CABC... \
   --network testnet \
   --source token-admin \
   -- transfer \
-  --from $(soroban keys address token-admin) \
+  --from $(stellar keys address token-admin) \
   --to GBBD...your-recipient \
   --amount 100
 ```

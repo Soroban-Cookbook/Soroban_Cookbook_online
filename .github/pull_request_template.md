@@ -30,6 +30,7 @@ Before submitting, please ensure you've checked these off:
 - [ ] My changes generate no new warnings.
 - [ ] New and existing tests pass locally.
 - [ ] I have checked my code runs on the latest Soroban SDK.
+- [ ] I have reviewed any `test_snapshots/` changes for unintended authorization or logic updates.
 
 ## Accessibility (a11y) Checklist
 If your changes include new or modified UI components, please verify the following:

@@ -1,0 +1,461 @@
+---
+time: 20
+sidebar_position: 18
+title: Oracle Price Source
+description: Publish trusted price feeds on-chain with admin auth, decimal support, and freshness timestamps
+difficulty: intermediate
+tags: [oracle, defi, authorization, cross-contract]
+keywords:
+  - oracle
+  - price feed
+  - set_price
+  - get_price
+  - PriceEntry
+  - staleness
+  - freshness
+  - admin
+  - require_auth
+  - decimals
+  - timestamp
+  - oracle-consumer
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Oracle Price Source Pattern
+
+The **oracle price source** (producer) pattern describes how a trusted account publishes on-chain price data that other contracts can consume.  It is the counterpart to the [Oracle Consumer](./oracle-consumer.mdx) pattern, which explains how to *read* prices; this page explains how to *publish* them.
+
+## Overview
+
+A price oracle source contract:
+
+- Stores a price, a decimal scale, and a ledger timestamp for each asset.
+- Restricts publishing to a single admin address (enforced via `require_auth`).
+- Exposes prices in a `Vec<i128>` format compatible with `oracle-consumer`.
+- Lets consumers enforce their own freshness policy via `get_price_checked`.
+- Emits events so off-chain indexers can track every update.
+
+## Architecture
+
+```
+┌──────────────────────────────────┐
+│  Off-chain price bot / relayer   │
+└──────────────────┬───────────────┘
+                   │  set_price(asset, price, decimals)
+                   ▼
+┌──────────────────────────────────┐
+│   PriceOracle (this contract)    │
+├──────────────────────────────────┤
+│  storage: DataKey::Price(asset)  │
+│    → PriceEntry { price,         │
+│                   decimals,      │
+│                   timestamp }    │
+├──────────────────────────────────┤
+│  get_price(asset)                │◄── oracle-consumer (cross-contract)
+│  get_price_entry(asset)          │◄── any contract
+│  get_price_checked(asset, age)   │◄── any contract
+└──────────────────────────────────┘
+```
+
+## Data Model
+
+```rust
+/// Full price record stored for every asset.
+pub struct PriceEntry {
+    /// Price scaled by 10^decimals.
+    pub price: i128,
+    /// Decimal places (0–18).
+    pub decimals: u32,
+    /// Ledger timestamp when the entry was written (seconds since Unix epoch).
+    pub timestamp: u64,
+}
+```
+
+The `price` field is an integer scaled by `10^decimals`.  A BTC price of
+$43,000.000000 with 6 decimal places is stored as `43_000_000_000`.
+
+## Implementation
+
+<Tabs>
+  <TabItem value="contract" label="Contract" default>
+
+```rust
+#![no_std]
+
+use soroban_sdk::{
+    contract, contracterror, contractimpl, contracttype,
+    symbol_short, Address, Env, Symbol,
+};
+
+#[contracterror]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[repr(u32)]
+pub enum OracleError {
+    Unauthorized    = 1,
+    AssetNotFound   = 2,
+    StalePrice      = 3,
+    InvalidArgument = 4,
+    NotInitialized  = 5,
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Admin,
+    Price(Symbol),
+}
+
+#[contracttype]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PriceEntry {
+    pub price:     i128,
+    pub decimals:  u32,
+    pub timestamp: u64,
+}
+
+#[contract]
+pub struct PriceOracle;
+
+#[contractimpl]
+impl PriceOracle {
+    /// Initialise with an admin address (callable once).
+    pub fn init(env: Env, admin: Address) {
+        if env.storage().instance().has(&DataKey::Admin) {
+            panic!("already initialized");
+        }
+        env.storage().instance().set(&DataKey::Admin, &admin);
+    }
+
+    /// Return the current admin.
+    pub fn get_admin(env: Env) -> Result<Address, OracleError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(OracleError::NotInitialized)
+    }
+
+    /// Transfer admin rights (current admin must sign).
+    pub fn set_admin(env: Env, new_admin: Address) -> Result<(), OracleError> {
+        let admin = Self::require_admin(&env)?;
+        admin.require_auth();
+        env.storage().instance().set(&DataKey::Admin, &new_admin);
+        Ok(())
+    }
+
+    /// Publish or update a price (admin-only).
+    ///
+    /// * `asset`    – asset identifier, e.g. `Symbol::new(&env, "BTC")`
+    /// * `price`    – must be > 0
+    /// * `decimals` – 0–18
+    pub fn set_price(
+        env: Env,
+        asset: Symbol,
+        price: i128,
+        decimals: u32,
+    ) -> Result<(), OracleError> {
+        let admin = Self::require_admin(&env)?;
+        admin.require_auth();  // ← admin must sign every price update
+
+        if price <= 0 || decimals > 18 {
+            return Err(OracleError::InvalidArgument);
+        }
+
+        let entry = PriceEntry {
+            price,
+            decimals,
+            timestamp: env.ledger().timestamp(),
+        };
+        env.storage()
+            .persistent()
+            .set(&DataKey::Price(asset.clone()), &entry);
+
+        env.events().publish(
+            (symbol_short!("set_price"), asset),
+            (price, decimals, entry.timestamp),
+        );
+        Ok(())
+    }
+
+    /// Raw entry without freshness check.
+    pub fn get_price_entry(env: Env, asset: Symbol) -> Result<PriceEntry, OracleError> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::Price(asset))
+            .ok_or(OracleError::AssetNotFound)
+    }
+
+    /// Flat Vec<i128> compatible with oracle-consumer's expected format:
+    /// `[price, decimals, timestamp]`.
+    pub fn get_price(
+        env: Env,
+        asset: Symbol,
+    ) -> Result<soroban_sdk::Vec<i128>, OracleError> {
+        let entry: PriceEntry = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Price(asset))
+            .ok_or(OracleError::AssetNotFound)?;
+
+        Ok(soroban_sdk::vec![
+            &env,
+            entry.price,
+            entry.decimals as i128,
+            entry.timestamp as i128,
+        ])
+    }
+
+    /// Freshness-checked read: returns StalePrice when age > max_age_secs.
+    pub fn get_price_checked(
+        env: Env,
+        asset: Symbol,
+        max_age_secs: u64,
+    ) -> Result<PriceEntry, OracleError> {
+        let entry: PriceEntry = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Price(asset))
+            .ok_or(OracleError::AssetNotFound)?;
+
+        let age = env
+            .ledger()
+            .timestamp()
+            .checked_sub(entry.timestamp)
+            .ok_or(OracleError::StalePrice)?;
+
+        if age > max_age_secs {
+            return Err(OracleError::StalePrice);
+        }
+        Ok(entry)
+    }
+
+    fn require_admin(env: &Env) -> Result<Address, OracleError> {
+        env.storage()
+            .instance()
+            .get(&DataKey::Admin)
+            .ok_or(OracleError::NotInitialized)
+    }
+}
+```
+
+  </TabItem>
+  <TabItem value="tests" label="Tests">
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use soroban_sdk::{
+        testutils::{Address as _, Ledger},
+        Env, Symbol,
+    };
+
+    fn setup() -> (Env, Address, PriceOracleClient<'static>) {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let admin = Address::generate(&env);
+        let id = env.register(PriceOracle, ());
+        let client = PriceOracleClient::new(&env, &id);
+        client.init(&admin);
+
+        (env, admin, client)
+    }
+
+    // ── Admin-only set_price ────────────────────────────────────────────────
+
+    #[test]
+    fn test_set_price_succeeds_for_admin() {
+        let (env, _, client) = setup();
+        let asset = Symbol::new(&env, "BTC");
+
+        client.set_price(&asset, &43_000_000_000_i128, &6);
+
+        let entry = client.get_price_entry(&asset);
+        assert_eq!(entry.price,    43_000_000_000_i128);
+        assert_eq!(entry.decimals, 6);
+    }
+
+    #[test]
+    fn test_set_price_requires_admin_auth() {
+        // No mock_all_auths → real auth is enforced.
+        let env = Env::default();
+        let admin = Address::generate(&env);
+        let id = env.register(PriceOracle, ());
+        let client = PriceOracleClient::new(&env, &id);
+
+        env.mock_all_auths();
+        client.init(&admin);
+
+        // Auth mock removed — non-admin attempt must fail.
+        let result = client
+            .try_set_price(&Symbol::new(&env, "BTC"), &1_000_i128, &6);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_set_price_rejects_zero() {
+        let (env, _, client) = setup();
+        let result = client
+            .try_set_price(&Symbol::new(&env, "BTC"), &0_i128, &6);
+        assert_eq!(result, Err(Ok(OracleError::InvalidArgument)));
+    }
+
+    #[test]
+    fn test_set_price_rejects_negative() {
+        let (env, _, client) = setup();
+        let result = client
+            .try_set_price(&Symbol::new(&env, "BTC"), &-1_i128, &6);
+        assert_eq!(result, Err(Ok(OracleError::InvalidArgument)));
+    }
+
+    #[test]
+    fn test_set_price_rejects_decimals_above_18() {
+        let (env, _, client) = setup();
+        let result = client
+            .try_set_price(&Symbol::new(&env, "BTC"), &1_000_i128, &19);
+        assert_eq!(result, Err(Ok(OracleError::InvalidArgument)));
+    }
+
+    // ── Stale price rejection ──────────────────────────────────────────────
+
+    #[test]
+    fn test_stale_price_rejected() {
+        let (env, _, client) = setup();
+        let asset = Symbol::new(&env, "USD");
+
+        client.set_price(&asset, &1_000_000_i128, &6);
+
+        // Advance ledger 2 hours; max_age is 1 hour.
+        env.ledger().with_mut(|i| i.timestamp += 7_200);
+
+        let result = client.try_get_price_checked(&asset, &3600_u64);
+        assert_eq!(result, Err(Ok(OracleError::StalePrice)));
+    }
+
+    #[test]
+    fn test_fresh_price_accepted() {
+        let (env, _, client) = setup();
+        let asset = Symbol::new(&env, "USD");
+
+        client.set_price(&asset, &1_000_000_i128, &6);
+
+        // Advance exactly max_age → still valid.
+        env.ledger().with_mut(|i| i.timestamp += 3_600);
+
+        let entry = client.get_price_checked(&asset, &3_600_u64);
+        assert_eq!(entry.price, 1_000_000_i128);
+    }
+
+    // ── get_price Vec format (oracle-consumer compatibility) ───────────────
+
+    #[test]
+    fn test_get_price_vec_format() {
+        let (env, _, client) = setup();
+        let asset = Symbol::new(&env, "ETH");
+
+        client.set_price(&asset, &2_000_000_000_i128, &6);
+
+        let data = client.get_price(&asset);
+        assert_eq!(data.len(), 3);
+        assert_eq!(data.get_unchecked(0), 2_000_000_000_i128); // price
+        assert_eq!(data.get_unchecked(1), 6_i128);              // decimals
+        assert!(data.get_unchecked(2) >= 0);                    // timestamp
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Staleness Model
+
+The oracle writes the current ledger timestamp (`env.ledger().timestamp()`) into
+every `PriceEntry`.  Consumers compare this against the current ledger time:
+
+```
+age = now − entry.timestamp
+if age > max_age_secs → reject (StalePrice)
+```
+
+The boundary is **inclusive**: `age == max_age_secs` is still valid.  One second
+past the boundary is stale.
+
+This is a deliberate separation of concerns: the oracle does not know what
+freshness a given consumer requires, so consumers pass their own `max_age` on
+every call.
+
+## Interface Compatible with oracle-consumer
+
+`get_price(asset)` returns `Vec<i128>` with exactly three elements:
+
+| Index | Value      |
+|-------|-----------|
+| 0     | `price`   |
+| 1     | `decimals` (cast to `i128`) |
+| 2     | `timestamp` (cast to `i128`) |
+
+This matches what `oracle-consumer` expects when calling
+`env.invoke_contract(&oracle, &symbol_short!("get_price"), ...)`.  Pointing the
+consumer's `oracle_address` at a deployed `price-oracle` instance requires no
+changes to the consumer contract.
+
+## Admin Authorization
+
+`set_price` (and `set_admin`) require `admin.require_auth()`.  The Soroban SDK
+will reject the transaction unless the admin address has signed it.  In tests,
+wrap the setup in `env.mock_all_auths()` but remove the mock for tests that
+explicitly verify the rejection path.
+
+```rust
+// Test that a non-admin cannot publish a price:
+let env = Env::default();
+// ... init with mock_all_auths ...
+
+// After init, auth is no longer mocked.
+let result = client.try_set_price(&asset, &price, &decimals);
+assert!(result.is_err()); // ← auth failure
+```
+
+## Best Practices
+
+**Use `persistent` storage for prices** – price entries must survive ledger
+expiry.  The admin address can use `instance` storage because the contract
+itself keeps it alive.
+
+**Validate all inputs in `set_price`** – check that `price > 0` and
+`decimals ≤ 18` before writing to storage.  Malformed entries cannot be
+unset without a subsequent valid `set_price` call.
+
+**Emit an event on every update** – the `set_price` event lets off-chain
+monitors and indexers build a complete price history without polling contract
+state.
+
+**Keep decimals consistent** – choose a fixed decimal scale per asset and
+document it.  Changing decimals across updates will confuse consumers that
+cache the scale.
+
+**Rotate the admin key periodically** – use `set_admin` to rotate the admin to
+a new key if the current key is compromised.
+
+## Security Considerations
+
+| Risk | Mitigation |
+|------|-----------|
+| Admin key compromise | Rotate via `set_admin`; consider multi-sig admin |
+| Stale prices used downstream | Consumers call `get_price_checked` with tight `max_age` |
+| Integer overflow in price arithmetic | Use `checked_mul` / `checked_div` in consumers |
+| Deployment to wrong network | Verify contract address in consumer before deploying |
+
+## Example Files
+
+- **Contract**: `examples/price-oracle/src/lib.rs`
+- **Cargo.toml**: `examples/price-oracle/Cargo.toml`
+
+## Related Patterns
+
+- [Oracle Consumer](./oracle-consumer.mdx) – how to *read* prices from this oracle
+- [Authorization](./authorization.mdx) – `require_auth` patterns
+- [Cross-Contract Invocation](../concepts/cross-contract-invocation.md)
+- [Error Handling](./error-handling.mdx)

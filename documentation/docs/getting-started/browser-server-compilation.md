@@ -67,8 +67,8 @@ A server-side build API provides an isolated microservice that receives Rust sou
 │              │ ◄─────────────────────────────────── ┌───────────▼────────────┐
 │              │      { wasm: "...", abi: [...] }     │ Containerized Worker   │
 └──────────────┘                                      │ (Docker / gVisor)      │
-                                                      │  - cargo build         │
-                                                      │  - stellar optimize    │
+                                                      │  - cargo build --target wasm32-unknown-unknown --release
+                                                      │  - stellar contract build (optimize on by default)
                                                       └────────────────────────┘
 ```
 
@@ -83,11 +83,15 @@ A server-side build API provides an isolated microservice that receives Rust sou
 
 3. **Isolated Compilation Sandbox**:
    - Spawns an isolated container (e.g., Docker, AWS Firecracker, or gVisor sandbox).
-   - Executes:
+   - Executes the same compile path this repository uses in CI and `scripts/test-examples.sh`:
      ```bash
      cargo build --target wasm32-unknown-unknown --release
-     stellar contract optimize --wasm target/wasm32-unknown-unknown/release/contract.wasm
      ```
+     Production-shaped artifacts should use the current CLI (optimizes by default):
+     ```bash
+     stellar contract build
+     ```
+     `stellar contract optimize` is deprecated in current Stellar CLI help; prefer `stellar contract build`.
 
 4. **Response Payload**:
    - Returns base64-encoded optimized WASM binary.

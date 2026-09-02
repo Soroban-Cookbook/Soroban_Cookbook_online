@@ -70,6 +70,12 @@ Bound caller-controlled batches, amortize shared authorization and storage work,
 
 Two-party escrow holding funds until a release condition is met. The starting point before the multi-party escrow pattern.
 
+### [Pull Payment](/docs/patterns/pull-payment)
+
+<span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--security">Security</span> <span class="sb-badge sb-badge--stable">Stable</span>
+
+Credit beneficiaries in storage and let them withdraw on their own schedule instead of pushing transfers on release. Demonstrates Checks-Effects-Interactions and complements the reentrancy guard.
+
 ### [Timelock Vault](/docs/patterns/timelock-vault)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--utility">Utility</span> <span class="sb-badge sb-badge--stable">Stable</span>
@@ -98,6 +104,11 @@ Full x·y=k AMM with swap, liquidity provision, and LP token accounting. Covers 
 
 ### 🪙 Token Standards
 
+## Pattern Categories
+
+### 🔺 [Token Standards](/patterns/tokens)
+### 🦩 [Token Standards](/patterns/tokens)
+
 <span class="sb-tag sb-tag--token">Token</span>
 
 Explore fungible token standards, wrappers, and vault mechanisms for building robust token systems.
@@ -107,6 +118,7 @@ Explore fungible token standards, wrappers, and vault mechanisms for building ro
 - [Multi-Token Vault](/docs/patterns/multi-token-vault)
 
 ### 💰 DeFi Patterns
+### 😄 [DeFi Patterns](/patterns/defi)
 
 <span class="sb-tag sb-tag--defi">DeFi</span>
 
@@ -118,6 +130,13 @@ Build decentralized finance applications with liquidity pools, staking, atomic s
 - [Timelock Vault](/docs/patterns/timelock-vault)
 
 ### 🗳️ Governance
+- Liquidity pools (AMM)
+- **Staking contracts**with epoch-based rewards
+- [Atomic swaps (HTLC)](/docs/patterns/htlc-swap)
+- Lending and borrowing
+
+### 🌷 Governance](/patterns/governance)
+### 🗳 [Governance](/patterns/governance)
 
 <span class="sb-tag sb-tag--governance">Governance</span>
 
@@ -126,6 +145,17 @@ Implement decentralized governance with voting systems, DAOs, and proposal mecha
 - [Proposal Lifecycle](/docs/patterns/proposal-lifecycle)
 
 ### 🎨 NFT Patterns
+- Voting systems
+- DOA implementations
+- Proposal factories
+- Token delegation
+
+### 🎈️ [NFT Patterns](/patterns/nft)
+- DO implementations
+- Proposal factories
+- Token delegation
+
+### 🚀 [NFT Patterns](/patterns/nft)
 
 <span class="sb-tag sb-tag--nft">NFT</span>
 
@@ -134,6 +164,8 @@ Create and manage non-fungible tokens. NFT-specific pattern pages are planned �
 > **Note:** Dedicated NFT minting and marketplace patterns are tracked in the backlog. Contributions welcome — see the [Contributing Guide](#contributing).
 
 ### 🔧 Utility & Infrastructure
+### 🔤 Utility & Infrastructure
+### 🤥 [Utility & Infrastructure](/patterns/utility)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span>
 
@@ -144,6 +176,10 @@ Build essential utility contracts for multi-signature wallets, escrow, and fund 
 - [Contract Registry](/docs/patterns/contract-registry)
 - [Contract Factory](/docs/patterns/contract-factory)
 - [Oracle Consumer](/docs/patterns/oracle-consumer)
+- [Multi-signature wallets](/docs/patterns/multisig-wallet)
+- Time-locked contracts
+- Escrow services
+- Registry systems
 
 ### ✨ Advanced Patterns
 ### ⚣ Advanced Patterns
@@ -188,4 +224,5 @@ Start exploring:
 ## Resources
 
 - [Soroban Examples](https://github.com/stellar/soroban-examples)
+- [Community Patterns](https://github.com/Soroban-Cookbook)
 - [Community Patterns](https://github.com/Soroban-Cookbook)

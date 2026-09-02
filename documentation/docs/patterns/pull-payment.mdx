@@ -1,0 +1,204 @@
+---
+sidebar_position: 13
+title: Pull Payment Pattern
+description: Credit beneficiaries in storage and let them withdraw on their own schedule instead of pushing transfers on release.
+image: /img/soroban-social-card.png
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="pull-payment"
+  difficulty="intermediate"
+  category="Security"
+  status="stable"
+  lastReviewed="September 2026"
+/>
+
+## Overview
+
+A **pull payment** inverts the direction of a payout: instead of a contract pushing tokens to a receiver during an external call, it merely records a credit for the beneficiary, who then calls `withdraw` to pull the funds whenever they choose.
+
+This pattern mitigates two failure classes in push-style payout contracts:
+
+1. **Failed downstream transfers** — if the pushed transfer reverts, the whole transaction reverts and the payout may be stuck or need to be re-run. With a pull payment the credit is recorded first and funds are drawn on demand.
+2. **Reentrancy** — because the credit is zeroed in storage *before* the external token transfer (Checks-Effects-Interactions), a re-entering call sees a zero balance and cannot double-spend.
+
+It is a natural complement to the [Reentrancy Guard Pattern](/docs/patterns/reentrancy-guard): the guard blocks re-entrant calls with a mutex, while pull payments remove the vulnerable interaction window altogether.
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust and `soroban-sdk` version 27+
+- Familiarity with token contract clients (`token::Client`, `StellarAssetClient`)
+- Understanding of the **Checks-Effects-Interactions** ordering
+- Familiarity with the [Reentrancy Guard Pattern](/docs/patterns/reentrancy-guard)
+
+</PatternSection>
+
+<PatternSection id="goals" title="Goals">
+
+- Credit a beneficiary in storage without transferring tokens at release time.
+- Allow a beneficiary to pull their credited payment in a single authorized call.
+- Demonstrate **Checks-Effects-Interactions** by zeroing the credit before the transfer.
+- Prove, under test, that the credit is zeroed before the transfer and cannot be double-spent.
+
+</PatternSection>
+
+<PatternSection id="implementation" title="Implementation">
+
+### Storage Keys and Errors
+
+An `Owner` controls crediting, and a `Credit(Address)` mapping holds each beneficiary's unwithdrawn balance. The token address is stored in instance storage.
+
+```rust
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Owner,
+    Credit(Address),
+}
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    Unauthorized = 1,
+    InvalidAmount = 2,
+    InsufficientCredit = 3,
+    TransferFailed = 4,
+}
+```
+
+### Initialize
+
+Store the payout owner and the payout token. The instance-storage owner acts as the authorization gate for `credit_payment`.
+
+```rust
+pub fn init(env: Env, owner: Address, token: Address) {
+    if env.storage().instance().has(&DataKey::Owner) {
+        panic!("already initialized");
+    }
+    env.storage().instance().set(&DataKey::Owner, &owner);
+    env.storage()
+        .instance()
+        .set(&Symbol::new(&env, "Token"), &token);
+}
+```
+
+### Credit (No Transfer)
+
+`credit_payment` only mutates storage — no token transfer occurs here, which is exactly what makes a failed downstream payout impossible.
+
+```rust
+pub fn credit_payment(env: Env, beneficiary: Address, amount: i128) -> Result<(), Error> {
+    Self::require_owner(&env)?;
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    let current = Self::credit(env.clone(), beneficiary.clone());
+    let new = current.checked_add(amount).expect("credit overflow");
+    env.storage()
+        .persistent()
+        .set(&DataKey::Credit(beneficiary), &new);
+    Ok(())
+}
+```
+
+### Withdraw (Checks-Effects-Interactions)
+
+The withdrawal is ordered deliberately:
+
+1. **Checks** — authenticate the beneficiary and validate the amount against the credit.
+2. **Effects** — zero (or reduce) the credit in storage *before* any interaction.
+3. **Interactions** — perform the token transfer last.
+
+```rust
+pub fn withdraw(env: Env, beneficiary: Address, amount: i128) -> Result<(), Error> {
+    beneficiary.require_auth();
+
+    // ── Checks ────────────────────────────────────────────────────────
+    if amount <= 0 {
+        return Err(Error::InvalidAmount);
+    }
+    let credited = Self::credit(env.clone(), beneficiary.clone());
+    if credited < amount {
+        return Err(Error::InsufficientCredit);
+    }
+
+    // ── Effects ───────────────────────────────────────────────────────
+    // Zero the credit before any interaction (checks-effects-interactions).
+    let remaining = credited - amount;
+    if remaining > 0 {
+        env.storage()
+            .persistent()
+            .set(&DataKey::Credit(beneficiary.clone()), &remaining);
+    } else {
+        env.storage()
+            .persistent()
+            .remove(&DataKey::Credit(beneficiary.clone()));
+    }
+
+    // ── Interactions ──────────────────────────────────────────────────
+    let token_address = Self::token(env.clone());
+    token::Client::new(&env, &token_address).transfer(
+        &env.current_contract_address(),
+        &beneficiary,
+        &amount,
+    );
+
+    Ok(())
+}
+```
+
+Zeroing the credit before the transfer means a reverting or re-entered transfer can never be used to withdraw the same funds twice.
+
+</PatternSection>
+
+<PatternSection id="security" title="Security Considerations">
+
+- **Zero before transfer** — always clear the credit in storage before the token transfer. This is the crux of Checks-Effects-Interactions for payouts.
+- **Authorize withdrawals** — `beneficiary.require_auth()` ensures only the credited account can pull its payment.
+- **Gate crediting** — only the `Owner` stored at `init` may `credit_payment`, preventing arbitrary inflation of credits.
+- **Validate amounts** — reject non-positive amounts and amounts exceeding the credited balance.
+- **Relationship to reentrancy** — pull payments reduce the interaction surface; combine with a [reentrancy guard](/docs/patterns/reentrancy-guard) when you still perform external calls elsewhere.
+
+</PatternSection>
+
+<PatternSection id="tests" title="Tests">
+
+The example verifies the credit round trip, that the credit is zeroed before transfer, partial withdrawals, and that over-withdrawals are rejected without state changes.
+
+```rust
+#[test]
+fn test_credit_and_withdraw_round_trip() {
+    let (_env, owner, beneficiary, token_id, contract) = setup();
+
+    contract.credit_payment(&beneficiary, &1_000);
+    assert_eq!(contract.credit(&beneficiary), 1_000);
+
+    contract.withdraw(&beneficiary, &1_000);
+    assert_eq!(contract.credit(&beneficiary), 0);
+}
+
+#[test]
+fn test_withdraw_more_than_credit_fails() {
+    let (_env, _owner, beneficiary, _token_id, contract) = setup();
+    contract.credit_payment(&beneficiary, &100);
+
+    let res = contract.try_withdraw(&beneficiary, &200);
+    assert_eq!(res.unwrap_err().unwrap(), Error::InsufficientCredit);
+    // Credit unchanged because the check failed before any effects.
+    assert_eq!(contract.credit(&beneficiary), 100);
+}
+```
+
+</PatternSection>
+
+<PatternSection id="full-example" title="Full Example">
+
+The complete tested implementation is available in the repository:
+
+[`examples/pull-payment`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/pull-payment)
+
+</PatternSection>

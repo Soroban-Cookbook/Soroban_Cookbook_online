@@ -148,8 +148,7 @@ export function PatternMeta({
           aria-pressed={bookmarked}
           aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
           title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-          onClick={toggleBookmark}
-        >
+          onClick={toggleBookmark}>
           {bookmarked ? '★' : '☆'}
         </button>
       </div>

@@ -66,12 +66,12 @@ pub enum EscrowState {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum Error {
-    AlreadyInitialised = 1,
-    NotInitialised     = 2,
+    AlreadyInitialized = 1,
+    NotInitialized     = 2,
     InvalidAmount      = 3,
     NotFunded          = 4,
-    UnauthorisedRelease = 5,
-    UnauthorisedRefund  = 6,
+    UnauthorizedRelease = 5,
+    UnauthorizedRefund  = 6,
     AlreadySettled     = 7,
 }
 
@@ -81,7 +81,7 @@ pub struct EscrowBasic;
 #[contractimpl]
 impl EscrowBasic {
     /// Set up the escrow — no funds move yet.
-    pub fn initialise(
+    pub fn initialize(
         env: Env,
         buyer: Address,
         seller: Address,
@@ -90,7 +90,7 @@ impl EscrowBasic {
         amount: i128,
     ) -> Result<(), Error> {
         if env.storage().persistent().has(&DataKey::State) {
-            return Err(Error::AlreadyInitialised);
+            return Err(Error::AlreadyInitialized);
         }
         if amount <= 0 {
             return Err(Error::InvalidAmount);
@@ -107,17 +107,17 @@ impl EscrowBasic {
     /// Buyer deposits funds. Moves state to Funded.
     pub fn deposit(env: Env) -> Result<(), Error> {
         let state: EscrowState = env.storage().persistent()
-            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::State).ok_or(Error::NotInitialized)?;
         if state != EscrowState::Created {
             return Err(Error::AlreadySettled);
         }
         let buyer: Address = env.storage().persistent()
-            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialized)?;
         buyer.require_auth();
         let token: Address = env.storage().persistent()
-            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let amount: i128 = env.storage().persistent()
-            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Amount).ok_or(Error::NotInitialized)?;
         token::Client::new(&env, &token)
             .transfer(&buyer, &env.current_contract_address(), &amount);
         env.storage().persistent().set(&DataKey::State, &EscrowState::Funded);
@@ -128,23 +128,23 @@ impl EscrowBasic {
     pub fn release(env: Env, caller: Address) -> Result<(), Error> {
         caller.require_auth();
         let state: EscrowState = env.storage().persistent()
-            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::State).ok_or(Error::NotInitialized)?;
         if state != EscrowState::Funded {
             return Err(Error::NotFunded);
         }
         let buyer: Address = env.storage().persistent()
-            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialized)?;
         let arbiter: Address = env.storage().persistent()
-            .get(&DataKey::Arbiter).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Arbiter).ok_or(Error::NotInitialized)?;
         if caller != buyer && caller != arbiter {
-            return Err(Error::UnauthorisedRelease);
+            return Err(Error::UnauthorizedRelease);
         }
         let seller: Address = env.storage().persistent()
-            .get(&DataKey::Seller).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Seller).ok_or(Error::NotInitialized)?;
         let token: Address = env.storage().persistent()
-            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let amount: i128 = env.storage().persistent()
-            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Amount).ok_or(Error::NotInitialized)?;
         token::Client::new(&env, &token)
             .transfer(&env.current_contract_address(), &seller, &amount);
         env.storage().persistent().set(&DataKey::State, &EscrowState::Released);
@@ -155,21 +155,21 @@ impl EscrowBasic {
     pub fn refund(env: Env, caller: Address) -> Result<(), Error> {
         caller.require_auth();
         let state: EscrowState = env.storage().persistent()
-            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::State).ok_or(Error::NotInitialized)?;
         if state != EscrowState::Funded {
             return Err(Error::NotFunded);
         }
         let arbiter: Address = env.storage().persistent()
-            .get(&DataKey::Arbiter).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Arbiter).ok_or(Error::NotInitialized)?;
         if caller != arbiter {
-            return Err(Error::UnauthorisedRefund);
+            return Err(Error::UnauthorizedRefund);
         }
         let buyer: Address = env.storage().persistent()
-            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialized)?;
         let token: Address = env.storage().persistent()
-            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let amount: i128 = env.storage().persistent()
-            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Amount).ok_or(Error::NotInitialized)?;
         token::Client::new(&env, &token)
             .transfer(&env.current_contract_address(), &buyer, &amount);
         env.storage().persistent().set(&DataKey::State, &EscrowState::Refunded);
@@ -223,7 +223,7 @@ lto = true
 ### Why does `deposit` take no arguments?
 
 All parameters (buyer, seller, arbiter, token, amount) are stored during
-`initialise`. This keeps `deposit` simple and prevents parameters being
+`initialize`. This keeps `deposit` simple and prevents parameters being
 swapped at deposit time.
 
 ### Why can't the buyer refund themselves?

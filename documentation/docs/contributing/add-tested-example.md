@@ -49,10 +49,10 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
 
 [dev-dependencies]
-soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
 
 [profile.release]
 opt-level = "z"

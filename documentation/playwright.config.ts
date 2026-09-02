@@ -50,6 +50,7 @@ export default defineConfig({
 
   use: {
     /* Base URL – served by `bun run serve` or the CI serve step */
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? process.env.BASE_URL ?? 'http://127.0.0.1:3000',
     // E2E_BASE_URL, not BASE_URL: the latter is Docusaurus's site baseUrl.
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
     /* Capture trace on first retry to aid debugging */
