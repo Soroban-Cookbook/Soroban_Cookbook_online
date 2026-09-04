@@ -535,6 +535,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "crowdfund"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk 27.0.6",
+]
+
+[[package]]
 name = "crypto-bigint"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
