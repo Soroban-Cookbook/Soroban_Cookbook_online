@@ -8,6 +8,10 @@ image: /img/soroban-social-card.png
 
 Test your Soroban contracts in a local sandbox environment before deploying to testnet. This guide covers the complete local development workflow — from unit tests and CLI sandbox invocation to state inspection and debugging loops.
 
+> **Which network?** See the [Stellar Networks](./networks.md) matrix for the
+> RPC URL, passphrase, and friendbot of every network before you switch between
+> local, testnet, futurenet, and mainnet.
+
 ## Prerequisites
 
 - [Soroban CLI installed](./setup.md) (`stellar --version`)
