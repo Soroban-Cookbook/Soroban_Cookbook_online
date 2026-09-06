@@ -208,6 +208,8 @@ InvokeHostFunctionOp
 InvokerContractAuthEntry
 LedgerFootprint
 LedgerKey
+getHealth
+jsonrpc
 passkey
 resimulate
 resimulation

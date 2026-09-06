@@ -200,6 +200,9 @@ function buildRegistry() {
       registry.push(meta);
     }
   }
+  // Sort deterministically by id so the committed file is byte-identical
+  // regardless of the filesystem's readdir order (macOS vs Linux CI).
+  registry.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return registry;
 }
 

@@ -19,6 +19,10 @@ image: /img/soroban-social-card.png
 This guide focuses on fast local feedback loops using `stellar contract invoke`, `--simulate`, and reusable ledger snapshots.
 
 For broader troubleshooting workflows, continue with the [Debugging Guide](./debugging.md) or see the [Stellar CLI Migration Guide](./stellar-cli-migration.md).
+
+> **Which network?** See the [Stellar Networks](./networks.md) matrix for every
+> network's RPC URL, passphrase, and friendbot.
+
 This page has moved to the canonical guide for local contract testing and simulation.
 
 Please use the updated guide here:

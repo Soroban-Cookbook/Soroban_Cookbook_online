@@ -75,6 +75,14 @@
       "minInternalLinks": 2,
       "requiredLinks": ["/docs/concepts/error-handling"]
     },
+    "getting-started/networks": {
+      "category": "getting-started",
+      "minInternalLinks": 2,
+      "requiredLinks": [
+        "/docs/getting-started/deploy-testnet",
+        "/docs/getting-started/deploy-mainnet"
+      ]
+    },
     "contributing": {
       "category": "contributing",
       "minInternalLinks": 2,
