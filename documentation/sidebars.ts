@@ -25,6 +25,7 @@ const sidebars: SidebarsConfig = {
         'getting-started/local-testing-and-simulation',
         'getting-started/local-testing',
         'getting-started/testing-errors',
+        'getting-started/networks',
         'getting-started/deploy-testnet',
         'getting-started/deploy-mainnet',
         'getting-started/contract-interaction',

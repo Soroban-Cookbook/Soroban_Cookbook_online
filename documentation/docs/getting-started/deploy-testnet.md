@@ -102,6 +102,9 @@ curl "https://friendbot.stellar.org?addr=$(stellar keys address my-testnet-accou
 
 ## Step 3: Configure Network for Testnet
 
+> See the [Stellar Networks](./networks.md) matrix for every network's RPC URL,
+> passphrase, and friendbot.
+
 ### Verify Network Configuration
 
 Check that testnet is properly configured:

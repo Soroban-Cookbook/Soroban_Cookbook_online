@@ -10,6 +10,7 @@ members = [
     "contract-factory",
     "counter",
     "cross-contract",
+    "crowdfund",
     "custom-account",
     "dutch-auction",
     "emergency-stop",

@@ -120,6 +120,9 @@ Check the public key on a trusted explorer or your RPC provider **before** deplo
 
 ### Add the mainnet network
 
+> See the [Stellar Networks](./networks.md) matrix for every network's RPC URL,
+> passphrase, and friendbot.
+
 ```bash
 stellar network add \
   --rpc-url <your-trusted-mainnet-rpc-url> \
