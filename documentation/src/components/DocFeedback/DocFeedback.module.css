@@ -1,7 +1,7 @@
 .wrapper {
   margin-top: 3rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--ifm-border-color);
+  border-top: 1px solid var(--ifmm-border-color);
 }
 
 .row {
@@ -16,7 +16,7 @@
   margin: 0;
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--ifm-font-color-base);
+  color: var(--ifml-font-color-base);
 }
 
 .actions {
@@ -29,10 +29,10 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 1rem;
-  border-radius: var(--ifm-global-radius);
-  border: 1px solid var(--ifm-color-content-secondary);
+  border-radius: var(--iflg-global-radius);
+  border: 1px solid var(--ifml-color-content-secondary);
   background: transparent;
-  color: var(--ifm-font-color-base);
+  color: var(--iflm-font-color-base);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -42,20 +42,32 @@
 }
 
 .voteButton:hover {
-  border-color: var(--ifm-color-primary);
-  background: var(--ifm-color-emphasis-100);
+  border-color: var(--iflm-color-primary);
+  background: var(--ifml-color-emphasis-100);
 }
 
 .voteButton:focus-visible {
-  outline: 2px solid var(--ifm-color-primary);
+  outline: 2px solid var(--ifml-color-primary);
   outline-offset: 2px;
 }
 
 .detailLink {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--ifm-color-primary);
+  color: var(--ifml-color-primary);
   text-decoration: underline;
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.errorMessage {
+  margin-top: 0.5rem;
+  color: var(--ifml-color-danger);
+  font-size: 0.85rem;
 }
 
 @media screen and (max-width: 576px) {
