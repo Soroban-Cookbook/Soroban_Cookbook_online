@@ -23,7 +23,6 @@
   display: flex;
   gap: 0.5rem;
 }
-
 .voteButton {
   display: inline-flex;
   align-items: center;
@@ -40,12 +39,10 @@
     border-color 0.15s ease,
     background-color 0.15s ease;
 }
-
 .voteButton:hover {
   border-color: var(--iflm-color-primary);
   background: var(--ifml-color-emphasis-100);
 }
-
 .voteButton:focus-visible {
   outline: 2px solid var(--ifml-color-primary);
   outline-offset: 2px;
