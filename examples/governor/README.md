@@ -78,3 +78,18 @@ governor.execute(&id);
 ```bash
 cargo test -p governor
 ```
+
+## License
+
+MIT — see the repository root [`LICENSE`](../../LICENSE).
+
+This crate's `Cargo.toml` declares `license = "MIT"`, matching the
+repository license, and every Rust source file under `src/` carries an
+`SPDX-License-Identifier: MIT` header.
+
+## Origin
+
+This governor example is an original work written for the Soroban Cookbook
+repository. It is not adapted from an external project. If that ever changes,
+record the upstream project and a citation here so redistributors can trace
+provenance.
