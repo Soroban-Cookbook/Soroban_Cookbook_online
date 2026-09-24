@@ -27,6 +27,10 @@ The optimised Wasm is written to
 cargo test --manifest-path examples/pagination/Cargo.toml
 ```
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Related documentation
 
 - [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) — budget-conscious iteration guidance
