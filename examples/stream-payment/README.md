@@ -1,5 +1,9 @@
 # Stream Payment
 
+> Warning: This example is for learning and testing only. It is not audited, not a production-ready payment flow, and should not be deployed with real funds or protocol-owned assets.
+>
+> The example demonstrates continuous accrual and withdrawal logic, but it does not replace a production security review, governance model, or TTL-management plan for long-lived state. Persistent storage in Soroban has finite TTLs and must be extended or actively managed when streams may remain active for long periods.
+
 A linear token streaming contract with withdrawable balance over time on Soroban.
 
 ## What it demonstrates

@@ -37,6 +37,15 @@ In the world of immutable ledgers, contract upgrades are among the most sensitiv
 Always simulate upgrades and migrations on a local sandbox or testnet before executing on mainnet. Once state is corrupted on-chain, recovery is often impossible.
 </Callout>
 
+<Callout variant="warning" title="Unaudited example — not for production">
+This page is intentionally educational. The example contracts and copy-paste snippets are not audited, not designed for production governance, and should not be deployed with real funds or user assets.
+
+The upgrade pattern shown here is a teaching reference for how `env.deployer().update_current_contract_wasm()` and storage migration work in Soroban. It does not replace a production security review, emergency-response plan, or operational controls for rollback, monitoring, and governance.
+
+- Reentrancy is not the main risk in the minimal upgrade flow shown on this page because the contract does not call an external contract during the upgrade itself. The upgrade function only authorizes the admin and calls `update_current_contract_wasm()`. Still, any custom migration or post-upgrade hook that makes external calls must be treated as reentrancy-sensitive and secured with the same care as other cross-contract entry points.
+- Storage TTL is finite. Soroban persistent and instance entries age out unless their TTL is extended; temporary entries are deleted. Network minimums are roughly `min_persistent_entry_ttl` ≈ 4,096 ledgers and `min_temp_entry_ttl` ≈ 16 ledgers, with a practical maximum extension cap around `max_entry_ttl` ≈ 6,312,000 ledgers. If a protocol stores version markers, ownership data, or balances in persistent storage, you must explicitly manage TTL and archival/restoration behavior or the state can expire or be restored at a higher cost.
+</Callout>
+
 ## The Contract Lifecycle Model
 
 A (healthy protocol moves through distinct phases, each with specific entry and exit criteria.

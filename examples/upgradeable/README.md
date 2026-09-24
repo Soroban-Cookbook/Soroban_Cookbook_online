@@ -1,5 +1,9 @@
 # Upgradeable Contract
 
+> Warning: This example is for learning and testing only. It is not audited, not a production-ready upgrade pattern, and should not be deployed with real funds or protocol-owned assets.
+>
+> The example demonstrates the mechanics of `env.deployer().update_current_contract_wasm()` and storage migration, but it does not include a full production security review, governance policy, or TTL-management plan for long-lived state. Persistent and instance storage in Soroban have finite TTLs and must be extended if you keep the state alive over long periods.
+
 A contract that swaps its own Wasm for a new version while preserving stored state, with the upgrade restricted to the admin.
 
 ## What it demonstrates
