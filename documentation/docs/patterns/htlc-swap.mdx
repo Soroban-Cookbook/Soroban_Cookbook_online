@@ -1,11 +1,15 @@
 ### metadata
+
 ---
+
 title: HTLC Atomic Swap
 assets:
-  - swap
-  - script
-  - hashlock
-  - timelock
+
+- swap
+- script
+- hashlock
+- timelock
+
 ---
 
 # HTLC Atomic Swap Pattern
@@ -14,7 +18,7 @@ An atomic swap using Hash Time Lock Contracts (HTLC) enables two parties to exch
 
 ## Overview
 
-The HTLC pattern relies on three primitives: 
+The HTLC pattern relies on three primitives:
 
 - HASH LOCK: The payee claims funds by providing the preimage of a given hash.
 - TIME LOCK: Unclaimed funds are returned to the payer after a deadline.
@@ -52,7 +56,17 @@ This pattern carries two important security musts:
 - Kigh Confidentiality: The preimage must be known only to the sender and the receiver, as revealing it to a third party could allow them to claim funds.
 - Clock Synchronization: The timelocks must be set correctly to avoid one party forfeiting funds unfairly. Whatever activity is more critical should have a long enough buffer.
 
+:::warning Learner Safety & Production Warning
+The example contract material below is **unaudited** and provided strictly for educational purposes. **Do not use this material in production** without independent audits and full implementation of authentication, timelocks, and state handling.
+:::
+
 ## Code Example
+
+> **Implementation Note**: The code snippets below present the conceptual interface for HTLC functions. Production implementations require explicit authorization (`require_auth`), strict timelock validations against ledger sequence/timestamp, re-entrancy prevention, and storage TTL management.
+
+- **Authorization Expectations**: Callers initiating swaps or claiming/refunding funds must authenticate via `require_auth()` (e.g. `sender.require_auth()` / `receiver.require_auth()`) to prevent unauthorized claims or premature refunds.
+- **Re-entrancy Limits**: Token transfers triggered during claim or refund operations must execute after state mutations (checks-effects-interactions pattern) or be protected by re-entrancy guards to prevent reentrant claim/refund exploits.
+- **Storage TTL & Data Expiry**: HTLC entries stored in contract storage (instance or temporary/persistent) are subject to Soroban ledger storage TTL limits. If an HTLC entry expires before the timelock refund period elapses, the entry must be restored via TTL extension before `refund()` can be executed.
 
 The following code snippets are taken from examples/htlc-swap/src/lib.rs.
 
@@ -66,6 +80,7 @@ pub fn create_htlc(wit: Amount,
               timelock: BloccCount)
 
 ```
+
 </TabItem>
 <TabItem value="timelock" label="Time Lock">
 
@@ -74,6 +89,7 @@ pub fn create_htlc(wit: Amount,
 pub fn refund(with: Amount)
 
 ```
+
 </TabItem>
 
 TabItem value="refund" label="Refund">
@@ -83,6 +99,7 @@ TabItem value="refund" label="Refund">
 pub fn refund(with: Amount)
 
 ```
+
 </TabItem>
 </code>
 

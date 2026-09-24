@@ -79,3 +79,7 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 !documentation/package-lock.json
+
+.agents/
+issue.md
+skills-lock.json

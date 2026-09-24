@@ -43,7 +43,7 @@ vault_total(token)
 ## Storage layout
 
 | Key                    | Type   | Storage  | Description                         |
-|------------------------|--------|----------|-------------------------------------|
+| ---------------------- | ------ | -------- | ----------------------------------- |
 | `Balance(user, token)` | `i128` | instance | Deposited balance per (user, token) |
 | `VaultTotal(token)`    | `i128` | instance | Sum of all balances for a token     |
 
@@ -56,6 +56,17 @@ This example uses `instance` storage for simplicity. A production vault should u
 `persistent` storage and extend entry TTLs to ensure balances survive beyond the
 default ledger expiry window.
 :::
+
+:::warning Learner Safety & Production Warning
+The example contract code on this page is **unaudited** and provided strictly for educational purposes. **Do not use this material in production** without thorough security audits and comprehensive test suites.
+:::
+
+:::info Safeguards & Architectural Limits
+
+- **Authorization**: `deposit` and `withdraw` require explicit caller authorization via `depositor.require_auth()` and `withdrawer.require_auth()` to prevent unauthorized balance manipulations.
+- **Re-entrancy Limits**: Uses the checks-effects pattern (updating internal balance state before external operations) to ensure re-entrancy safety. Note that Soroban's core host execution model also prevents direct cross-contract reentrancy by default.
+- **Storage TTL & Data Expiry**: Currently uses `instance` storage for demonstration simplicity. Production vaults tracking long-term user assets should utilize `persistent` storage for user balances (`env.storage().persistent()`) and regularly extend entry TTLs (`extend_ttl`) to prevent balance data expiry.
+  :::
 
 ## Full source
 
@@ -227,10 +238,10 @@ test result: ok. 22 passed; 0 failed
 
 ## Error reference
 
-| Code | Variant               | Meaning                                              |
-|------|-----------------------|------------------------------------------------------|
-| 1    | `InvalidAmount`       | `amount` is zero or negative                         |
-| 2    | `InsufficientBalance` | Requested withdrawal exceeds the caller's balance    |
+| Code | Variant               | Meaning                                           |
+| ---- | --------------------- | ------------------------------------------------- |
+| 1    | `InvalidAmount`       | `amount` is zero or negative                      |
+| 2    | `InsufficientBalance` | Requested withdrawal exceeds the caller's balance |
 
 ## Extending this example
 
