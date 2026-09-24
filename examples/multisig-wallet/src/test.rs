@@ -1,8 +1,12 @@
+// SPDX-License-Identifier: MIT
+
 #![cfg(test)]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, testutils::Address as _, token::TokenClient, Address,
-    Env, Vec,
+    contract, contractimpl, contracttype,
+    testutils::Address as _,
+    token::{StellarAssetClient, TokenClient},
+    Address, Env, Vec,
 };
 
 use crate::{MultisigWallet, MultisigWalletClient, TransferProposal, WalletError};
@@ -47,12 +51,6 @@ impl TestToken {
         env.storage().persistent().set(&key, &(bal + amount));
     }
 }
-    testutils::Address as _,
-    token::{StellarAssetClient, TokenClient},
-    Address, Env, Vec,
-};
-
-use crate::{MultisigWallet, MultisigWalletClient, TransferProposal, WalletError};
 
 struct Fixture {
     _env: Env,
