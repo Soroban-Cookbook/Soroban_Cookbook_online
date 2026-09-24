@@ -1,5 +1,6 @@
 [package]
 name = "contract-factory-child"
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
 description = "Soroban example child contract deployed by the contract-factory example."

@@ -50,6 +50,17 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## License and origin
+
+This crate is **original to this repository**: it was written for the Soroban
+Cookbook and is not adapted from an external project, so no upstream citation
+applies.
+
+It is licensed under the repository's [MIT License](../../LICENSE)
+(Copyright (c) 2026 Soroban Cookbook). The crate declares `license = "MIT"` in
+its `Cargo.toml`, and every Rust source file under the crate carries an
+`SPDX-License-Identifier: MIT` header.
+
 ## Related documentation
 
 - [Contract Factory Pattern](https://soroban-cookbook.dev/docs/patterns/contract-factory) — the pattern page this example supports
