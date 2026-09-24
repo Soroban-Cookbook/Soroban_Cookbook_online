@@ -52,3 +52,7 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 ```bash
 cargo test --manifest-path examples/multi-token-vault/Cargo.toml
 ```
+
+## Origin
+
+This example is original to the Soroban Cookbook repository.

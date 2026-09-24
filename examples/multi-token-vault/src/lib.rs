@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! # Multi-Token Vault
 //!
 //! A vault that holds accounting balances for **multiple different tokens**
