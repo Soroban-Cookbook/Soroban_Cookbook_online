@@ -40,6 +40,12 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 
 ## Related documentation
 
-- [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — the pattern page this example supports
+- [Flash Loan Pattern](https://soroban-cookbook.dev/docs/patterns/flash-loan) — the pattern page this example supports
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+
+## Origin and License
+
+- **Origin**: Original implementation created for this repository (Soroban Cookbook).
+- **License**: [MIT](../../LICENSE) (`SPDX-License-Identifier: MIT`).
+

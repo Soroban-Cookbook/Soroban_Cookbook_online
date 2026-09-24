@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! # Flash Loan
 //!
 //! A single-asset liquidity pool that lets anyone borrow tokens with **no
