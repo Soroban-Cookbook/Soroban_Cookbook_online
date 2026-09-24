@@ -1,7 +1,9 @@
 [package]
+license = "MIT"
 name = "lending"
 version = "0.1.0"
 edition = "2021"
+description = "Educational example of a simplified collateralized lending pool with price oracle and liquidation"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

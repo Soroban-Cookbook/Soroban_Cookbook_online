@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: MIT
+
 //! # Lending Pool (simplified, NOT production-ready)
+//!
+//! Origin: Original example developed for Soroban Cookbook.
 //!
 //! A minimal collateralized lending protocol: one collateral token, one debt
 //! token, and a price oracle. Users deposit collateral, borrow debt against

@@ -65,3 +65,8 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 - [Lending Protocol Security](https://soroban-cookbook.dev/docs/security/defi-patterns) — collateralization and liquidation safety rules
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+
+## Origin and License
+
+- **Origin**: Original example developed for the [Soroban Cookbook](https://soroban-cookbook.dev).
+- **License**: Licensed under the [MIT License](../../LICENSE) (`SPDX-License-Identifier: MIT`).
