@@ -38,6 +38,10 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## License and origin
+
+This example is original to the [Soroban Cookbook](https://github.com/stellar/soroban-cookbook) repository and is not adapted from any external source. It is released under the [MIT License](../../LICENSE) — copyright 2026 Soroban Cookbook.
+
 ## Related documentation
 
 - [Error Handling Pattern](https://soroban-cookbook.dev/docs/patterns/error-handling) — the pattern page this example supports

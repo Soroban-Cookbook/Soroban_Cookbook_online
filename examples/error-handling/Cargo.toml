@@ -2,6 +2,7 @@
 name = "error-handling"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "Soroban example demonstrating the contract error enum (Error) pattern for typed failures."
 keywords = ["soroban", "example", "error-handling"]
 

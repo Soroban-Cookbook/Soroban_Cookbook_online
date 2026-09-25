@@ -2,6 +2,7 @@
 name = "escrow-basic"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "Soroban example two-party escrow with an arbiter that can release or refund funds."
 keywords = ["soroban", "example", "escrow-basic"]
 

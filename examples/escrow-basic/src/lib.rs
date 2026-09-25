@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Soroban Cookbook
+//
 //! # Escrow Basic
 //!
 //! A two-party escrow contract with an arbiter for dispute resolution.
