@@ -16,6 +16,12 @@ import { CodeSnippet } from '@site/src/components/CodeSnippet';
 
 Robust error handling is critical for production smart contracts. This guide demonstrates try-catch patterns, fallback logic, graceful degradation, transaction rollback, and comprehensive validation strategies in Soroban.
 
+<PatternCallout variant="warning" title="Unaudited Example Code">
+
+The example code in this pattern is for educational purposes and has not been audited for production use. Always conduct a thorough security audit before deploying to mainnet.
+
+</PatternCallout>
+
 <Callout variant="info" title="Why Error Recovery Matters">
   Smart contracts handle valuable assets and critical operations. Proper error handling prevents
   fund loss, ensures predictable behavior, and provides clear feedback when operations fail.
