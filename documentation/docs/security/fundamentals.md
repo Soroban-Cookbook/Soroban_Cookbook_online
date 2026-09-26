@@ -120,6 +120,8 @@ Use this checklist before every deployment:
 
 For token contracts (mint, transfer, allowances, vaults, wrappers), complete the dedicated [Token Pattern Security Audit](/docs/security/token-audit) checklist before deployment.
 
+For incident response, decide who is authorized to pause and unpause, which state-changing entry points must stop, and how normal operation will be safely restored. See the copy-ready [Emergency Stop (Pause / Unpause) example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/emergency-stop/emergency-stop.mdx) and its [role-separated token composition](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/pausable-token).
+
 ---
 
 ## 4. Secure Development Workflow
