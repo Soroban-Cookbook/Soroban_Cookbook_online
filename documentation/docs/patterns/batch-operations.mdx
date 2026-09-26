@@ -25,6 +25,12 @@ reading and writing the sender's balance only once.
 The example limits a batch to **20 operations**. This is an application limit, not a Soroban
 protocol limit.
 
+<PatternCallout variant="warning" title="Unaudited Example Code">
+
+The example code in this pattern is for educational purposes and has not been audited for production use. Always conduct a thorough security audit before deploying to mainnet.
+
+</PatternCallout>
+
 <PatternCallout variant="info" title="When to batch">
 
 Batch when operations share authorization or storage setup and callers benefit from fewer contract
