@@ -21,6 +21,27 @@ import TabItem from '@theme/TabItem';
 
 This pattern guide defines a comprehensive error handling methodology for Soroban smart contracts. It covers establishing a clear error taxonomy, implementing custom error patterns, executing propagation strategies, and ensuring user-facing clarity.
 
+:::danger Unaudited Examples — Not for Production
+
+All code snippets on this page are **educational examples only**. They have **not been audited** and
+must **not** be deployed with real funds or in any production environment without a thorough
+independent security review.
+
+**Reentrancy:** Soroban's execution model does not permit a contract to call back into itself
+mid-execution. However, cross-contract calls can still introduce reentrancy-like hazards if state
+writes are deferred until after an outgoing call. Apply the checks-effects-interactions pattern:
+validate inputs and update state **before** making any cross-contract call, and return errors from
+that updated state rather than from pre-call reads.
+
+**Storage TTL / Data Expiry:** Soroban uses a ledger-rent model. Entries in `persistent()` storage
+expire after their TTL unless rent is extended via `extend_ttl`. `instance()` storage expires with
+the contract itself; `temporary()` storage is intentionally short-lived. If an entry expires,
+reads return `None` (or panic on `unwrap()`), which will surface as unexpected `NotInitialized` or
+similar errors at runtime. Production contracts must manage TTL extension explicitly. The examples
+below omit TTL extension calls for brevity — add them before deploying to Testnet or Mainnet.
+
+:::
+
 <PatternSection id="prerequisites" title="Prerequisites">
 
 - Rust stable and `cargo`
