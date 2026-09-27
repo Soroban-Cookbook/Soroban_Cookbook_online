@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #![no_std]
 
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Env, Vec};

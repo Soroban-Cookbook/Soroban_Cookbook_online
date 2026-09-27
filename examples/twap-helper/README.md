@@ -67,6 +67,16 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## Origin
+
+This example is original to the Soroban Cookbook repository. It is not adapted
+from any external source.
+
+## License
+
+MIT, matching the repository license. See [LICENSE](../../LICENSE) and the
+`license` field in `Cargo.toml`.
+
 ## Related documentation
 
 - [Constant Product AMM pattern](https://soroban-cookbook.dev/docs/patterns/overview) — spot prices that often need TWAP smoothing
