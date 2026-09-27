@@ -461,14 +461,12 @@ const config: Config = {
             './src/css/mermaid-zoom.css',
           ],
         },
-        ...(gtagMeasurementId
+        gtag: gtagMeasurementId
           ? {
-              gtag: {
-                trackingID: gtagMeasurementId,
-                anonymizeIP: true,
-              },
+              trackingID: gtagMeasurementId,
+              anonymizeIP: true,
             }
-          : {}),
+          : undefined,
       } satisfies Preset.Options,
     ],
   ],

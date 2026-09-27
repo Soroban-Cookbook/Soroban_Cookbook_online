@@ -853,3 +853,65 @@ html {
 .theme-doc-markdown a:hover {
   text-decoration-thickness: 2px;
 }
+
+/* ── Mobile Code Block Scroll (issue #186) ─────────────────────────────────── */
+
+/**
+ * Improves horizontal scrolling for code blocks on mobile devices.
+ * Adds padding, visual scroll indicators, and touch-friendly scrolling.
+ */
+
+@media (max-width: 768px) {
+  /* Add padding to code blocks for better mobile readability */
+  .theme-code-block {
+    padding-inline: 0.75rem;
+    padding-block: 0.5rem;
+  }
+
+  /* Ensure code blocks have smooth scrolling on touch devices */
+  pre code {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+  }
+
+  /* Add subtle fade indicator on right side to hint at horizontal scroll */
+  .theme-code-block::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      var(--ifm-background-surface-color) 100%
+    );
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  /* Hide fade indicator when scrolled to the end */
+  .theme-code-block.scrolled-to-end::after {
+    opacity: 0;
+  }
+
+  /* Increase tap target size for copy button */
+  .theme-code-block .clean-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Ensure code is readable at 320px viewport (smallest mobile size) */
+@media (max-width: 320px) {
+  .theme-code-block {
+    font-size: 0.75rem;
+    padding-inline: 0.5rem;
+  }
+
+  pre code {
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+}

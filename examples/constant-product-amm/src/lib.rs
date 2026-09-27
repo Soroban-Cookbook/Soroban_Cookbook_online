@@ -746,4 +746,54 @@ mod tests {
             prev_k = k;
         }
     }
+
+    /// Verifies that the 0.3% trading fee accrues to liquidity providers.
+    /// After swaps, LPs can withdraw more tokens than they deposited because
+    /// the fee portion of each trade remains in the pool reserves.
+    #[test]
+    fn test_fee_accrual_to_lps() {
+        let setup = setup();
+        
+        // Alice adds initial liquidity
+        let (initial_a, initial_b, lp_tokens) = setup.client.add_liquidity(
+            &setup.alice, 
+            &100_000, 
+            &100_000, 
+            &0, 
+            &0
+        );
+        
+        // Bob performs multiple swaps, paying 0.3% fee each time
+        for _ in 0..10 {
+            setup.client.swap_a_for_b(&setup.bob, &1_000, &0);
+            setup.client.swap_b_for_a(&setup.bob, &1_000, &0);
+        }
+        
+        // Alice removes her liquidity
+        let (withdrawn_a, withdrawn_b) = setup.client.remove_liquidity(
+            &setup.alice,
+            &lp_tokens,
+            &0,
+            &0
+        );
+        
+        // Alice should receive more than she deposited due to accumulated fees
+        assert!(
+            withdrawn_a >= initial_a || withdrawn_b >= initial_b,
+            "LP should receive at least as much as deposited due to fee accrual. \
+             Deposited: ({}, {}), Withdrawn: ({}, {})",
+            initial_a, initial_b, withdrawn_a, withdrawn_b
+        );
+        
+        // Calculate the value increase (approximate, as it depends on swap direction)
+        let initial_value = initial_a + initial_b;
+        let final_value = withdrawn_a + withdrawn_b;
+        
+        // With 20 swaps and 0.3% fee each, there should be measurable fee accrual
+        assert!(
+            final_value > initial_value,
+            "Total value should increase due to fees. Initial: {}, Final: {}",
+            initial_value, final_value
+        );
+    }
 }
