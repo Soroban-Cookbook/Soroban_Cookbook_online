@@ -134,3 +134,7 @@ Test coverage includes:
 
 4. **No approval mechanism.** Soulbound tokens intentionally omit `approve`
    and the allowance system to eliminate any indirect transfer route.
+
+## Origin
+
+This example is original to the Soroban Cookbook repository.

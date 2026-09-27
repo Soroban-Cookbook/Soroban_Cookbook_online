@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! # Soulbound Token Contract
 //!
 //! A soulbound (non-transferable) token for Soroban. Once minted to an

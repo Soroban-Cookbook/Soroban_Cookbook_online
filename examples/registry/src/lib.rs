@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Contract registry / name service.
 //!
 //! A minimal registry that maps stable byte names to contract addresses.
