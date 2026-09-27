@@ -64,6 +64,29 @@ The `examples/token-transfer` example demonstrates a teaching token implementati
 
 The contract manages a ledger mapping addresses to token balances using persistent storage. Three public functions allow minting tokens, querying balances, and transferring between accounts.
 
+<PatternCallout variant="warning" title="Unaudited teaching example">
+
+The contract below is an **unaudited educational example**. It has **not** been
+through a security review and it is **not fit for production or for holding real
+value** — most obviously because `mint` is completely unrestricted, so anyone can
+inflate the supply at will.
+
+Read the two limits that matter most before you copy anything:
+
+- **Reentrancy** — none of `mint`, `balance`, or `transfer` makes a cross-contract
+  call, so there is no re-entrant call to defend against *as written*. The moment
+  you add one (a transfer-fee hook, a mint callback, a cross-chain message), that
+  protection is gone. See [Reentrancy limits](#reentrancy-and-storage-ttl-limits).
+- **Storage TTL / data expiry** — balances live in `persistent` storage, which
+  expires. This example never extends a TTL, so a balance can be **archived and
+  then permanently deleted**, silently turning into a zero balance. See
+  [Reentrancy and storage TTL limits](#reentrancy-and-storage-ttl-limits).
+
+For a real token, use the [Stellar Asset Contract (SAC)](./token-standards.mdx#sac)
+or the [SEP-41 standard](./token-standards.mdx) instead of deploying this.
+
+</PatternCallout>
+
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
@@ -268,7 +291,70 @@ The `mint` function bypasses authorization checks. In production, restrict minti
 
 </PatternSection>
 
+<PatternSection id="reentrancy-and-storage-ttl-limits" title="Reentrancy and storage TTL limits">
+
+These two limits are the difference between a teaching contract and a token that
+can safely hold value. Neither is enforced by this example.
+
+### Reentrancy limits
+
+**Reentrancy does not apply as written, and that is the only reason.** `mint`,
+`balance`, and `transfer` call `env.storage()` and nothing else — there is no
+cross-contract call, no token `transfer`, and no callback, so no external code
+ever regains control partway through a state update. Soroban runs an invocation
+to completion unless a contract deliberately calls into another contract.
+
+The guarantees you can rely on today, and what breaks them:
+
+- **`transfer` is checks-then-effects.** It reads the sender balance, verifies
+  `from_balance >= amount`, and only then writes both sides. That ordering is
+  safe *only* because no untrusted code runs between the read and the write.
+- **Adding any external call breaks it.** Insert a transfer-fee hook, a mint
+  callback, a cross-chain `invoke_contract`, or a SAC payment between the read
+  and the write and the pattern is exploitable: re-read both balances after the
+  call, because the callee can move funds or change state in the meantime.
+- **`to_balance` is read before the write.** That value can be stale if anything
+  external ran in between. Re-read it after any external call.
+- **`transfer` does call `from.require_auth()`** — that is an authorization
+  check, not a reentrancy guard. It stops unauthorized senders; it does not stop
+  a callee re-entering.
+- **Use the repo's guard shape.** The
+  [Reentrancy Guard pattern](./reentrancy-guard) sets a storage flag before any
+  external work and clears it afterwards, so a re-entrant call panics rather than
+  double-spending. Adopt it whenever you extend this contract.
+
+### Storage TTL and data-expiry limits
+
+Balances are stored with `env.storage().persistent()`, and **persistent entries
+expire.** This is the single most dangerous omission in the example:
+
+- **Nothing here extends a TTL.** There is no `extend_ttl` call anywhere in the
+  contract, so each balance entry gets the network's default minimum lifetime and
+  then starts counting down.
+- **Expiry is two-phase.** When a persistent entry's TTL lapses, the ledger
+  **archives** it: reads still succeed but return the archived (stale) value
+  while restoration is pending. If it is not restored before the next ledger
+  closes the retention window, the entry is **deleted permanently**.
+- **A deleted balance reads back as `0`.** Because `balance` uses
+  `.unwrap_or(0)`, permanent deletion is indistinguishable from "never had a
+  balance". A holder's funds can vanish with no error and no event.
+- **Instance storage would not help.** Instance entries expire with the contract
+  instance, so a long-idle token loses everything at once.
+- **A production token must** extend the TTL on every balance it touches, extend
+  it for a minimum window ahead of expiry, restore archived entries on read, and
+  bump the TTL thresholds via `extend_contract_instance_ttl` / the appropriate
+  storage bumps. See the [Storage TTL / Rent
+  pattern](../concepts/storage) and the `storage-ttl` example for the
+  threshold-bump pattern to copy.
+- **The same clock governs fees.** A TTL bump has to be paid for; budgeting for
+  rent is part of running a real token, not an afterthought.
+
+</PatternSection>
+
 <PatternSection id="security" title="Security Considerations">
+
+This is an **unaudited example**. The items below are the gaps it deliberately
+leaves open, not an exhaustive audit.
 
 1. **Unrestricted Minting**: The current implementation allows anyone to mint tokens. Add access control using an admin address or authorized minters list before production use.
 
@@ -277,6 +363,10 @@ The `mint` function bypasses authorization checks. In production, restrict minti
 3. **Supply Cap**: Consider implementing a maximum supply to prevent unlimited inflation.
 
 4. **Allowance/Approval**: For more advanced use cases, implement an approve/transferFrom pattern allowing third parties to move tokens on behalf of the owner.
+
+5. **Reentrancy Limits**: Safe only while the contract makes no cross-contract calls. `transfer` relies on a checks-then-effects ordering that assumes no untrusted code runs between reading the sender balance and writing it. Add a guard from the [Reentrancy Guard pattern](./reentrancy-guard) before adding any external call.
+
+6. **Storage TTL / Data Expiry**: Balances are in `persistent` storage and no TTL is ever extended, so a balance can be archived and then permanently deleted — reading back as `0` via `.unwrap_or(0)`. Extend TTLs on every balance touched, restore archived entries on read, and budget for rent. See [Reentrancy and storage TTL limits](#reentrancy-and-storage-ttl-limits).
 
 </PatternSection>
 
