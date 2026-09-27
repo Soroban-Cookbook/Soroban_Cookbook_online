@@ -30,6 +30,19 @@ The path is always relative to the `examples/` directory.
 
 ## Contract
 
+<PatternCallout variant="warning" title="Unaudited teaching example">
+
+The contract below is an **unaudited educational example**, published so the
+core instance-storage operations stay easy to read. It has **not** been through
+a security review and it is **not fit for production or real value**. Copying it
+verbatim is fine for learning; deploying it as-is with funds at risk is not.
+Before any production use, add the missing access control, run a full audit,
+and re-derive the storage and overflow behaviour for your own use case. The
+[Security considerations](#security-considerations) section lists what this
+example deliberately leaves out.
+
+</PatternCallout>
+
 <Tabs>
 <TabItem value="contract" label="counter/src/lib.rs">
 
@@ -46,11 +59,7 @@ pub struct Counter;
 impl Counter {
     /// Increment the counter by one and return the new value.
     pub fn increment(env: Env) -> u32 {
-        let count: u32 = env
-            .storage()
-            .instance()
-            .get(&COUNTER_KEY)
-            .unwrap_or(0);
+        let count: u32 = env.storage().instance().get(&COUNTER_KEY).unwrap_or(0);
         let new_count = count + 1;
         env.storage().instance().set(&COUNTER_KEY, &new_count);
         new_count
@@ -58,10 +67,7 @@ impl Counter {
 
     /// Return the current counter value without modifying state.
     pub fn get(env: Env) -> u32 {
-        env.storage()
-            .instance()
-            .get(&COUNTER_KEY)
-            .unwrap_or(0)
+        env.storage().instance().get(&COUNTER_KEY).unwrap_or(0)
     }
 
     /// Reset the counter to zero.
@@ -171,11 +177,48 @@ variant keeps the example minimal. For contracts with many keys, prefer a
 
 ## Security considerations
 
+:::warning Unaudited example
+
+This pattern is an unaudited teaching example. It is not fit for production
+use with real value, and the gaps below are intentional — they keep the
+storage mechanics visible. Close them, and get a security review, before you
+deploy anything derived from it.
+
+:::
+
 - No access control is applied. Any account can increment, read, or reset the
   counter. Add `require_auth` if you need to restrict who can mutate state.
 - `u32` wraps at 4 294 967 295; `overflow-checks = true` in the release
   profile causes the process to abort on overflow in debug builds. In
   production, add explicit bounds checking if overflow is a concern.
+
+### Reentrancy
+
+**Not applicable as written, and that is the point.** None of `increment`,
+`get`, or `reset` makes a cross-contract call, and none of them transfer
+value, so there is no reentrant call to defend against. Soroban also executes a
+single invocation to completion unless a contract deliberately calls into
+another contract, which this one never does.
+
+The moment you extend this pattern, the reasoning stops applying. Concretely:
+
+- **If you add a hook or callback** (an oracle push, a reward payout, a
+  `transfer` of some minted asset), the callee gets control back in the middle
+  of your function. Re-read every value you are about to write *after* the
+  call, or the callee can hand you a stale balance.
+- **`reset` is the dangerous one.** It writes `0` to the single key
+  `COUNTER_KEY` with no authorization. Paired with any external call added to
+  the same function, it becomes a trivial griefing vector — anyone can zero the
+  counter mid-operation.
+- **Prefer the guard the repo already ships.** The
+  [Reentrancy Guard pattern](./reentrancy-guard) sets a storage flag before
+  external work and clears it after, so a re-entrant call panics instead of
+  corrupting state. Copy that shape rather than hand-rolling a check.
+- **`get` is safe to call from anywhere.** It only reads, so it is fine to
+  expose as a cross-contract entry point.
+
+In short: this example is reentrancy-free because it is reentrancy-*trivial*.
+Keep it that way, or adopt the guard pattern when you extend it.
 
 ## Related patterns
 
