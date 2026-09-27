@@ -52,6 +52,20 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## Origin
+
+This example is original to the Soroban Cookbook repository. It is not adapted
+from any external source.
+
+Both crates in this directory — the main `upgradeable` package and the
+`upgradeable-v2` package under [`v2/`](v2/) — are covered by the same MIT
+license as the rest of the repository.
+
+## License
+
+MIT, matching the repository license. See [LICENSE](../../LICENSE) and the
+`license` field in `Cargo.toml`.
+
 ## Related documentation
 
 - [Lifecycle and Upgrades](https://soroban-cookbook.dev/docs/patterns/lifecycle-upgrades) — the pattern page this example supports

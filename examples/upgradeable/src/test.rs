@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #![cfg(test)]
 
 extern crate std;
@@ -7,7 +9,7 @@ use soroban_sdk::{
     Address, BytesN, Env, IntoVal,
 };
 
-use crate::{Upgradeable, UpgradeableClient, DataKey};
+use crate::{DataKey, Upgradeable, UpgradeableClient};
 
 #[test]
 fn test_double_migrate_panics() {
