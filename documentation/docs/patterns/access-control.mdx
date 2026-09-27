@@ -66,6 +66,14 @@ The `has_role` helper reads from storage to check if an address holds a specific
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
+:::warning Unaudited learning example
+This RBAC contract is unaudited teaching material and is not production-ready. Do not deploy it with real funds or privileges without a full security review, threat model, storage-lifetime plan, and tests for your exact authorization model.
+
+Reentrancy is not exercised in this page because the shown functions only read/write this contract's storage and do not call external contracts. If you add token transfers, callbacks, or other cross-contract calls, re-check the order of authorization, state changes, and external calls.
+
+Role assignments are stored in persistent storage. Persistent entries still have ledger TTL and can expire unless the contract or an external maintenance flow bumps them, so production RBAC needs a clear data-expiry policy for admin and role records.
+:::
+
 ```rust illustrative
 // See examples/access-control/src/lib.rs for the complete example
 #![no_std]

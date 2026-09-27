@@ -2,6 +2,7 @@
 name = "token-wrapper"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "Soroban example wrapped token that charges a fee on mint/transfer via a treasury."
 keywords = ["soroban", "example", "token-wrapper"]
 

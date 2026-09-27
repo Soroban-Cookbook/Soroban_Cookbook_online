@@ -52,6 +52,12 @@ Child Contract (Template)
 
 ## Implementation
 
+:::warning Unaudited learning example
+This factory pattern is unaudited teaching material and is not production-ready. Do not deploy it with real funds, authority over child contracts, or production registries without a full security review and tests for your deployment, initialization, and access-control rules.
+
+The snippets do not demonstrate reentrancy protection. Factory deployments and child initialization can involve cross-contract behavior in real systems, so production code should update factory state in a deliberate order, prevent duplicate initialization, and treat child calls as external interactions that may fail or invoke unexpected code paths.
+:::
+
 ### Child Contract
 
 The child contract is the template that will be deployed multiple times:

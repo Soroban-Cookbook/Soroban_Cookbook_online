@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #![no_std]
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol,
@@ -149,8 +150,14 @@ impl TokenTransfer {
 
         // Update the allowance in persistent storage
         env.storage().persistent().set(&key, &amount);
-        let key = DataKey::Allowance(owner, spender);
-        env.storage().persistent().set(&key, &AllowanceData { amount, expiration: u64::MAX });
+        let key = DataKey::Allowance(owner.clone(), spender.clone());
+        env.storage().persistent().set(
+            &key,
+            &AllowanceData {
+                amount,
+                expiration: u64::MAX,
+            },
+        );
 
         env.events()
             .publish((symbol_short!("approve"), owner, spender), amount);
@@ -172,13 +179,13 @@ impl TokenTransfer {
             return Err(Error::InvalidAmount);
         }
 
-        let key = DataKey::Allowance(owner, spender);
-        env.storage().persistent().set(&key, &AllowanceData { amount, expiration });
+        let key = DataKey::Allowance(owner.clone(), spender.clone());
+        env.storage()
+            .persistent()
+            .set(&key, &AllowanceData { amount, expiration });
 
         // Emit an event for the approval
         env.events().publish(
-            (symbol_short!("approve"), owner, spender),
-            amount,
             (symbol_short!("approve"), owner.clone(), spender.clone()),
             (amount, expiration),
         );
@@ -189,7 +196,14 @@ impl TokenTransfer {
     /// Get the allowance that spender can spend on behalf of owner.
     pub fn allowance(env: Env, owner: Address, spender: Address) -> i128 {
         let key = DataKey::Allowance(owner, spender);
-        let allowance_data: AllowanceData = env.storage().persistent().get(&key).unwrap_or(AllowanceData { amount: 0, expiration: 0 });
+        let allowance_data: AllowanceData =
+            env.storage()
+                .persistent()
+                .get(&key)
+                .unwrap_or(AllowanceData {
+                    amount: 0,
+                    expiration: 0,
+                });
         allowance_data.amount
     }
 
@@ -199,9 +213,6 @@ impl TokenTransfer {
         env.storage().persistent().get(&key).unwrap_or(0)
     }
 
-    /// Return the token name.
-    pub fn name(env: Env) -> String {
-        env.storage().persistent().get(&DataKey::Name).unwrap()
     /// Return the token name. Panics if the token is not initialised (these
     /// metadata fields are only written by `initialize`).
     pub fn name(env: Env) -> String {
@@ -213,7 +224,6 @@ impl TokenTransfer {
 
     /// Return the token symbol. Panics if the token is not initialised.
     pub fn symbol(env: Env) -> String {
-        env.storage().persistent().get(&DataKey::Symbol).unwrap()
         match env.storage().persistent().get(&DataKey::Symbol) {
             Some(symbol) => symbol,
             None => panic!("token-transfer: token not initialised (no symbol)"),
@@ -223,7 +233,6 @@ impl TokenTransfer {
     /// Return the number of decimals used by the token. Panics if the token is
     /// not initialised.
     pub fn decimals(env: Env) -> u32 {
-        env.storage().persistent().get(&DataKey::Decimals).unwrap()
         match env.storage().persistent().get(&DataKey::Decimals) {
             Some(decimals) => decimals,
             None => panic!("token-transfer: token not initialised (no decimals)"),
@@ -260,10 +269,14 @@ impl TokenTransfer {
 
         // Check allowance
         let allowance_key = DataKey::Allowance(from.clone(), spender.clone());
-        let allowance_data: AllowanceData = env.storage()
+        let allowance_data: AllowanceData = env
+            .storage()
             .persistent()
             .get(&allowance_key)
-            .unwrap_or(AllowanceData { amount: 0, expiration: 0 });
+            .unwrap_or(AllowanceData {
+                amount: 0,
+                expiration: 0,
+            });
         let current_allowance = allowance_data.amount;
         let expiration = allowance_data.expiration;
 
@@ -285,9 +298,13 @@ impl TokenTransfer {
         }
 
         // Update allowance
-        env.storage()
-            .persistent()
-            .set(&allowance_key, &AllowanceData { amount: current_allowance - amount, expiration });
+        env.storage().persistent().set(
+            &allowance_key,
+            &AllowanceData {
+                amount: current_allowance - amount,
+                expiration,
+            },
+        );
 
         // Update balances
         let to_key = DataKey::Balance(to.clone());
@@ -721,19 +738,6 @@ mod tests {
         let bob = Address::generate(&env);
 
         client.mint(&alice, &1000);
-        let before = env.events().all().len();
-        client.transfer(&alice, &bob, &400).unwrap();
-
-        let events = env.events().all();
-        assert!(events.len() > before);
-        let transferred: Vec<_> = events
-            .iter()
-            .filter(|e| {
-                e.1.iter()
-                    .any(|v| *v == Val::from(symbol_short!("transfer")))
-            })
-            .collect();
-        assert_eq!(transferred.len(), 1);
         client.transfer(&alice, &bob, &400);
 
         // `.all()` exposes only the most recent invocation's events.
