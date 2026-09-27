@@ -104,6 +104,10 @@ Keeper Bot (cron) ──► bump_keys(keeper, [BumpTarget…])
 | `DataKey::Entry(contract, key)` | Persistent | `RegistryEntry` metadata |
 | `CtrKey::KeeperBalance(addr)` | Persistent | Accrued bounty per keeper |
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Related documentation
 
 - [Soroban Storage TTL](https://developers.stellar.org/docs/smart-contracts/storage)

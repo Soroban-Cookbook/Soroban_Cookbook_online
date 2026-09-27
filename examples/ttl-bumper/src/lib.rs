@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! TTL-Bumper — automated TTL maintenance contract for Stellar / Soroban.
 //!
 //! ## Problem

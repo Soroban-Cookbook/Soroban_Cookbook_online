@@ -2,6 +2,7 @@
 name = "staking"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "Soroban example staking contract that distributes rewards to stakers over epochs."
 keywords = ["soroban", "example", "staking"]
 
