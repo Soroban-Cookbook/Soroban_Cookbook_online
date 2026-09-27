@@ -53,6 +53,10 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Related documentation
 
 - [Authorization & Access Control](https://soroban-cookbook.dev/docs/patterns/authorization) — role-based access control pattern
