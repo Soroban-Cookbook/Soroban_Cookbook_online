@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Staking contract — stake tokens, earn rewards distributed over epochs.
 //!
 //! ## Design

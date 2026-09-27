@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Registry module for tracking contract keys that require periodic TTL
 //! maintenance.
 //!

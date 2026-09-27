@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #![no_std]
 //! Demonstrates extending TTL ("rent") on Soroban's three storage kinds,
 //! and what happens when an entry's TTL runs out.
