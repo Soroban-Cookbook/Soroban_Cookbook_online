@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+//!
 //! # Timelock Vault
 //!
 //! A basic time-locked asset storage contract. A depositor locks a native

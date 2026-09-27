@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Soroban example vault that locks tokens until a timelock, then allows the beneficiary to withdraw."
 keywords = ["soroban", "example", "timelock-vault"]
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
