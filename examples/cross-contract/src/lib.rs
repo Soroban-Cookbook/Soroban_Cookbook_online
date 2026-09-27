@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #![no_std]
 
 //! # Cross-Contract Invocation Example

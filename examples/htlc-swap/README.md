@@ -1,5 +1,7 @@
 # Hashed Timelock Contract (HTLC) Swap
 
+**Origin**: Original to the Soroban Cookbook repository.
+
 An atomic swap where the receiver claims funds by revealing a preimage before a deadline, and the sender reclaims them afterwards.
 
 ## What it demonstrates

@@ -1,5 +1,7 @@
 # Cross-Contract Invocation Example
 
+**Origin**: Original to the Soroban Cookbook repository.
+
 This example demonstrates safe cross-contract invocation patterns in Soroban, including:
 
 - **Caller Contract** - A vault that manages user funds by calling an external token contract

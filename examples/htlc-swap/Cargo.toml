@@ -2,6 +2,7 @@
 name = "htlc-swap"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "Soroban example hashed timelock contract (HTLC) for atomic token swaps."
 keywords = ["soroban", "example", "htlc-swap"]
 

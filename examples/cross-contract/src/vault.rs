@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 //! Vault contract that demonstrates cross-contract invocation patterns.
 //!
 //! This contract shows:

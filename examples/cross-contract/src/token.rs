@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 //! Simple token contract that serves as the "callee" in cross-contract invocations.
 //!
 //! This contract demonstrates:
