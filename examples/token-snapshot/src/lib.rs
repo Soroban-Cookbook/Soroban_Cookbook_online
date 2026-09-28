@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Token Snapshot — immutable balance snapshots for voting and dividends.
 //!
 //! ## Design

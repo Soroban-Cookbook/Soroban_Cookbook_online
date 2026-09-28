@@ -40,6 +40,10 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Related documentation
 
 - [Streaming Payments Pattern](https://soroban-cookbook.dev/docs/patterns/streaming-payments) — the pattern page this example supports

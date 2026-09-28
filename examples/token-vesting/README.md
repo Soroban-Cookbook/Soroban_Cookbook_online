@@ -38,6 +38,10 @@ stellar contract deploy \
 
 See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy-testnet) for account setup and funding.
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Related documentation
 
 - [Token Vesting Pattern](https://soroban-cookbook.dev/docs/patterns/token-vesting) — the pattern page this example supports

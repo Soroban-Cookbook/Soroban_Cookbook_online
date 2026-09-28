@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Linear token streaming with withdrawable balance.
 //!
 //! A sender deposits tokens to create a stream. The recipient can withdraw

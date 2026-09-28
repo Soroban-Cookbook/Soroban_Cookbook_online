@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Linear token vesting with a cliff.
 //!
 //! A funder deposits the complete allocation when the contract is
