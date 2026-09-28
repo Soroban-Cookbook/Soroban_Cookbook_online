@@ -567,11 +567,7 @@ jobs:
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, e2e-console, e2e-smoke, check-snippet-drift]
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, e2e-console, e2e-smoke, check-wasm-budgets]
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, rustfmt, lint-contracts, e2e-console, e2e-smoke]
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, wasm-build-examples, lint-contracts, e2e-console, e2e-smoke]
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, e2e-console, e2e-smoke, coverage]
+    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, rustfmt, wasm-build-examples, check-wasm-budgets, check-snippet-drift, e2e-console, e2e-smoke, coverage]
     if: always()
     steps:
       - name: Check job statuses

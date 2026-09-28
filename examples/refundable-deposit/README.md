@@ -35,6 +35,10 @@ cargo test --manifest-path examples/refundable-deposit/Cargo.toml
 3. Before the admin consumes the deposit, the same depositor may refund the funds.
 4. An admin can consume the deposit after it is funded.
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Related documentation
 
 - [Basic Escrow Pattern](https://soroban-cookbook.dev/docs/patterns/escrow-basic) — for comparison with a similar release/refund state machine
