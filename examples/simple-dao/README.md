@@ -43,3 +43,7 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 - [Proposal Lifecycle](https://soroban-cookbook.dev/docs/patterns/proposal-lifecycle) — the pattern page this example supports
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+
+## Origin
+
+This example is original to the Soroban Cookbook repository.
