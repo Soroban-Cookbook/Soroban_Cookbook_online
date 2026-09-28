@@ -15,3 +15,7 @@ This example demonstrates how to interact with the Stellar Asset Contract (SAC) 
 ```bash
 cargo test
 ```
+
+## Origin
+
+This example is original to the Soroban Cookbook repository.
