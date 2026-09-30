@@ -76,6 +76,12 @@ The contract exposes the standard token metadata interface (`name`, `symbol`,
 enforcing non-transferability at the contract level. Only the stored admin may
 mint new tokens or burn (revoke) existing ones.
 
+<PatternCallout variant="danger" title="⚠️ Disclaimer: Un-audited Example">
+**This contract is provided for educational purposes only and has not been audited. Do NOT use in production or with real funds.**
+
+- No reentrancy concerns apply – the contract does not expose any mutable entry points that could be re‑entered.
+- Storage entries persist indefinitely; there is no automatic TTL or data‑expiry mechanism.
+</PatternCallout>
 <Tabs>
   <TabItem value="contract" label="Contract" default>
 
