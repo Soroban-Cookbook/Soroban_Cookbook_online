@@ -8,6 +8,8 @@ sidebar_position: 15
 
 This document provides a technical evaluation and architecture spike for compiling Soroban smart contracts outside of a traditional CLI development environment — specifically evaluating **in-browser compilation** vs. **server-side remote compilation APIs**.
 
+> ⚠️ **Security & network notice:** The workflows below involve running build commands, talking to RPC endpoints, and preparing deployable artifacts. Never commit, paste into a chat, or embed secret keys or seed phrases in source code, build configs, or client requests. Prefer named identities (`stellar keys`), a hardware wallet, or a browser wallet extension for signing. Treat any public network (mainnet) as production: transactions move real funds and are irreversible. Testnets are for experimentation only, and public RPC endpoints are convenience infrastructure — not a substitute for careful key management, monitoring, and operational review. See [API Security](./api-security.md) and [Deploy to Mainnet](./deploy-mainnet.md) for the canonical guidance.
+
 ---
 
 ## 1. Executive Summary
@@ -74,6 +76,8 @@ A server-side build API provides an isolated microservice that receives Rust sou
 
 ### System Architecture & Workflow
 
+> 🔐 **Before you run any build or deploy command below:** confirm you are not hardcoding secret keys, seed phrases, or funded identities into the request payload, environment variables, or container images. Use named identities or a wallet extension to sign, and keep signing keys off the build server entirely. The compilation service should only ever receive source code and public metadata — never secrets.
+
 1. **API Gateway / Ingestion**:
    - Accepts payload containing `src/lib.rs` and optional `Cargo.toml`.
    - Computes a deterministic SHA-256 hash of the input payload to check against an **Artifact Cache**.
@@ -100,6 +104,8 @@ A server-side build API provides an isolated microservice that receives Rust sou
 ---
 
 ## 4. Security & Resource Limits
+
+> 🌐 **Network risk:** The build API itself must be treated as untrusted infrastructure for anything sensitive. Do not point it at a mainnet RPC endpoint with a funded key, and do not assume a public or shared RPC endpoint provides the isolation, availability, or audit guarantees of a dedicated node. Testnet vs. mainnet matters: a mistake on mainnet spends real funds and cannot be rolled back. RPC/public endpoints are not a substitute for careful ops.
 
 To safely run a remote compilation service open to the web, the following constraints must be enforced:
 
@@ -154,6 +160,8 @@ export async function compileContractRemote(
 
 ## Related Links
 
+- [API Security](./api-security.md) — canonical key-handling and API hardening guidance
+- [Deploy to Mainnet](./deploy-mainnet.md) — production deployment and network-risk checklist
 - [Building & Compilation Guide](./building-and-compilation.md) — CLI build pipeline instructions
 - [Local Testing & Simulation](./local-testing-and-simulation.md) — Local contract testing workflows
 - [Hello World Example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/hello-world) — Target contract template
