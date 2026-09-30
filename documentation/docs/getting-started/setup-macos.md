@@ -195,6 +195,18 @@ mkdir -p ~/soroban-projects
 cd ~/soroban-projects
 ```
 
+## Key Handling and Network Safety
+
+Before you build, deploy, or talk to any RPC endpoint, read this section. The Stellar CLI workflows below (`cargo install --locked stellar-cli`, `stellar contract build`, `stellar contract deploy`) will eventually ask you for an identity and a network to sign and submit transactions. Treat those credentials as production secrets from the start.
+
+- Prefer a wallet extension (for example Freighter, LOBE, or hardware wallets) or a named identity managed by the Stellar CLI (`stellar keys generate <identity>`, `stellar keys add <identity>`) instead of handling raw secret keys in shell commands.
+- Never commit or paste secret keys, seed phrases, or `.env` files containing them into chat, issues, pull requests, or the repository. Add them to `.gitignore` and keep them in a secret manager or wallet extension.
+- Use separate identities for testnet and mainnet. Never reuse a mainnet key on testnet or in examples.
+- Treat public networks (Stellar mainnet and the Soroban mainnet RPC) as production. Do not experiment with real funds or deploy throwaway contracts there. Use Futurnet or Testnet for development.
+- When configuring an RPC endpoint, prefer the official Stellar RPC URLs for the network you intend to use, and verify the network passphrase before signing anything. A transaction signed for the wrong network can leak funds or fail unexpectedly.
+
+For the canonical guidance, see the [API Security](./api-security.md) page and the [Deploy to Mainnet](./deploy-mainnet.md) checklist. Those pages cover the full policy; the rules above are the minimum you should apply while completing this macOS setup.
+
 ## Verify Your Complete Setup
 
 Run this comprehensive verification to ensure everything is installed correctly:
@@ -238,6 +250,8 @@ Use this checklist to confirm your environment is ready:
 - [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Internet connectivity: `curl https://www.google.com` succeeds
+- [ ] Key handling: no secret keys, seed phrases, or `.env` files are committed or pasted into the repository
+- [ ] Network safety: testnet identities are separate from mainnet, and the RPC network passphrase has been verified
 
 ## Apple Silicon (M1/M2/M3) Specific Notes
 
