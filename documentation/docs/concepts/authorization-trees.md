@@ -338,3 +338,10 @@ fn test_deposit_unauthorized() {
 - [Testing Strategies](./testing-strategies.md) — test utilities including `mock_all_auths`
 - [Authorization & Access Control Patterns](../patterns/authorization.mdx) — role-based and capability-based authorization
 - [Security Fundamentals](../security/fundamentals.md) — access control and reentrancy checklists
+
+## Key handling & network risk
+
+Any step in this page that asks you to run `stellar contract deploy` (or any command that signs with a Stellar secret key) carries the same two operational risks:
+
+- **Key handling.** Do **not** commit a secret key (`S…`) or a seed phrase to your repo, paste it into a script, or export it as a long-lived shell variable. Prefer a named identity via the Stellar CLI (`stellar keys generate --global <alias>`), or — for browser dapps — let a wallet extension such as Freighter hold the key. The dapp should only ever see signed transaction XDR, never the secret itself. See [API Security](../getting-started/api-security.md) for the same rule applied to browser bundles.
+- **Network risk.** Testnet (`Test SDF Network ; September 2015`) and mainnet (`Public Global Stellar Network ; September 2015`) share the same passphrase format but **are not** the same network. A contract ID you deploy on testnet is unreachable from mainnet, and funds sent to a mainnet contract cannot be recovered from a testnet deployment. Public RPC endpoints are convenient for tutorials but are not a substitute for running your own RPC or carefully verifying a third party's RPC for production traffic. Before any mainnet command in this guide, re-read [Deploy to Mainnet](../getting-started/deploy-mainnet.md) and confirm the network passphrase matches your intent.
