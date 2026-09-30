@@ -38,7 +38,7 @@ Before you begin, ensure you have:
 
 ### 1. Install Xcode Command Line Tools
 
-Xcode Command Line Tools provide essential build tools and Git. These are required before installing Rust and other dependencies.
+Ensure you have the essential build tools and Git. These are required before installing Rust and other dependencies.
 
 Check if already installed:
 
@@ -74,7 +74,7 @@ Install Homebrew by running:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-**Apple Silicon Users**: After installation, add Homebrew to your PATH by adding the following line to your shell profile (`~/.zprofile` or `~/.bashrc`):
+**Apple Silicon Users**: After installation, add Homebrew to your PATH by adding the following line to your shell profile (`~/.zprofile` or `z/.bashrc`):
 
 ```bash
 export PATH="/opt/homebrew/bin:$PATH"
@@ -94,7 +94,7 @@ Verify installation:
 brew --version
 ```
 
-### 3. Install OpenSSL (Optional but Recommended)
+### 3. Install OpenSSL ($Optional but Recommended)
 
 Some Rust packages benefit from system-provided OpenSSL:
 
@@ -113,7 +113,7 @@ brew install rust
 Alternatively, use rustup (official Rust installer) for more control:
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -ssF https://sh.rustup.rs | sh
 ```
 
 When prompted, select the default installation option by pressing Enter.
@@ -195,6 +195,18 @@ mkdir -p ~/soroban-projects
 cd ~/soroban-projects
 ```
 
+## Key Handling and Network Safety
+
+Before you build, deploy, or talk to any RPC endpoint, read this section. The Stellar CLI workflows below (`cargo install --locked stellar-cli`, `stellar contract build`, `stellar contract deploy`) will eventually ask you for an identity and a network to sign and submit transactions. Treat those credentials as production secrets from the start.
+
+- Prefer a wallet extension (for example Freighter, LOBE, or hardware wallets) or a named identity managed by the Stellar CLI (`stellar keys generate <identity>`, `stellar keys add <identity>`) instead of handling raw secret keys in shell commands.
+- Never commit or paste secret keys, seed phrases, or `.env` files containing them into chat, issues, pull requests, or the repository. Add them to `.gitignore` and keep them in a secret manager or wallet extension.
+- Use separate identities for testnet and mainnet. Never reuse a mainnet key on testnet or in examples.
+- Treat public networks (Stellar mainnet and the Soroban mainnet RPC) as production. Do not experiment with real funds or deploy throwaway contracts there. Use Futurnet or Testnet for development.
+- When configuring an RPC endpoint, prefer the official Stellar RPC URLs for the network you intend to use, and verify the network passphrase before signing anything. A transaction signed for the wrong network can leak funds or fail unexpectedly.
+
+For the canonical guidance, see the [API Security](./api-security.md) page and the [Deploy to Mainnet](./deploy-mainnet.md) checklist. Those pages cover the full policy; the rules above are the minimum you should apply while completing this macOS setup.
+
 ## Verify Your Complete Setup
 
 Run this comprehensive verification to ensure everything is installed correctly:
@@ -238,6 +250,8 @@ Use this checklist to confirm your environment is ready:
 - [ ] WebAssembly target available: `rustup target list | grep wasm32-unknown-unknown` shows `(installed)`
 - [ ] Git installed: `git --version` returns a version number
 - [ ] Internet connectivity: `curl https://www.google.com` succeeds
+- [ ] Key handling: no secret keys, seed phrases, or `.env` files are committed or pasted into the repository
+- [ ] Network safety: testnet identities are separate from mainnet, and the RPC network passphrase has been verified
 
 ## Apple Silicon (M1/M2/M3) Specific Notes
 
@@ -379,7 +393,7 @@ sudo chown -R $(whoami) /usr/local/bin
 **Solution**:
 ```bash
 # Try official rustup installer instead
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl --proto '=https' --tlsv1.2 -ssF https://sh.rustup.rs | sh
 
 # Then reload shell
 source $HOME/.cargo/env
@@ -489,179 +503,5 @@ echo $SHELL
 # For zsh (default on macOS 10.15+)
 # Add to ~/.zprofile:
 export PATH="$HOME/.cargo/bin:$PATH"
-export PATH="/opt/homebrew/bin:$PATH"  # For M1/M2
-
-# For bash
-# Add to ~/.bash_profile or ~/.bashrc:
-export PATH="$HOME/.cargo/bin:$PATH"
-export PATH="/usr/local/bin:$PATH"  # For Intel
-
-# Reload configuration
-source ~/.zprofile  # or source ~/.bash_profile
+export PATH="/opt/homebrew/bin:$PATH"
 ```
-
-#### Multiple Rust Installations Conflict
-
-**Problem**: Both Homebrew and rustup Rust installed, causing conflicts
-
-**Solution**:
-```bash
-# Remove Homebrew version
-brew uninstall rust
-
-# Use only rustup version
-# Verify
-rustc --version
-which rustc
-
-# Should return ~/.cargo/bin/rustc
-```
-
-### SSL/Certificate Issues
-
-#### SSL Certificate Verification Failed
-
-**Problem**: `SSL: CERTIFICATE_VERIFY_FAILED` when downloading dependencies
-
-**Solution**:
-```bash
-# Update CA certificates (usually automatic on macOS)
-# If issue persists, try:
-/Applications/Python\ 3.x/Install\ Certificates.command
-
-# Or update Git
-brew install git
-
-# Try installation again
-cargo install --locked stellar-cli --features opt
-```
-
-### Disk Space Issues
-
-#### "No Space Left on Device" Error
-
-**Problem**: Installation fails due to insufficient disk space
-
-**Solution**:
-```bash
-# Check available space
-df -h
-
-# Clean up Cargo cache
-cargo clean
-
-# Remove old Rust toolchains
-rustup toolchain list
-rustup toolchain uninstall <old-toolchain>
-
-# Clean Homebrew cache
-brew cleanup
-```
-
-### Code Editor Setup
-
-#### VS Code Rust Analyzer Issues
-
-**Problem**: Rust analyzer not working in VS Code
-
-**Solution**:
-1. Install the rust-analyzer extension in VS Code
-2. If you opened this cookbook at the repository root, set `"rust-analyzer.linkedProjects": ["examples/Cargo.toml"]`
-3. Install CodeLLDB if you need debugging
-4. Reload VS Code
-5. Check that Rust is on PATH:
-
-```bash
-# In VS Code Terminal
-which rustc
-which cargo
-```
-
-#### VS Code Terminal Doesn't See Tools
-
-**Problem**: Terminal in VS Code can't find `rustc` or `stellar`
-
-**Solution**:
-1. Close VS Code completely
-2. Open terminal and verify tools work: `rustc --version`
-3. Reopen VS Code
-4. Open integrated terminal (Ctrl+`)
-5. Tools should now be available
-
-If still not working, add to VS Code settings:
-
-```json
-"terminal.integrated.inheritEnv": true
-```
-
-## macOS-Specific Tips
-
-### Using Terminal Profiles Efficiently
-
-Create a dedicated terminal profile for Soroban development:
-
-```bash
-# Open ~/.zprofile (or ~/.bash_profile for bash)
-nano ~/.zprofile
-
-# Add these lines at the end:
-export SOROBAN_RPC_HOST="http://localhost:8000"
-export SOROBAN_NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
-
-# Save and reload
-source ~/.zprofile
-```
-
-### Speeding Up Builds
-
-```bash
-# Use all CPU cores for building
-cargo build --release -j $(sysctl -n hw.ncpu)
-
-# Or set in Cargo.toml
-[profile.release]
-codegen-units = 1
-lto = true
-```
-
-### Monitoring Build Performance
-
-```bash
-# Use cargo-tree to understand dependencies
-cargo install cargo-tree
-cargo tree
-
-# Check build times
-cargo build -v
-
-# Profile compilation
-cargo build -v --timings
-```
-
-## Next Steps
-
-Now that your macOS environment is ready:
-
-1. [Create your first contract](./first-contract.md)
-2. [Building and Compilation](./building-and-compilation.md)
-3. [Development Tools](./development-tools.md)
-4. [Learn core concepts](../concepts/overview)
-5. [Deploy to testnet](./deploy-testnet.md)
-
-## Additional Resources
-
-- [Homebrew Documentation](https://docs.brew.sh/)
-- [Rust Installation Guide](https://www.rust-lang.org/tools/install)
-- [Soroban Official Documentation](https://developers.stellar.org/docs/smart-contracts)
-- [Stellar Discord Community](https://discord.gg/stellardev)
-- [Apple Developer Documentation](https://developer.apple.com/documentation/)
-- [macOS Command Line Reference](https://ss64.com/osx/)
-
-## Need Help?
-
-If you encounter issues not covered in this guide:
-
-1. Check the [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
-2. Ask in the [Stellar Discord](https://discord.gg/stellardev)
-3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues)
-4. Create a new issue with detailed error messages and your macOS version (run `sw_vers`)
