@@ -142,3 +142,9 @@ For incident response, decide who is authorized to pause and unpause, which stat
 - [Governance Security](/docs/security/governance) — voting and timelock risks
 - [Cross-Contract Invocation](/docs/concepts/cross-contract-invocation) — safe external call patterns
 - [Randomness & Entropy](../concepts/randomness) — on-chain randomness limitations and secure patterns
+
+> ## ⚠️ Unaudited — not for production
+>
+> The contracts, snippets, and checklists on this page are teaching material. They have **not** been audited, and they are **not** safe to deploy with real funds without an independent review of your specific deployment, threat model, and storage patterns.
+>
+> Before any mainnet deployment, run the page's checklist against your own contract (not just the example), commission or perform a security review, and confirm the on-chain storage TTL / data-expiry settings match your expected access patterns — Soroban persistent entries can be made temporary via `FootprintVersion`, and a contract that assumes permanent storage will silently break if any key is bumped to a `Temporary` or `Persistent` entry with a TTL.
