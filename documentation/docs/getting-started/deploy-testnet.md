@@ -530,3 +530,7 @@ Now that your contract is deployed:
 - [Soroban SDK Reference](https://docs.rs/soroban-sdk)
 - [Stellar Expert Testnet Explorer](https://stellar.expert/explorer/testnet)
 - [Stellar Discord Community](https://discord.gg/stellardev)
+
+## Key handling guidance
+
+Several commands on this page sign with a Stellar secret key (`S...`). Do **not** commit a secret key or seed phrase to your repo, paste it into a shell script, or export it as a long-lived shell variable. Prefer a named identity via the Stellar CLI (`stellar keys generate --global <alias>`) or, for browser dapps, let a wallet extension such as Freighter hold the key — the dapp should only ever see signed transaction XDR, never the secret itself. See [API Security](./api-security.md) for the same rule applied to the browser bundle, and [Deploy to Mainnet](./deploy-mainnet.md) before running any mainnet deploy.
