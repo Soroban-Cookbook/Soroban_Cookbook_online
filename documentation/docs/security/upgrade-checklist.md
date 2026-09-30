@@ -7,6 +7,21 @@ description: Printable security checklist for verifying reproducible WASM builds
 
 Use this checklist before every mainnet upgrade. Complete every item and record the results. Do not proceed with the upgrade if any item fails.
 
+:::warning Learner Safety & Production Warning
+
+The example contracts and pattern material this checklist is used with are **unaudited** and provided strictly for educational purposes. Nothing on this page has been through an independent security review. **Do not use this material in production, and do not deploy the linked example crates with real funds or protocol-owned assets.**
+
+Completing this checklist does not make an upgrade safe. The checklist verifies that the artifact you are shipping is the artifact you reviewed — it does not review the contract logic, the migration code, or the admin-key handling. An audit is still required.
+
+:::
+
+:::info Reentrancy & Storage Limits
+
+- **Reentrancy**: Soroban's host does not allow a contract to be re-entered while it is already executing, so the classic single-contract reentrancy loop cannot occur. It does **not** remove reentrancy risk in an upgrade path: if the admin is a multisig or timelock **contract**, the `upgrade` call is a cross-contract invocation, and any state the upgrade reads must be validated and written **before** the outgoing call (checks-effects-interactions). Treat a deferred storage write across an admin contract call as a finding.
+- **Storage TTL / data expiry**: Instance storage (admin address, current Wasm hash, version counters, migration flags) shares its TTL with the contract instance. When it expires, the instance is archived and `upgrade`, `version`, and every other call fail until the entry is restored. `persistent()` entries behave the same way and are restorable; `temporary()` entries are **permanently deleted** on expiry with no archive. Neither the linked examples nor the commands below bump TTLs for you — add `extend_ttl` calls and a rent policy before a long-lived deployment.
+
+:::
+
 ---
 
 ## Before Building
@@ -145,6 +160,7 @@ stellar contract invoke \
 - [ ] Correct signer approved the transaction
 - [ ] Rollback procedure documented (hash of previous WASM)
 - [ ] Emergency pause mechanism tested (if applicable)
+- [ ] Confirmed the upgrade contract and admin contract have been independently audited (if any of the material here was used as a starting point)
 
 Record the previous WASM hash for rollback:
 
@@ -163,6 +179,8 @@ After the upgrade transaction confirms on mainnet:
 - [ ] Events are emitted correctly
 - [ ] Storage invariants are preserved
 - [ ] No unexpected errors in transaction logs
+- [ ] Instance storage TTL confirmed above the archive threshold (`extend_ttl` is in place for a long-lived contract)
+- [ ] No data the contract still needs was stored in `temporary()` storage, which is permanently deleted on expiry
 
 ```bash
 # Verify the contract is operational
