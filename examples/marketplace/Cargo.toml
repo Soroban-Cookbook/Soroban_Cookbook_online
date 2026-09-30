@@ -2,6 +2,9 @@
 name = "marketplace"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Marketplace contract example for the Soroban Cookbook."
+repository = "https://github.com/soroban-cookbook/soroban-cookbook"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
