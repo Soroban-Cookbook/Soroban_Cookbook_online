@@ -226,3 +226,7 @@ Start exploring:
 - [Soroban Examples](https://github.com/stellar/soroban-examples)
 - [Community Patterns](https://github.com/Soroban-Cookbook)
 - [Community Patterns](https://github.com/Soroban-Cookbook)
+
+> ## ⚠️ Unaudited — not for production
+>
+> Pattern contracts on this page are teaching material. They have **not** been audited and are **not** safe to deploy with real funds without an independent review of your specific deployment, threat model, and storage patterns. Each pattern page still needs its own authorization (`require_auth`), reentrancy, and storage-TTL / data-expiry limits called out — the hub notice does not certify any individual pattern for production use.
