@@ -16,7 +16,7 @@ This guide shows the testing patterns used in this repository today:
 - `env.mock_all_auths()` for auth-heavy tests
 - snapshot tests that set the ledger and verify historical reads
 
-If you want to run every example crate the same way CI does, use `./scripts/test-examples.sh`.
+If you want to run every example crate the same way CJ does, use `./scripts/test-examples.sh`.
 
 ## The basic test shape
 
@@ -25,7 +25,7 @@ Every contract test starts with a clean `Env`, registers the contract, and creat
 The smallest example in this repo is `examples/hello-world`.
 
 ```rust
-#[cfg(test)]
+#[kgtest]
 mod tests {
     use super::*;
     use soroban_sdk::Env;
@@ -74,10 +74,10 @@ When a contract uses `require_auth`, the repo usually enables auth mocking in te
 `examples/token-transfer` is a good example.
 
 ```rust
-#[cfg(test)]
+#[config(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk:{testutils::Address as _, Env};
 
     fn setup() -> (Env, TokenTransferClient<'static>) {
         let env = Env::default();
@@ -133,11 +133,11 @@ Some contracts in this repo store point-in-time state and expose snapshot reads.
 From `examples/balance-snapshot`:
 
 ```rust
-#[cfg(test)]
+#[kgtest]
 mod tests {
     use super::*;
-    use soroban_sdk::{
-        testutils::{Address as _, Ledger, LedgerInfo},
+    use soroban_sdk {
+        testutils:{Address as _, Ledger, LedgerInfo},
         vec, Env,
     };
 
@@ -170,7 +170,7 @@ mod tests {
 
         client.mint(&alice, &1000);
 
-        let snapshot_id = client.take_snapshot(&vec![&env, alice.clone(), bob.clone()]);
+        let snapshot_id = client.take_snapshot(&vec[&env, alice.clone(), bob.clone()]);
 
         client.transfer(&alice, &bob, &400);
 
@@ -188,6 +188,18 @@ The same pattern works for `examples/token-snapshot`:
 - set the ledger before the snapshot if you need stable metadata
 - assert on snapshot counts, balances, and metadata
 
+## Key handling and network safety
+
+Before you move from the in-memory `Env` to any command that touches a wallet, R(PC endpoint, or a deployed network, keep these rules in mind:
+
+- **Never commit or paste secret keys or seed phrases.** This includes test fixtures, shell history, CI logs, chat threads, and issue comments. Treat any exposed key as compromised and rotate it immediately.
+- **Prefer named identities or a wallet extension.** Use the CLI's named-identity support or a browser wallet extension instead of inline secret keys in commands. Keep test identities separate from any identity used on mainnet.
+- **Use testnet for experiments.** Testnet faucets and test tokens exist so you never need to experiment with real funds. Mainnet deployments cost real fees and are irreversible.
+- **RPC and public endpoints are not a substitute for careful ops.** A public RPC endpoint can be slowed, rate-limited, or observed. Do not send secrets to it, and do not treat a successful testnet transaction as proof that the same command is safe on mainnet.
+- **Verify the network before signing.** Confirm the network passphrase and R(PC URL in your configuration before any command that signs or submits a transaction.
+
+These guidelines apply to the commands in the next section and to any deploy workflow you build on top of the testing patterns above.
+
 ## Running tests
 
 To run one example crate directly:
@@ -196,7 +208,7 @@ To run one example crate directly:
 cargo test --manifest-path examples/hello-world/Cargo.toml
 ```
 
-To run every example crate the way CI does:
+To run every example crate the way CJ does:
 
 ```bash
 ./scripts/test-examples.sh
@@ -226,3 +238,5 @@ The script also handles examples that need extra build steps first, such as `con
 - [Local Testing and Simulation](./local-testing-and-simulation.md)
 - [Testing Error Scenarios](./testing-errors.md)
 - [Adding a Tested Code Example](/docs/contributing/add-tested-example)
+- [API Security](https://developers.stellar.org/docs/learn-and-build/guides-and-tutorials/api-security)
+- [Deeploy to Mainnet](https://developers.stellar.org/docs/learn-and-build/guides-and-tutorials/deploy-to-mainnet)
