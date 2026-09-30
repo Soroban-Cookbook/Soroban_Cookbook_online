@@ -44,6 +44,27 @@ let net = amount - fee;
 
 It then debits the sender for the full amount, credits the recipient for the net amount, and credits the treasury for the fee portion.
 
+<PatternCallout variant="info" title="⚠️ Unaudited Example — Not for Production Use">
+
+The contract code on this page is a **teaching example** and has **not been audited**. Do not deploy it as-is with real funds or in a production environment. Before using any wrapper or fee-on-transfer logic live, obtain a professional security audit, add comprehensive error handling, apply access controls for minting, and verify all edge cases (including rounding, zero-fee transfers, and large-value arithmetic).
+
+</PatternCallout>
+
+<PatternCallout variant="info" title="Reentrancy">
+
+Soroban does not allow recursive or reentrant cross-contract calls within a single transaction, so the classic reentrancy pattern (where an external callback drains state before the original call finishes) is not possible on this platform. Additionally, this wrapper example does not invoke any external contracts during `transfer` or `mint`, so there is no call-out surface where a callback could occur. If you extend this wrapper to interact with external contracts (e.g., hooking into a staking or rewards module), carefully review the authorization and balance-update ordering for every new call path.
+
+</PatternCallout>
+
+<PatternCallout variant="info" title="Storage TTL / Data Expiry">
+
+This example uses two storage kinds:
+
+- **Instance storage** (`env.storage().instance()`) for `Treasury` and `FeeBps`. Instance entries live for the lifetime of the contract instance and do not need manual TTL bumps.
+- **Persistent storage** (`env.storage().persistent()`) for each user's `Balance(Address)`. Persistent entries have a **time-to-live (TTL)** measured in ledgers and will **expire** if not read or written within ~120,000 ledgers (roughly 17 days on the public Stellar network). The example code never explicitly extends TTL, so a balance entry for a dormant user can be garbage-collected. For production use, call `env.storage().persistent().bump(&key, &threshold, &extend_to)` (or `extend_ttl` on the storage) after each read and write to ensure balances and accounting records persist for the required horizon.
+
+</PatternCallout>
+
 ## Contract behavior
 
 ### Initialization
