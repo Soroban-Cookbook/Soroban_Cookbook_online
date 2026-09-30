@@ -10,6 +10,15 @@ This audit checklist covers the custom code that powers the Soroban Cookbook doc
 
 Use this page before major releases, dependency upgrades, or deployment changes.
 
+:::warning Unaudited Checklist & Examples — Not for Production
+
+The audit checklists, workflow commands, and code snippets on this page are educational materials and have not undergone a third-party security audit. They are **not** production-ready guarantees of code security. Always conduct independent security audits and threat modeling before releasing contracts or documentation infrastructure to mainnet.
+
+- **Reentrancy limits**: Reentrancy limits do not apply directly to this documentation static site or its build scripts, as they run in node/browser environments and do not execute smart contract logic on-chain. However, for any smart contracts audited or referenced alongside these workflows, Soroban's execution model prevents reentrancy by default during internal contract calls, but contracts must still enforce checks-effects-interactions order and use reentrancy guards when invoking external contracts.
+- **Storage TTL and data-expiry limits**: Static site builds and search indexes do not utilize Soroban on-chain storage. However, smart contracts evaluated using these audit practices must account for Soroban's storage tiers (`instance`, `persistent`, `temporary`). Persistent and instance entries expire if their TTL is not actively extended (`extend_ttl`). Contracts relying on state persistence will fail if entries lapse into archival or deletion.
+
+:::
+
 ---
 
 ## Audit Scope
@@ -171,3 +180,9 @@ Copy this record into a release PR or security review issue.
 - The primary runtime dependencies are Docusaurus, React, local search, fonts, and rendering helpers.
 - The highest-value review areas are dependency upgrades, custom React components, external links, and command snippets that readers may copy into a terminal.
 - Dependency automation and recurring vulnerability scans are tracked separately from this code audit checklist.
+
+> ## ⚠️ Unaudited — not for production
+>
+> The contracts, snippets, and checklists on this page are teaching material. They have **not** been audited, and they are **not** safe to deploy with real funds without an independent review of your specific deployment, threat model, and storage patterns.
+>
+> Before any mainnet deployment, run the page's checklist against your own contract (not just the example), commission or perform a security review, and confirm the on-chain storage TTL / data-expiry settings match your expected access patterns — Soroban persistent entries can be made temporary via `FootprintVersion`, and a contract that assumes permanent storage will silently break if any key is bumped to a `Temporary` or `Persistent` entry with a TTL.

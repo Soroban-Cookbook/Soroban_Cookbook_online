@@ -53,6 +53,18 @@ unlock_time() / amount() / beneficiary() / time_remaining() / is_claimed()
 
 ## Full source
 
+<PatternCallout variant="warning" title="Unaudited teaching example — Not for production">
+
+The contract below is an **unaudited educational example**. It has **not** undergone an independent security review and is **not fit for production or custodying real funds**. It is designed solely to demonstrate time-based release and persistent storage mechanics in Soroban.
+
+Before copying or adapting this pattern, understand its key limits:
+
+- **Reentrancy limits**: As written, reentrancy does not apply to this contract because none of `deposit`, `withdraw`, or `cancel` invokes external contracts, token contracts, or external callbacks. Soroban executes contract invocations to completion atomically by default. However, if this contract is extended to transfer actual tokens (such as via the Stellar Asset Contract or SEP-41 tokens), external calls can introduce reentrancy attack surfaces. Even though this contract enforces a checks-effects pattern (setting `Claimed = true` before returning values), external transfers should always follow state mutations or use a reentrancy guard. See [Reentrancy limits](#checks-effects-pattern-and-reentrancy-limits).
+- **Token transfer omission**: This contract only records numerical amounts and status flags in persistent storage; it does not custody or transfer real tokens. Real-world vaults must integrate SAC or custom token transfer clients with proper authorization.
+- **Storage TTL**: While `persistent` storage is used so vault state is decoupled from the contract instance, persistent entries still have a ledger TTL and must be extended or restored if idle for extended periods.
+
+</PatternCallout>
+
 ```rust title="examples/timelock-vault/src/lib.rs"
 #![no_std]
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
@@ -179,10 +191,20 @@ impl TimelockVault {
 
 ## Key design decisions
 
-### Checks-effects pattern
+### Checks-effects pattern and reentrancy limits
+
 `Claimed` is set to `true` **before** returning the amount in both `withdraw` and `cancel`.
 This prevents re-entrancy even though Soroban's execution model already guards against it
 at the host level — the pattern makes the intent explicit.
+
+**Why reentrancy does not apply as written:**
+- `deposit`, `withdraw`, and `cancel` only perform internal persistent storage reads and writes (`env.storage().persistent()`).
+- No external cross-contract calls, callbacks, or token transfer invocations are performed. Without external contract invocations, untrusted code cannot regain control mid-execution.
+
+**Limits when extending to real asset transfers:**
+- If you extend `withdraw` or `cancel` to call an external token contract (such as calling `token::Client::new(&env, &token_address).transfer(...)`), an external call runs before transaction finalization.
+- Adhering to the checks-effects pattern shown here—marking `Claimed = true` in storage *before* initiating any external transfer—ensures that an attacker cannot perform a reentrant withdrawal even if a malicious contract receives execution flow.
+- For complex multi-asset distributions or hooks, implement an explicit reentrancy lock using the [Reentrancy Guard pattern](./reentrancy-guard).
 
 ### `persistent` over `instance` storage
 Vault state must survive beyond a single ledger bump window.
