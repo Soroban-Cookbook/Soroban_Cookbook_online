@@ -113,3 +113,7 @@ Avoid deriving a salt from anything that isn't fixed at the time you need to pre
 - [Contract Registry Pattern](/docs/patterns/contract-registry) — mapping stable names to deployed addresses when you'd rather not rely on salt prediction
 - [Deploy to Testnet](/docs/getting-started/deploy-testnet) — the manual `stellar contract deploy` workflow
 - [Soroban Deployer Docs](https://developers.stellar.org/docs/smart-contracts/deploying) — official reference for `ContractIdPreimage` and the deployer host functions
+
+## Key handling guidance
+
+Several commands on this page sign with a Stellar secret key (`S…`). Do **not** commit a secret key or seed phrase to your repo, paste it into a shell script, or export it as a long-lived shell variable. Prefer a named identity via the Stellar CLI (`stellar keys generate --global <alias>`) or, for browser dapps, let a wallet extension such as Freighter hold the key — the dapp should only ever see signed transaction XDR, never the secret itself. See [API Security](../getting-started/api-security.md) for the same rule applied to the browser bundle, and [Deploy to Mainnet](../getting-started/deploy-mainnet.md) before running any mainnet deploy.
