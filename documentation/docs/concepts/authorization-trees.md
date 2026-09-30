@@ -28,6 +28,16 @@ When contract A calls contract B and contract B calls `require_auth` for a user,
 
 This guide explains what authorization trees are, walks through the two-level tree built by the [`examples/cross-contract`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/cross-contract) vault example, shows how to test nested authorization with `mock_all_auths` / `mock_auths`, and how to debug the `Error(Auth, InvalidAction)` failure that dominates this topic.
 
+:::caution Key handling and network risk
+Authorization trees are signed with real keys, and the examples below invoke contracts over RPC. Before you run any command or sign anything:
+
+- **Never commit, paste, or share secret keys or seed phrases.** Do not put them in source files, test fixtures, shell history, chat, or issue reports. Prefer a named identity (e.g. `stellar keys generate --global <name>`) or a wallet extension/browser signer so the secret never leaves the signer.
+- **Treat testnet and mainnet differently.** Testnet is for experimentation; mainnet moves real funds. A signature over an authorization tree is a real, irreversible authorization on the network you submit it to — verify the network passphrase and the contract IDs before signing.
+- **RPC and public endpoints are not a substitute for careful ops.** A public RPC endpoint can be rate-limited, unavailable, or served by an untrusted operator; it does not validate your intent. Confirm the call chain and arguments your wallet displays, and use your own or a trusted RPC provider for anything touching real value.
+
+See [Security Fundamentals](../security/fundamentals.md) and the deploy-mainnet guidance for the canonical checklists before moving to a public network.
+:::
+
 ## What is an authorization tree?
 
 A Soroban transaction carries a list of `SorobanAuthorizationEntry` items. Each entry pairs an authorizer (an `Address`) with an **authorized invocation tree**: a root invocation plus its nested `sub_invocations`.
@@ -204,6 +214,14 @@ The official guidance for deciding where to call `require_auth`:
 
 ## Testing authorization trees
 
+:::caution Test keys and network scope
+The tests below run against the sandboxed `Env` and use simulated signatures — no real keys or network calls are involved. When you move from these tests to a live flow, the same tree must be signed by a real key over a real network:
+
+- Keep test identities separate from any funded mainnet key; never reuse a seed phrase across environments.
+- Do not paste a secret key into a test, a script, or a CLI flag that lands in shell history — use a named identity or wallet extension.
+- Point test tooling at testnet RPC, and re-check the network and contract IDs before any mainnet submission.
+:::
+
 Tests run against the sandboxed `Env`, which can simulate signatures. The [`examples/cross-contract/src/test.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/cross-contract/src/test.rs) `test_authorization_requirements` test is the canonical pattern: use `mock_all_auths()` for setup, then `clear_all_auths()` and assert that operations fail without real auth.
 
 ```rust
@@ -329,6 +347,7 @@ fn test_deposit_unauthorized() {
 - **Use `require_auth_for_args` to hide internal arguments.** If a call's real arguments include contract-derived values, sign a stable, user-meaningful argument list instead.
 - **Pin the callee address.** A stored callee address that can be changed (see [Cross-Contract Invocation](./cross-contract-invocation.md)) changes which contract's `require_auth` frames appear in the tree — guard updates with admin auth.
 - **Snapshot your auth trees.** The repo's test snapshot workflow makes auth-tree regressions visible in diffs; keep it on for contracts with nested calls.
+- **Guard keys and networks.** Never commit or paste secret keys or seed phrases; prefer named identities or a wallet extension. Verify testnet vs mainnet and contract IDs before signing, and remember that RPC/public endpoints are not a substitute for careful ops. See [Security Fundamentals](../security/fundamentals.md) for the canonical checklists.
 
 ## Related reading
 
@@ -338,6 +357,7 @@ fn test_deposit_unauthorized() {
 - [Testing Strategies](./testing-strategies.md) — test utilities including `mock_all_auths`
 - [Authorization & Access Control Patterns](../patterns/authorization.mdx) — role-based and capability-based authorization
 - [Security Fundamentals](../security/fundamentals.md) — access control and reentrancy checklists
+- [Deploy to Mainnet](../getting-started/deploy-mainnet.md) — network risk and key-handling guidance for public networks
 
 ## Key handling & network risk
 
