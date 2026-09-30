@@ -1,0 +1,23 @@
+# CODEOWNERS — review requirements for high-risk paths.
+#
+# The owners below are requested automatically when a PR touches the listed
+# paths. Reviewers still have discretion to add additional reviewers, but
+# these paths cannot merge without at least one owner's approval.
+#
+# Format reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+*                                   @Goodnessukaigwe
+
+# CI workflows — changes affect every PR, release, and scheduled job
+.github/workflows/                  @Goodnessukaigwe
+
+# Cookbook examples — these are copy-pasted into production contracts,
+# so unreviewed auth/token changes carry outsized impact
+examples/                           @Goodnessukaigwe
+
+# Security documentation — must stay accurate
+documentation/docs/security/        @Goodnessukaigwe
+
+# Docusaurus config — controls site-wide behaviour, SEO, redirects
+documentation/docusaurus.config.ts  @Goodnessukaigwe
