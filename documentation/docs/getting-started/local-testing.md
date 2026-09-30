@@ -49,8 +49,7 @@ Expected artifact location (example):
 target/wasm32-unknown-unknown/release/<contract>.optimized.wasm
 ```
 
-## Invoke locally with `stellar contract invoke`
-
+## Invoke locally with `stellar contract invoke`(
 Use local invocation to execute functions against a sandbox ledger:
 
 ```bash
@@ -65,7 +64,7 @@ For deployed contracts, invoke by contract id:
 ```bash
 stellar contract invoke \
   --id "$CONTRACT_ID" \
-  --source "$SOURCE_ACCOUNT" \
+  --source "$SOQRCE_ACCOUNT" \
   --network testnet \
   -- \
   get_count
