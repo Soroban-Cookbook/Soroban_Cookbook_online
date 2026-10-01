@@ -83,6 +83,24 @@ pub struct VestingSchedule {
 
 <PatternSection id="implementation" title="Implementation">
 
+<PatternCallout variant="info" title="⚠️ Unaudited Example — Not for Production Use">
+
+The contract code on this page is a **teaching example** and has **not been audited**. Do not deploy it as-is with real funds or in a production environment. Before using any vesting logic live, obtain a professional security audit, add support for schedule revocation / clawback if required, validate that the token contract is a trusted SAC-compliant implementation, and verify all edge cases (multiple schedules, very large total amounts, and timestamps far into the future).
+
+</PatternCallout>
+
+<PatternCallout variant="info" title="Reentrancy">
+
+Soroban does not allow recursive or reentrant cross-contract calls within a single transaction, so the classic reentrancy pattern (where an external callback drains state before the original call finishes) is not possible on this platform. This vesting contract does invoke an external token contract during `initialize` (to pull funds from the funder) and during `release` (to pay the beneficiary), but because the state mutation (storing the schedule or updating `released_amount`) is applied **before** the token transfer, the Checks-Effects-Interactions ordering is preserved. If you extend this contract (e.g., add reward hooks, referral logic, or extra cross-contract calls), keep the authorization checks, state updates, and external call ordering under review.
+
+</PatternCallout>
+
+<PatternCallout variant="info" title="Storage TTL / Data Expiry">
+
+This example stores the `VestingSchedule` in **instance storage** (`env.storage().instance()`). Instance entries live for the lifetime of the contract instance and do not need manual TTL bumps. There are no per-user persistent entries in the base pattern. If you extend the contract to use **persistent storage** (`env.storage().persistent()`) for additional records (e.g., per-beneficiary ledgers, audit trails, or multi-schedule maps), remember that persistent entries have a **time-to-live (TTL)** measured in ledgers and will **expire** if not read or written within ~120,000 ledgers (roughly 17 days on the public Stellar network). In that case call `env.storage().persistent().bump(...)` or `extend_ttl` after each read and write so records persist beyond the vesting horizon.
+
+</PatternCallout>
+
 ### The Vesting Math
 
 The core is a single pure function, `vested_at`, which returns how many tokens are vested at a given ledger timestamp:
