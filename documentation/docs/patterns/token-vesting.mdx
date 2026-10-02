@@ -34,11 +34,11 @@ import TabItem from '@theme/TabItem';
 
 ## Overview
 
-A **token vesting** contract lets a funder deposit a full token allocation up front and then release only the *vested* portion to the beneficiary over time. Vesting progresses **linearly** between a start and an end timestamp, and a **cliff** blocks any release before a chosen point. This is the standard model for employee equity, investor grants, and team token allocations.
+A **token vesting** contract lets a funder deposit a full token allocation up front and then release only the _vested_ portion to the beneficiary over time. Vesting progresses **linearly** between a start and an end timestamp, and a **cliff** blocks any release before a chosen point. This is the standard model for employee equity, investor grants, and team token allocations.
 
 <PatternCallout variant="info" title="When to use">
 
-Use this pattern when you want a one-time, fund-it-now / release-later schedule: full amount locked immediately, then unlocked proportionally over time. If you instead need continuous accrual with arbitrary withdrawals, see [Streaming Payments](/docs/patterns/streaming-payments).
+Use this pattern when you want a one-time, fund-it-now / release-later schedule: full amount locked immediately, then unlocked proportionally over time. If you instead need continuous accrual with arbitrary withdrawals, see [Streaming Payments](./streaming-payments).
 
 </PatternCallout>
 
@@ -181,7 +181,7 @@ pub fn initialize(
 
 ### Release
 
-Only the **beneficiary** may release, and only the *newly vested* portion is paid each time:
+Only the **beneficiary** may release, and only the _newly vested_ portion is paid each time:
 
 ```rust
 pub fn release(env: Env) -> Result<i128, Error> {
@@ -223,10 +223,10 @@ pub fn release(env: Env) -> Result<i128, Error> {
 
 <PatternSection id="authorization" title="Authorization">
 
-| Action | Authorized actor | Check |
-|--------|------------------|-------|
-| `initialize` | **Funder** (the account funding the schedule) | `funder.require_auth()` |
-| `release` | **Beneficiary** (the account receiving tokens) | `beneficiary.require_auth()` |
+| Action       | Authorized actor                               | Check                        |
+| ------------ | ---------------------------------------------- | ---------------------------- |
+| `initialize` | **Funder** (the account funding the schedule)  | `funder.require_auth()`      |
+| `release`    | **Beneficiary** (the account receiving tokens) | `beneficiary.require_auth()` |
 
 There is no separate admin role: the funder acts as the "admin" by being the only actor who can create and fund the schedule, and only the beneficiary can ever move tokens out of it. Time checks use the **current ledger timestamp** (`env.ledger().timestamp()`), so nobody can release early by supplying their own clock.
 
@@ -271,18 +271,18 @@ The contract ships with tests covering the full schedule lifecycle and the overf
 
 <PatternSection id="comparison" title="Vesting vs Streaming">
 
-| Aspect | Token Vesting | Streaming Payments |
-|--------|---------------|--------------------|
-| **Cliff** | Yes — nothing releases before the cliff | No — accrual starts immediately |
-| **Funds** | Full allocation funded up front | Full allocation funded up front |
-| **Withdrawals** | Discrete releases (`release()`) | Continuous (`withdraw()` anytime) |
-| **Use case** | Employee equity, investor grants | Payroll, subscriptions |
+| Aspect          | Token Vesting                           | Streaming Payments                |
+| --------------- | --------------------------------------- | --------------------------------- |
+| **Cliff**       | Yes — nothing releases before the cliff | No — accrual starts immediately   |
+| **Funds**       | Full allocation funded up front         | Full allocation funded up front   |
+| **Withdrawals** | Discrete releases (`release()`)         | Continuous (`withdraw()` anytime) |
+| **Use case**    | Employee equity, investor grants        | Payroll, subscriptions            |
 
 </PatternSection>
 
 <PatternSection id="related-patterns" title="Related Patterns">
 
-- [Streaming Payments](/docs/patterns/streaming-payments) — linear accrual without a cliff
+- [Streaming Payments](./streaming-payments) — linear accrual without a cliff
 - [Basic Token](/docs/patterns/basic-token) — the token interface this contract uses
 - [Timelock Vault](/docs/patterns/timelock-vault) — lock-and-release with absolute timestamps
 - [Authorization](/docs/patterns/authorization) — `require_auth` access control

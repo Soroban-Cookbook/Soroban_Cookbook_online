@@ -10,7 +10,7 @@ Reusable smart contract patterns for common use cases.
 
 ## Template example
 
-The [**Hello World storage*] (/docs/patterns/hello-world) pattern demonstrates the standard pattern page layout (metadata, prerequisites, implementation with code tabs, security, and related links). Copy its structure when adding new patterns.
+The [*_Hello World storage_] (/docs/patterns/hello-world) pattern demonstrates the standard pattern page layout (metadata, prerequisites, implementation with code tabs, security, and related links). Copy its structure when adding new patterns.
 
 ## Available Patterns
 
@@ -28,7 +28,7 @@ Minimal Soroban contract demonstrating instance storage. Perfect starting point 
 
 Complete token contract with mint, transfer, and balance functions. Learn core token mechanics and authorization patterns before advancing to standardized interfaces like SAC.
 
-### [Token Wrapper with Transfer Fee](/docs/patterns/token-wrapper)
+### [Token Wrapper with Transfer Fee](./token-wrapper)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--token">Token</span> <span class="sb-badge sb-badge--stable">Stable</span>
 
@@ -50,27 +50,27 @@ Comprehensive error handling patterns including Result types, fallback logic, gr
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--defi">DeFi</span> <span class="sb-badge sb-badge--stable">Stable</span>
 
-Token staking with pro-rata reward distribution over epocs. Demonstrates lazy reward computation, epoch-based accounting, and efficient O(1) per-user storage without batch operations.
+Token staking with pro-rata reward distribution over epochs. Demonstrates lazy reward computation, epoch-based accounting, and efficient O(1) per-user storage without batch operations.
 
-### [HTLC Atomic Swap](/docs/patterns/htlc-swap)
+### [HTLC Atomic Swap](./htlc-swap)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--defi">DeFi</span> <span class="sb-badge sb-badge--stable">Stable</span>
 
 Hash-time-locked contract for cross-party atomic swaps. Demonstrates hashlock, timelock, and refund mechanisms for trustless exchanges.
 
-### [Batch Operations](/docs/patterns/batch-operations)
+### [Batch Operations](./batch-operations)
 
 **Difficulty**: Intermediate | **Category**: Architecture | **Status**: Stable
 
 Bound caller-controlled batches, amortize shared authorization and storage work, test the exact 20-operation limit, and size the guard against measured instruction and resource usage.
 
-### [Basic Escrow](/docs/patterns/escrow-basic)
+### [Basic Escrow](./escrow-basic)
 
 <span class="sb-badge sb-badge--beginner">Beginner</span> <span class="sb-tag sb-tag--utility">Utility</span> <span class="sb-badge sb-badge--stable">Stable</span>
 
 Two-party escrow holding funds until a release condition is met. The starting point before the multi-party escrow pattern.
 
-### [Pull Payment](/docs/patterns/pull-payment)
+### [Pull Payment](./pull-payment)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span> <span class="sb-tag sb-tag--security">Security</span> <span class="sb-badge sb-badge--stable">Stable</span>
 
@@ -94,7 +94,7 @@ Deploy and track multiple contract instances from a single factory contract, wit
 
 Consume external price/data feeds from an oracle contract safely, including staleness checks and fallback handling.
 
-### [Constant-Product AMM](/docs/patterns/constant-product-amm)
+### [Constant-Product AMM](./constant-product-amm)
 
 <span class="sb-badge sb-badge--advanced">Advanced</span> <span class="sb-tag sb-tag--defi">DeFi</span> <span class="sb-badge sb-badge--stable">Stable</span>
 
@@ -107,6 +107,7 @@ Full x·y=k AMM with swap, liquidity provision, and LP token accounting. Covers 
 ## Pattern Categories
 
 ### 🔺 [Token Standards](/patterns/tokens)
+
 ### 🦩 [Token Standards](/patterns/tokens)
 
 <span class="sb-tag sb-tag--token">Token</span>
@@ -115,27 +116,30 @@ Explore fungible token standards, wrappers, and vault mechanisms for building ro
 
 - [Basic Token Implementation](/docs/patterns/basic-token)
 - [Token Standards](/docs/patterns/token-standards)
-- [Multi-Token Vault](/docs/patterns/multi-token-vault)
+- [Multi-Token Vault](./multi-token-vault)
 
 ### 💰 DeFi Patterns
+
 ### 😄 [DeFi Patterns](/patterns/defi)
 
 <span class="sb-tag sb-tag--defi">DeFi</span>
 
 Build decentralized finance applications with liquidity pools, staking, atomic swaps, and lending protocols.
 
-- [Constant-Product AMM](/docs/patterns/constant-product-amm) — x·y=k liquidity pool
+- [Constant-Product AMM](./constant-product-amm) — x·y=k liquidity pool
 - [Staking](/docs/patterns/staking) — epoch-based reward distribution
-- [Streaming Payments](/docs/patterns/streaming-payments)
+- [Streaming Payments](./streaming-payments)
 - [Timelock Vault](/docs/patterns/timelock-vault)
 
 ### 🗳️ Governance
+
 - Liquidity pools (AMM)
 - **Staking contracts**with epoch-based rewards
-- [Atomic swaps (HTLC)](/docs/patterns/htlc-swap)
+- [Atomic swaps (HTLC)](./htlc-swap)
 - Lending and borrowing
 
 ### 🌷 Governance](/patterns/governance)
+
 ### 🗳 [Governance](/patterns/governance)
 
 <span class="sb-tag sb-tag--governance">Governance</span>
@@ -145,12 +149,14 @@ Implement decentralized governance with voting systems, DAOs, and proposal mecha
 - [Proposal Lifecycle](/docs/patterns/proposal-lifecycle)
 
 ### 🎨 NFT Patterns
+
 - Voting systems
 - DOA implementations
 - Proposal factories
 - Token delegation
 
 ### 🎈️ [NFT Patterns](/patterns/nft)
+
 - DO implementations
 - Proposal factories
 - Token delegation
@@ -164,37 +170,41 @@ Create and manage non-fungible tokens. NFT-specific pattern pages are planned �
 > **Note:** Dedicated NFT minting and marketplace patterns are tracked in the backlog. Contributions welcome — see the [Contributing Guide](#contributing).
 
 ### 🔧 Utility & Infrastructure
+
 ### 🔤 Utility & Infrastructure
+
 ### 🤥 [Utility & Infrastructure](/patterns/utility)
 
 <span class="sb-badge sb-badge--intermediate">Intermediate</span>
 
 Build essential utility contracts for multi-signature wallets, escrow, and fund management.
 
-- [Escrow (Basic)](/docs/patterns/escrow-basic)
-- [Escrow (Multi-party)](/docs/patterns/escrow-multiparty)
-- [Contract Registry](/docs/patterns/contract-registry)
+- [Escrow (Basic)](./escrow-basic)
+- [Escrow (Multi-party)](./escrow-multiparty)
+- [Contract Registry](./contract-registry)
 - [Contract Factory](/docs/patterns/contract-factory)
 - [Oracle Consumer](/docs/patterns/oracle-consumer)
-- [Multi-signature wallets](/docs/patterns/multisig-wallet)
+- [Multi-signature wallets](./multisig-wallet)
 - Time-locked contracts
 - Escrow services
 - Registry systems
 
 ### ✨ Advanced Patterns
+
 ### ⚣ Advanced Patterns
 
 <span class="sb-badge sb-badge--advanced">Advanced</span>
 
 - [Authorization & Access Control](/docs/patterns/authorization)
 - [Lifecycle & Upgrades](/docs/patterns/lifecycle-upgrades)
-- [Reentrancy Guard](/docs/patterns/reentrancy-guard)
+- Reentrancy Guard
 - [Optimization Playbook](/docs/patterns/optimization-playbook)
 
 ## Using Patterns
+
 The patterns in this library provide practical, battle-tested Soroban contract examples covering common use cases such as storage, tokens, DeFi, access control, and governance. Each pattern is designed to be immediately useful and includes the following:
 
-- **Source code** — Complete contract implementations with `#[contract]` and `#[contractimppled]` blocks
+- **Source code** — Complete contract implementations with `#[contract]` and `#[contractimpl]` blocks
 - **Tests** — Unit tests embedded within each pattern for verification of contract behavior
 - **Security considerations** — Highlighted callouts and checklists addressing common security pitfalls, storage scope, authorization, and production readiness
 - **Best practice callouts** — Guidance on topics such as input validation, error handling, and graceful degradation
@@ -204,7 +214,7 @@ Some patterns also include deployment guidance, state migration strategies, and 
 
 ## Examples Index
 
-Browse the [Examples Index](/docs/patterns/examples-index) for a complete list of all example crates with their difficulty levels and pattern documentation status.
+Browse the [Examples Index](./examples-index) for a complete list of all example crates with their difficulty levels and pattern documentation status.
 
 Browse the [Available Patterns](/docs/patterns/overview) to find the right pattern for your use case.
 

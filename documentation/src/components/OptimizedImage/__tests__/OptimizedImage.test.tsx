@@ -40,18 +40,13 @@ describe('OptimizedImage', () => {
   });
 
   it('passes through width, height, and className', () => {
-    render(
-      <OptimizedImage
-        {...defaultProps}
-        width={200}
-        height={150}
-        className="custom-class"
-      />
-    );
+    render(<OptimizedImage {...defaultProps} width={200} height={150} className="custom-class" />);
     const img = screen.getByAltText('A descriptive alt text');
     expect(img).toHaveAttribute('width', '200');
     expect(img).toHaveAttribute('height', '150');
-    expect(img).toHaveClass('custom-class');
+    // The className is applied to the <picture> wrapper so callers can style
+    // the whole figure without clobbering the image's CSS-module class.
+    expect(img.closest('picture')).toHaveClass('custom-class');
   });
 
   it('renders WebP source when webpSrc is provided', () => {

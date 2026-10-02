@@ -6,13 +6,13 @@ description: How Soroban derives contract addresses from a deployer address and 
 
 # Contract IDs & Deploy Salt
 
-Every Soroban contract has a **contract ID** — a `C...` StrKey address that uniquely identifies it on the network. Unlike an account address, a contract ID is not chosen; it is *derived* from the way the contract was created. Understanding that derivation lets you predict a contract's address before it is deployed, which matters for allowlisting, factory patterns, and reproducible deployments.
+Every Soroban contract has a **contract ID** — a `C...` StrKey address that uniquely identifies it on the network. Unlike an account address, a contract ID is not chosen; it is _derived_ from the way the contract was created. Understanding that derivation lets you predict a contract's address before it is deployed, which matters for allowlisting, factory patterns, and reproducible deployments.
 
 ## What a Contract ID Is
 
 A contract ID is a SHA-256 hash, encoded as a StrKey with the `C` prefix (contract addresses use version byte `2` in the StrKey scheme, the same way account addresses use `G`). The hash is computed from a **`ContractIdPreimage`**, which differs depending on how the contract was created:
 
-- **Address-based deployment** (the common case — deploying from an account or another contract): the preimage is built from the *deployer's address* and a **32-byte salt**.
+- **Address-based deployment** (the common case — deploying from an account or another contract): the preimage is built from the _deployer's address_ and a **32-byte salt**.
 - **Asset-based deployment** (Stellar Asset Contracts): the preimage is built from the Stellar `Asset` itself, so a classic asset always maps to the same contract ID on a given network.
 
 This cookbook focuses on address-based deployment, since that's what the [contract factory pattern](/docs/patterns/contract-factory) and manual `stellar contract deploy` both use.
@@ -21,7 +21,7 @@ This cookbook focuses on address-based deployment, since that's what the [contra
 
 For an address-based deployment, the network combines three inputs into the final contract ID:
 
-1. **Network ID** — the SHA-256 hash of the network passphrase (e.g. `"Test SDF Network ; September 2015"` for testnet). This is why the *same* deployer and salt produce *different* contract IDs on testnet vs. mainnet.
+1. **Network ID** — the SHA-256 hash of the network passphrase (e.g. `"Test SDF Network ; September 2015"` for testnet). This is why the _same_ deployer and salt produce _different_ contract IDs on testnet vs. mainnet.
 2. **Deployer address** — the account or contract address that submits the deployment.
 3. **Salt** — a 32-byte value you choose.
 
@@ -34,7 +34,7 @@ contract_id = sha256(
 )
 ```
 
-Because every input is known *before* the deployment transaction executes, **the resulting contract ID is fully predictable** — you don't need to wait for the deployment to succeed to know the address it will produce.
+Because every input is known _before_ the deployment transaction executes, **the resulting contract ID is fully predictable** — you don't need to wait for the deployment to succeed to know the address it will produce.
 
 ### Why the Salt Matters
 
@@ -99,18 +99,18 @@ Because `with_current_contract(salt)` uses the **factory contract's own address*
 
 ## Choosing a Salt Strategy
 
-| Strategy | Predictability | Use When |
-|---|---|---|
-| Incrementing counter | Fully predictable given current count | Simple factories, sequential deployments |
-| `sha256(deterministic input)` (e.g. user address, pool pair) | Predictable by anyone who knows the input | You want a stable, content-addressed ID (e.g. "the pool for token A/B") |
-| Random / caller-supplied | Predictable only by whoever chose it | You want deployers to reserve an address in advance without revealing it publicly until deploy time |
+| Strategy                                                     | Predictability                            | Use When                                                                                            |
+| ------------------------------------------------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Incrementing counter                                         | Fully predictable given current count     | Simple factories, sequential deployments                                                            |
+| `sha256(deterministic input)` (e.g. user address, pool pair) | Predictable by anyone who knows the input | You want a stable, content-addressed ID (e.g. "the pool for token A/B")                             |
+| Random / caller-supplied                                     | Predictable only by whoever chose it      | You want deployers to reserve an address in advance without revealing it publicly until deploy time |
 
-Avoid deriving a salt from anything that isn't fixed at the time you need to predict the address (a future ledger timestamp, an oracle value, etc.) — see [Randomness & Entropy](/docs/concepts/randomness) for why unpredictable-until-deployment salts create the same problems as unpredictable randomness elsewhere in a contract.
+Avoid deriving a salt from anything that isn't fixed at the time you need to predict the address (a future ledger timestamp, an oracle value, etc.) — see [Randomness & Entropy](./randomness) for why unpredictable-until-deployment salts create the same problems as unpredictable randomness elsewhere in a contract.
 
 ## Related Reading
 
 - [Contract Factory Pattern](/docs/patterns/contract-factory) — the deployment code this page's examples are drawn from
-- [Contract Registry Pattern](/docs/patterns/contract-registry) — mapping stable names to deployed addresses when you'd rather not rely on salt prediction
+- [Contract Registry Pattern](../patterns/contract-registry) — mapping stable names to deployed addresses when you'd rather not rely on salt prediction
 - [Deploy to Testnet](/docs/getting-started/deploy-testnet) — the manual `stellar contract deploy` workflow
 - [Soroban Deployer Docs](https://developers.stellar.org/docs/smart-contracts/deploying) — official reference for `ContractIdPreimage` and the deployer host functions
 

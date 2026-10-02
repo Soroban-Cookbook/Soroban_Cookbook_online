@@ -87,7 +87,9 @@ impl RefundableDeposit {
         let token_client = token::Client::new(&env, &token);
         token_client.transfer(&depositor, &env.current_contract_address(), &amount);
 
-        env.storage().persistent().set(&DataKey::Depositor, &depositor);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Depositor, &depositor);
         env.storage().persistent().set(&DataKey::Amount, &amount);
         env.storage()
             .persistent()
@@ -210,7 +212,9 @@ impl RefundableDeposit {
 mod tests {
     use super::*;
     use soroban_sdk::{
-        testutils::Address as _, token::{self, StellarAssetClient}, Address, Env,
+        testutils::Address as _,
+        token::{self, StellarAssetClient},
+        Address, Env,
     };
 
     fn create_token<'a>(
@@ -219,14 +223,22 @@ mod tests {
         to: &Address,
         amount: i128,
     ) -> (Address, token::Client<'a>) {
-        let contract_address = env.register_stellar_asset_contract_v2(admin.clone()).address();
+        let contract_address = env
+            .register_stellar_asset_contract_v2(admin.clone())
+            .address();
         let sac = StellarAssetClient::new(env, &contract_address);
         sac.mint(to, &amount);
         let client = token::Client::new(env, &contract_address);
         (contract_address, client)
     }
 
-    fn setup() -> (Env, Address, Address, Address, RefundableDepositClient<'static>) {
+    fn setup() -> (
+        Env,
+        Address,
+        Address,
+        Address,
+        RefundableDepositClient<'static>,
+    ) {
         let env = Env::default();
         env.mock_all_auths();
 

@@ -41,12 +41,12 @@ unlock_time() / amount() / beneficiary() / time_remaining() / is_claimed()
 
 ## Storage layout
 
-| Key           | Type      | Storage    | Description                            |
-|---------------|-----------|------------|----------------------------------------|
-| `Depositor`   | `Address` | persistent | Account that locked the funds          |
-| `Beneficiary` | `Address` | persistent | Account allowed to withdraw after lock |
-| `Amount`      | `i128`    | persistent | Token amount locked (stroops)          |
-| `UnlockTime`  | `u64`     | persistent | Unix timestamp (seconds) for release   |
+| Key           | Type      | Storage    | Description                              |
+| ------------- | --------- | ---------- | ---------------------------------------- |
+| `Depositor`   | `Address` | persistent | Account that locked the funds            |
+| `Beneficiary` | `Address` | persistent | Account allowed to withdraw after lock   |
+| `Amount`      | `i128`    | persistent | Token amount locked (stroops)            |
+| `UnlockTime`  | `u64`     | persistent | Unix timestamp (seconds) for release     |
 | `Claimed`     | `bool`    | persistent | Whether vault has been claimed/cancelled |
 
 `persistent` storage ensures the vault survives ledger TTL expiry without manual extension.
@@ -198,26 +198,31 @@ This prevents re-entrancy even though Soroban's execution model already guards a
 at the host level — the pattern makes the intent explicit.
 
 **Why reentrancy does not apply as written:**
+
 - `deposit`, `withdraw`, and `cancel` only perform internal persistent storage reads and writes (`env.storage().persistent()`).
 - No external cross-contract calls, callbacks, or token transfer invocations are performed. Without external contract invocations, untrusted code cannot regain control mid-execution.
 
 **Limits when extending to real asset transfers:**
+
 - If you extend `withdraw` or `cancel` to call an external token contract (such as calling `token::Client::new(&env, &token_address).transfer(...)`), an external call runs before transaction finalization.
-- Adhering to the checks-effects pattern shown here—marking `Claimed = true` in storage *before* initiating any external transfer—ensures that an attacker cannot perform a reentrant withdrawal even if a malicious contract receives execution flow.
-- For complex multi-asset distributions or hooks, implement an explicit reentrancy lock using the [Reentrancy Guard pattern](./reentrancy-guard).
+- Adhering to the checks-effects pattern shown here—marking `Claimed = true` in storage _before_ initiating any external transfer—ensures that an attacker cannot perform a reentrant withdrawal even if a malicious contract receives execution flow.
+- For complex multi-asset distributions or hooks, implement an explicit reentrancy lock using the Reentrancy Guard pattern.
 
 ### `persistent` over `instance` storage
+
 Vault state must survive beyond a single ledger bump window.
 `persistent` storage entries have an independent TTL that can be extended,
 making them appropriate for long-duration locks (months/years).
 
 ### Depositor authorisation on `cancel`
+
 `cancel` calls `depositor.require_auth()` so the depositor's signature must be
 present in the transaction's authorisation tree. This prevents a third party from
 prematurely cancelling a vault on behalf of the depositor.
 
 ### No token interface in this example
-This contract records *amounts* but does not move tokens directly — it is intentionally
+
+This contract records _amounts_ but does not move tokens directly — it is intentionally
 scoped as a **basic** vault to demonstrate the time-lock pattern without the additional
 complexity of SAC (Stellar Asset Contract) integration. See the token-transfer example
 for cross-contract token movement.
@@ -254,15 +259,15 @@ test result: ok. 16 passed; 0 failed
 
 ## Error reference
 
-| Code | Variant              | Meaning                                              |
-|------|----------------------|------------------------------------------------------|
-| 1    | `AlreadyInitialised` | `deposit` called on an already-initialised vault     |
-| 2    | `NotInitialised`     | Any call before `deposit`                            |
-| 3    | `NotUnlockedYet`     | `withdraw` called before `unlock_time`               |
-| 4    | `AlreadyClaimed`     | `withdraw` or `cancel` on an already-claimed vault   |
-| 5    | `Unauthorised`       | `cancel` called at or after `unlock_time`            |
-| 6    | `InvalidAmount`      | `amount` is zero or negative                         |
-| 7    | `InvalidUnlockTime`  | `unlock_time` is not strictly in the future          |
+| Code | Variant              | Meaning                                            |
+| ---- | -------------------- | -------------------------------------------------- |
+| 1    | `AlreadyInitialised` | `deposit` called on an already-initialised vault   |
+| 2    | `NotInitialised`     | Any call before `deposit`                          |
+| 3    | `NotUnlockedYet`     | `withdraw` called before `unlock_time`             |
+| 4    | `AlreadyClaimed`     | `withdraw` or `cancel` on an already-claimed vault |
+| 5    | `Unauthorised`       | `cancel` called at or after `unlock_time`          |
+| 6    | `InvalidAmount`      | `amount` is zero or negative                       |
+| 7    | `InvalidUnlockTime`  | `unlock_time` is not strictly in the future        |
 
 ## Next steps
 

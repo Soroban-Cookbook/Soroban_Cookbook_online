@@ -50,7 +50,7 @@ export function formatFilename(name: string, language: string = 'rust'): string 
   // Convert to kebab-case: remove non-alphanumeric, convert camelCase to kebab-case
   const kebabName = name
     .replace(/([a-z])([A-Z])/g, '$1-$2') // Insert hyphen before uppercase letters
-    .replace(/[^a-z0-9-]/gi, '') // Remove non-alphanumeric except hyphens
+    .replace(/[^a-z0-9-]/gi, '-') // Replace invalid characters with hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with single
     .toLowerCase();
 

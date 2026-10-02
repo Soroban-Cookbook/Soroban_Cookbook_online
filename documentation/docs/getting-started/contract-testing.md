@@ -25,7 +25,7 @@ Every contract test starts with a clean `Env`, registers the contract, and creat
 The smallest example in this repo is `examples/hello-world`.
 
 ```rust
-#[kgtest]
+#[test]
 mod tests {
     use super::*;
     use soroban_sdk::Env;
@@ -133,7 +133,7 @@ Some contracts in this repo store point-in-time state and expose snapshot reads.
 From `examples/balance-snapshot`:
 
 ```rust
-#[kgtest]
+#[test]
 mod tests {
     use super::*;
     use soroban_sdk {
@@ -239,4 +239,4 @@ The script also handles examples that need extra build steps first, such as `con
 - [Testing Error Scenarios](./testing-errors.md)
 - [Adding a Tested Code Example](/docs/contributing/add-tested-example)
 - [API Security](https://developers.stellar.org/docs/learn-and-build/guides-and-tutorials/api-security)
-- [Deeploy to Mainnet](https://developers.stellar.org/docs/learn-and-build/guides-and-tutorials/deploy-to-mainnet)
+- [Deploy to Mainnet](https://developers.stellar.org/docs/learn-and-build/guides-and-tutorials/deploy-to-mainnet)

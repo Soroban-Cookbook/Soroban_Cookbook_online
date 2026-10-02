@@ -13,9 +13,8 @@ This guide will help you get started with the contribution process, from setting
 ## 🚀 Getting Started
 
 ### Project Overview
+
 Soroban Cookbook is a comprehensive documentation platform for Stellar smart contract development. We aim to provide interactive guides, patterns, and tutorials that are easy to follow and production-ready.
-
-
 
 Soroban Cookbook is a comprehensive documentation platform for Stellar smart contract development. We aim to provides interactive guides, patterns, and tutorials that are easy to follow and production-ready.
 
@@ -150,12 +149,12 @@ bun run test:coverage
 
 The CI enforces a minimum coverage floor to prevent regressions. These values are set in `documentation/vitest.config.ts` under `coverage.thresholds`:
 
-| Metric | Minimum |
-|--------|---------|
-| Lines | 26% |
-| Statements | 26% |
-| Functions | 27% |
-| Branches | 30% |
+| Metric     | Minimum |
+| ---------- | ------- |
+| Lines      | 26%     |
+| Statements | 26%     |
+| Functions  | 27%     |
+| Branches   | 30%     |
 
 **These thresholds represent the current baseline** (measured 2026-08-31). They are a floor — PRs must not drop below them.
 
@@ -224,6 +223,7 @@ Before you hit "Submit", make sure you've checked these off:
 All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for any component, page, or styling changes:
 
 #### Keyboard Navigation
+
 - [ ] All interactive elements (buttons, links, inputs) are reachable via Tab key.
 - [ ] Focus order is logical and follows visual left-to-right, top-to-bottom flow.
 - [ ] Focus indicators are visible (2px outline with clear contrast).
@@ -231,6 +231,7 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] **If adding modals/dropdowns:** Verify focus is trapped inside when open, returns to trigger on close.
 
 #### ARIA Attributes
+
 - [ ] Semantic HTML is used where possible (e.g., `<button>`, `<nav>`, `<main>`, not `<div onclick>`).
 - [ ] Interactive components have appropriate `role`, `aria-label`, or `aria-labelledby`.
 - [ ] Live regions use `role="alert"` with `aria-live="assertive"` for errors; `aria-live="polite"` for notices.
@@ -239,34 +240,40 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] Disabled elements have `aria-disabled="true"` in addition to `disabled` attribute.
 
 #### Color & Contrast
+
 - [ ] Text meets **4.5:1 contrast ratio** (WCAG AA) for normal text, **3:1 for large text** (18pt+).
 - [ ] **Do not rely on color alone** to convey information (e.g., error messages must have icon + text, not just red color).
 - [ ] Test with high contrast mode and in browser DevTools' contrast checker.
 - [ ] Dark mode variants have the same contrast ratios as light mode.
 
 #### Images & Icons
+
 - [ ] Every `<img>` has descriptive `alt` text (e.g., `alt="Stellar logo"`, not `alt="image"`).
 - [ ] Decorative icons have `aria-hidden="true"` and `focusable="false"`.
 - [ ] Icon buttons use `<Icon aria-label="..." />` with a descriptive label.
 - [ ] SVGs with semantic meaning have `role="img"` and `aria-label`.
 
 #### Motion & Animations
+
 - [ ] Animations respect `prefers-reduced-motion: reduce` media query.
 - [ ] Avoid auto-playing videos or animations; provide a pause/play control.
 - [ ] No parallax effects or rapidly flashing content (>3 Hz).
 
 #### Forms & Inputs
+
 - [ ] All form inputs have associated `<label>` elements (via `htmlFor` or wrapping).
 - [ ] Error messages are linked to inputs via `aria-describedby`.
 - [ ] Required fields are marked with `aria-required="true"` or use semantic `required` attribute.
 - [ ] Form submission provides clear error summary and focus management.
 
 #### Skip Links & Navigation
+
 - [ ] Skip-to-content link is present and functional (jumps to main content).
 - [ ] Main navigation is keyboard accessible and properly labeled (e.g., `<nav aria-label="Main navigation">`).
 - [ ] Search component is keyboard accessible and screen-reader friendly.
 
 #### Screen Reader Testing
+
 - [ ] Test with at least one screen reader:
   - **Windows:** NVDA (free, recommended) or JAWS
   - **macOS:** VoiceOver (built-in)
@@ -276,6 +283,7 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] Interactive states (e.g., selected tabs, expanded dropdowns) are announced.
 
 #### Manual Testing Checklist
+
 - [ ] Tab through the page end-to-end with keyboard only (no mouse).
 - [ ] Verify focus indicators are clear at each step.
 - [ ] Test skip-link functionality by pressing Tab immediately after page load.
@@ -284,6 +292,7 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] Reduce zoom to 200% and verify no horizontal overflow or text cutoff.
 
 #### Automated Testing
+
 - [ ] Run `bun run lint` (includes ESLint checks for JSX a11y patterns).
 - [ ] Use browser extensions to scan:
   - **axe DevTools** (free): https://www.deque.com/axe/devtools/
@@ -327,6 +336,6 @@ If you're stuck, feel free to:
 
 - [Internal Linking Strategy](/docs/contributing/internal-linking) — how we structure cross-links for SEO and navigation
 - [Adding a Tested Code Example](/docs/contributing/add-tested-example) — contribute verified examples
-- [Reviewing Soroban Test Snapshots](/docs/contributing/soroban-test-snapshots) — regenerate and review SDK-generated test fixtures
+- [Reviewing Soroban Test Snapshots](./contributing/soroban-test-snapshots) — regenerate and review SDK-generated test fixtures
 - [Pattern Library](/docs/patterns/overview) — where new patterns are catalogued
-- [Reviewing Test Snapshots](/docs/contributing/test-snapshots) — how to review and manage snapshot updates
+- [Reviewing Test Snapshots](./contributing/soroban-test-snapshots) — how to review and manage snapshot updates

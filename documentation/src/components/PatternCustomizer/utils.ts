@@ -96,7 +96,9 @@ export function isValidRustIdentifier(str: string): boolean {
  * Allows alphanumeric, spaces, and common punctuation
  */
 export function isValidRustString(str: string): boolean {
-  const pattern = /^[a-zA-Z0-9\s.,!?-]*$/;
+  // Spaces and tabs only — newlines and other control characters must not
+  // slip into a value that is rendered as a single-line Rust string literal.
+  const pattern = /^[a-zA-Z0-9 \t.,!?-]*$/;
 
   return pattern.test(str);
 }

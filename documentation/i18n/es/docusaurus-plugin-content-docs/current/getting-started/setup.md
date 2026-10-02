@@ -67,7 +67,7 @@ Deberías ver la ayuda del CLI de Soroban.
 
 Ahora que tu entorno está listo:
 
-1. [Crea tu primer contrato](./first-contract.md)
+1. [Crea tu primer contrato](./first-contract)
 2. [Aprende conceptos fundamentales](../concepts/overview)
 3. [Explora patrones](../patterns/overview)
 

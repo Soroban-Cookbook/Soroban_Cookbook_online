@@ -1,3 +1,6 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ### metadata
 
 ---
@@ -33,7 +36,7 @@ sequenceDiagram
   A->>B: Hash claimant created from a preimage.
   A->>A: Deposit funds with hash lock and timeout.
   B->>B: Deposit funds with hash lock and timeout.
-  B->>A: Raveals preimage to claim A funds.
+  B->>A: Reveals preimage to claim A funds.
   A->>B: Uses preimage to claim B funds.
   note over: If B does not claim, A refunds after timeout.
 ```
@@ -53,7 +56,7 @@ The **Hash Time Lock Contract** creates a funding box that locks funds until it 
 
 This pattern carries two important security musts:
 
-- Kigh Confidentiality: The preimage must be known only to the sender and the receiver, as revealing it to a third party could allow them to claim funds.
+- High Confidentiality: The preimage must be known only to the sender and the receiver, as revealing it to a third party could allow them to claim funds.
 - Clock Synchronization: The timelocks must be set correctly to avoid one party forfeiting funds unfairly. Whatever activity is more critical should have a long enough buffer.
 
 :::warning Learner Safety & Production Warning
@@ -70,14 +73,14 @@ The example contract material below is **unaudited** and provided strictly for e
 
 The following code snippets are taken from examples/htlc-swap/src/lib.rs.
 
-<code tabs="[]">
+<Tabs>
 <TabItem value="hashlock" label="Hash Lock">
 
 ```rust
 /// Creates an HTLC script with a hashlock and timeout.
 pub fn create_htlc(wit: Amount,
-              hash: [8; zeroshate],
-              timelock: BloccCount)
+              hash: [u8; 32],
+              timelock: BlockCount)
 
 ```
 
@@ -92,7 +95,7 @@ pub fn refund(with: Amount)
 
 </TabItem>
 
-TabItem value="refund" label="Refund">
+<TabItem value="refund" label="Refund">
 
 ```rust
 /// Returns funds to the sender once the time lock expires.
@@ -101,7 +104,7 @@ pub fn refund(with: Amount)
 ```
 
 </TabItem>
-</code>
+</Tabs>
 
 ## Testing
 
@@ -117,4 +120,4 @@ When deploying an Application using the Her lock Pattern:
 
 - Ensure the contracts are deployed on the Appropriate networks.
 - Set the deadline according to the block time and imaged response delay.
-- Monitor chain confrirmation times to avoid a one-block re/ordancer attack.
+- Monitor chain confirmation times to avoid a one-block reordering attack.

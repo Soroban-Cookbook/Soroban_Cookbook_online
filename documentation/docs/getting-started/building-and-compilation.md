@@ -7,7 +7,7 @@ sidebar_position: 4
 
 This guide walks through the complete compilation pipeline for Soroban contracts: from Rust source code to a deployable WebAssembly (WASM) artifact. You will learn how each build step works, how to control build flags for debug versus release output, and how to diagnose common compilation errors.
 
-OS-specific install steps, rust-analyzer, and WASM target checklists are in the [Environment Setup](./setup.md) guides: [Linux](./setup-linux.md), [macOS](./setup-macos.md), [Windows](./setup-windows.md).
+OS-specific install steps, rust-analyzer, and WASM target checklists are in the [Environment Setup](./setup) guides: [Linux](./setup-linux.md), [macOS](./setup-macos.md), [Windows](./setup-windows.md).
 
 ## Repository toolchain
 
@@ -412,7 +412,7 @@ Deploy only after tests pass. Testnet steps are in [Deploy to Testnet](/docs/get
 ## Next steps
 
 - [Environment Setup](/docs/getting-started/setup) — Linux, macOS, and Windows toolchains, WASM target, rust-analyzer
-- [Development Tools](/docs/getting-started/development-tools) — Stellar CLI, rust-analyzer, repository toolchain
+- [Development Tools](./development-tools) — Stellar CLI, rust-analyzer, repository toolchain
 - [Your First Contract](/docs/getting-started/first-contract) — Hello World crate walkthrough
 - [Local Testing and Simulation](/docs/getting-started/local-testing-and-simulation) — test before deploying
 - [Deploy to Testnet](/docs/getting-started/deploy-testnet) — put your compiled contract on the network

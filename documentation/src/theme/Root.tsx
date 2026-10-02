@@ -151,7 +151,7 @@ export default function Root({ children }: RootProps): React.JSX.Element {
       <FunnelTracker />
       <SearchAnalytics />
       <SearchLoading />
-      <ConsentBanner />
+      <CookieConsent />
       <BrowserOnly>{() => <KeyboardShortcuts />}</BrowserOnly>
     </ProgressProvider>
   );

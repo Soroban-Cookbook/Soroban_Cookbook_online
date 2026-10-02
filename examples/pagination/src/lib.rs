@@ -26,8 +26,12 @@ pub struct Pagination;
 #[contractimpl]
 impl Pagination {
     pub fn __constructor(env: Env) {
-        env.storage().persistent().set(&DataKey::Values, &Vec::<i128>::new(&env));
-        env.storage().persistent().set(&DataKey::Entries, &Map::<u32, i64>::new(&env));
+        env.storage()
+            .persistent()
+            .set(&DataKey::Values, &Vec::<i128>::new(&env));
+        env.storage()
+            .persistent()
+            .set(&DataKey::Entries, &Map::<u32, i64>::new(&env));
     }
 
     pub fn set_values(env: Env, values: Vec<i128>) {
@@ -58,7 +62,12 @@ impl Pagination {
         Ok(page)
     }
 
-    fn slice_vec(env: &Env, values: &Vec<i128>, start: u32, limit: u32) -> Result<Vec<i128>, Error> {
+    fn slice_vec(
+        env: &Env,
+        values: &Vec<i128>,
+        start: u32,
+        limit: u32,
+    ) -> Result<Vec<i128>, Error> {
         if limit > MAX_PAGE_SIZE {
             return Err(Error::LimitTooLarge);
         }
@@ -74,7 +83,12 @@ impl Pagination {
         Ok(page)
     }
 
-    fn slice_map(env: &Env, entries: &Map<u32, i64>, start: u32, limit: u32) -> Result<Map<u32, i64>, Error> {
+    fn slice_map(
+        env: &Env,
+        entries: &Map<u32, i64>,
+        start: u32,
+        limit: u32,
+    ) -> Result<Map<u32, i64>, Error> {
         if limit > MAX_PAGE_SIZE {
             return Err(Error::LimitTooLarge);
         }
@@ -139,12 +153,22 @@ mod tests {
     #[test]
     fn test_map_pagination_returns_expected_slice() {
         let (env, client) = setup();
-        let entries = map![&env, (1u32, 10i64), (2u32, 20i64), (3u32, 30i64), (4u32, 40i64), (5u32, 50i64)];
+        let entries = map![
+            &env,
+            (1u32, 10i64),
+            (2u32, 20i64),
+            (3u32, 30i64),
+            (4u32, 40i64),
+            (5u32, 50i64)
+        ];
         client.set_entries(&entries);
 
         let page = client.get_entries(&1, &3);
 
-        assert_eq!(page, map![&env, (2u32, 20i64), (3u32, 30i64), (4u32, 40i64)]);
+        assert_eq!(
+            page,
+            map![&env, (2u32, 20i64), (3u32, 30i64), (4u32, 40i64)]
+        );
     }
 
     #[test]

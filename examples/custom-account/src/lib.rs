@@ -141,7 +141,11 @@ mod tests {
         BytesN::from_array(env, &sig.to_bytes())
     }
 
-    fn create_account(env: &Env, public_key: BytesN<32>, spend_limit: i128) -> CustomAccountClient<'_> {
+    fn create_account(
+        env: &Env,
+        public_key: BytesN<32>,
+        spend_limit: i128,
+    ) -> CustomAccountClient<'_> {
         let client = CustomAccountClient::new(env, &env.register(CustomAccount, ()));
         client.init(&public_key, &spend_limit);
         client

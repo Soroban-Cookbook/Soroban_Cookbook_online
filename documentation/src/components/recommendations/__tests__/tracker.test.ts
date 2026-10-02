@@ -116,7 +116,7 @@ describe('recommendation tracker', () => {
     expect(getHistory()).toEqual(emptyHistory);
     expect(errorSpy).toHaveBeenCalledWith(
       'Failed to parse recommendation history from localStorage',
-      expect.any(SyntaxError)
+      expect.any(SyntaxError),
     );
   });
 });

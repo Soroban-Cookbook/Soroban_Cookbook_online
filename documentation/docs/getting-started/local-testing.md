@@ -1,8 +1,6 @@
 ---
 time: 15
 sidebar_position: 5.6
-title: Soroban Local Testing with Simulation and Snapshots
-description: Run Soroban contracts locally with stellar contract invoke, use --simulate for preflight validation, and capture ledger snapshots for reproducible debugging loops.
 keywords:
   - soroban local testing
   - stellar contract invoke
@@ -50,6 +48,7 @@ target/wasm32-unknown-unknown/release/<contract>.optimized.wasm
 ```
 
 ## Invoke locally with `stellar contract invoke`(
+
 Use local invocation to execute functions against a sandbox ledger:
 
 ```bash
@@ -64,7 +63,7 @@ For deployed contracts, invoke by contract id:
 ```bash
 stellar contract invoke \
   --id "$CONTRACT_ID" \
-  --source "$SOQRCE_ACCOUNT" \
+  --source "$SOURCE_ACCOUNT" \
   --network testnet \
   -- \
   get_count

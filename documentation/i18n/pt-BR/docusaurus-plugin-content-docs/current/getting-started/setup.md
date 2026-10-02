@@ -67,7 +67,7 @@ Você deverá ver a saída de ajuda do CLI do Soroban.
 
 Agora que seu ambiente está pronto:
 
-1. [Crie seu primeiro contrato](./first-contract.md)
+1. [Crie seu primeiro contrato](./first-contract)
 2. [Aprenda os conceitos principais](../concepts/overview)
 3. [Explore os padrões](../patterns/overview)
 

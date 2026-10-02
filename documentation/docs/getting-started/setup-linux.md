@@ -20,7 +20,7 @@ Before you begin, ensure you have:
 - **Rust** - Latest **stable** toolchain via rustup (this repo has no `rust-toolchain.toml`; CI uses stable)
 - **Stellar CLI** (`stellar`) - Command-line interface for contract build and deploy
 - **wasm32-unknown-unknown** - Required WASM target (see checklist below)
-- **Code Editor** - VS Code or your preferred editor, with [rust-analyzer](#rust-analyzer)
+- **Code Editor** - VS Code or your preferred editor, with [rust-analyzer](#6-rust-analyzer)
 - **Rust** - Latest stable version
 - **Stellar CLI** - Command-line interface for Stellar and Soroban smart contracts
 - **Code Editor** - VS Code or your preferred editor

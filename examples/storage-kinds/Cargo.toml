@@ -1,3 +1,7 @@
+# Standalone package (own workspace) so `cargo test --manifest-path` works
+# without being a member of the shared examples workspace.
+[workspace]
+
 [package]
 name = "storage-kinds"
 version = "0.1.0"

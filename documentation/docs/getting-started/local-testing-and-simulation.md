@@ -14,7 +14,7 @@ Test your Soroban contracts in a local sandbox environment before deploying to t
 
 ## Prerequisites
 
-- [Soroban CLI installed](./setup.md) (`stellar --version`)
+- [Soroban CLI installed](./setup) (`stellar --version`)
 - [Contract project initialized](./first-contract.md) or use the counter example from this repo
 - Rust toolchain with `wasm32-unknown-unknown` target
 
@@ -329,7 +329,7 @@ fn test_storage_inspection() {
 
 With the Soroban SDK `testutils` feature enabled, the repository's locked SDK writes meaningful test-environment state under `test_snapshots/` automatically when the final test `Env` reference is dropped. The current SDK does not use `SOROBAN_SNAPSHOT_DIR` or `UPDATE_EXPECT` as an approval gate. Run the relevant Cargo test normally, then inspect the generated-file changes in Git before committing them.
 
-See [Reviewing Soroban Test Snapshots](/docs/contributing/soroban-test-snapshots) for the exact token-transfer workflow and authorization, ledger, and event review checklist.
+See [Reviewing Soroban Test Snapshots](../contributing/soroban-test-snapshots) for the exact token-transfer workflow and authorization, ledger, and event review checklist.
 
 ### State Table Inspection
 

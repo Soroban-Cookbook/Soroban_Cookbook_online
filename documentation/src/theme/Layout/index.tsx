@@ -1,11 +1,6 @@
 import React from 'react';
 import Layout from '@theme-original/Layout';
 import { BookmarkButton } from '../../components/BookmarkButton';
-
-export default function L(props: Record<string, unknown>) {
-  return (
-    <>
-      <Layout {...props} />
 import KeyboardShortcuts from '../../components/KeyboardShortcuts';
 
 type LayoutProps = React.ComponentProps<typeof Layout>;

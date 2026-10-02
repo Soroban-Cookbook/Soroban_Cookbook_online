@@ -46,7 +46,7 @@ The full implementation is available in [`examples/multisig-wallet/src/lib.rs`](
 
 | Function                       | Description                                                                              |
 | ------------------------------ | ---------------------------------------------------------------------------------------- |
-| `set_threshold(new_threshold)` | Updates the approval threshold. Must be etween `1` and the total number of signers.      |
+| `set_threshold(new_threshold)` | Updates the approval threshold. Must be between `1` and the total number of signers.     |
 | `approve(proposal_id)`         | Marks the caller as approving the given proposal. Callable only by authorized signers.   |
 | `execute(proposal_id)`         | Executes the proposal if the number of approvals meets or exceeds the current threshold. |
 | `revoke(proposal_id)`          | Removes the caller's approval, potentially dropping the proposal below threshold.        |

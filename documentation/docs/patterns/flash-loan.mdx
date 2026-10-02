@@ -36,9 +36,10 @@ This pattern demonstrates how to implement a **Flash Loan** pool in Soroban. Bec
 <Callout variant="warning" title="Unaudited Educational Example — Not for Production">
   This contract pattern is an educational example and has not undergone an independent security audit. Do not deploy this snippet to production or mainnet without substantial hardening, complete test coverage, and formal review.
 
-  **Security & Architectural Limitations:**
-  - **Authorization & `require_auth`:** The pool's public `flash_loan` entrypoint intentionally does not require caller authentication because flash loans are permissionless by design. However, administrative functions (such as `initialize` and `withdraw_fees`) require explicit `admin.require_auth()` authorization, and `deposit_liquidity` requires `from.require_auth()`. Furthermore, the receiver's `execute_operation` callback must verify that the calling `pool` matches the expected pool address to prevent unauthorized execution or spoofed callback attacks.
-  - **Storage TTL & Data Expiry:** The pool's configuration (`Admin`, `Token`, `FeeBps`, `FeesCollected`) is stored in `instance` storage. In Soroban, instance storage entries share the contract instance's time-to-live (TTL). If the instance TTL is not routinely monitored and extended via `env.storage().instance().extend_ttl(...)`, the contract and its state will expire, disabling flash loan operations until restored.
+**Security & Architectural Limitations:**
+
+- **Authorization & `require_auth`:** The pool's public `flash_loan` entrypoint intentionally does not require caller authentication because flash loans are permissionless by design. However, administrative functions (such as `initialize` and `withdraw_fees`) require explicit `admin.require_auth()` authorization, and `deposit_liquidity` requires `from.require_auth()`. Furthermore, the receiver's `execute_operation` callback must verify that the calling `pool` matches the expected pool address to prevent unauthorized execution or spoofed callback attacks.
+- **Storage TTL & Data Expiry:** The pool's configuration (`Admin`, `Token`, `FeeBps`, `FeesCollected`) is stored in `instance` storage. In Soroban, instance storage entries share the contract instance's time-to-live (TTL). If the instance TTL is not routinely monitored and extended via `env.storage().instance().extend_ttl(...)`, the contract and its state will expire, disabling flash loan operations until restored.
 </Callout>
 
 ### The Receiver Interface
@@ -54,7 +55,7 @@ pub trait FlashLoanReceiverInterface {
 
 ### Atomic Repayment and Fee
 
-The pool implements the `flash_loan` function. It calculates the fee, transfers the tokens to the receiver, invokes the receiver's callback, and then verifies that the pool's balance has increased by at least the required fee. 
+The pool implements the `flash_loan` function. It calculates the fee, transfers the tokens to the receiver, invokes the receiver's callback, and then verifies that the pool's balance has increased by at least the required fee.
 
 ```rust
 pub fn flash_loan(env: Env, receiver: Address, amount: i128) -> Result<i128, Error> {
@@ -80,7 +81,7 @@ pub fn flash_loan(env: Env, receiver: Address, amount: i128) -> Result<i128, Err
     if balance_after < required {
         panic!("flash-loan: repayment not received");
     }
-    
+
     // ... update fees collected ...
     Ok(fee)
 }
@@ -111,15 +112,15 @@ fn test_failed_flash_loan_leaves_pool_state_untouched() {
 }
 ```
 
-This explains the non-repay test scenario and proves the atomic nature of the flash loan, which is correctly enforced by the Soroban environment. 
+This explains the non-repay test scenario and proves the atomic nature of the flash loan, which is correctly enforced by the Soroban environment.
 
 </PatternSection>
 
 <PatternSection id="security" title="Security & Reentrancy">
 
-Because the balance check happens *after* control returns from the receiver, the contract never trusts the receiver's return value for the critical invariant — it verifies the token balance directly. 
+Because the balance check happens _after_ control returns from the receiver, the contract never trusts the receiver's return value for the critical invariant — it verifies the token balance directly.
 
-This mirrors the checks-effects-interactions discipline used in the [Reentrancy Guard](./reentrancy-guard.mdx) pattern, applied to a borrow-repay invariant instead of a double-spend invariant. The transaction's atomic rollback capability eliminates the need for complex internal mutex lock state flags for the repayment mechanic itself.
+This mirrors the checks-effects-interactions discipline used in the Reentrancy Guard pattern, applied to a borrow-repay invariant instead of a double-spend invariant. The transaction's atomic rollback capability eliminates the need for complex internal mutex lock state flags for the repayment mechanic itself.
 
 See the [DeFi Security Guide](../security/defi-patterns.md) for more details.
 

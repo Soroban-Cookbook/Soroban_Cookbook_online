@@ -186,7 +186,7 @@ The `--features opt` flag embeds `wasm-opt` (via binaryen) directly into `stella
 
 ## Related Documentation
 
-- [Environment Setup](./setup.md) — complete setup guide for all platforms
+- [Environment Setup](./setup) — complete setup guide for all platforms
 - [Building & Compilation](./building-and-compilation.md) — advanced Wasm optimization
 - [Deploy to Testnet](./deploy-testnet.md) — full deployment walkthrough
 - [Contract Interaction](./contract-interaction.md) — CLI and SDK invocation patterns

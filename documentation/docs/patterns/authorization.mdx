@@ -68,11 +68,11 @@ The example code in this pattern is for educational purposes and has not been au
 
 The [`examples/authorization/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/authorization/src/lib.rs) crate implements a minimal, two-tier ownership model:
 
-| Entrypoint | Auth required | Purpose |
-|---|---|---|
-| `initialize(owner)` | None (call-once pattern) | Store the owner address in persistent storage |
-| `set_admin(admin)` | `owner.require_auth()` | Owner-gated admin assignment |
-| `privileged_action()` | `admin.require_auth()` | Admin-gated privileged operation |
+| Entrypoint            | Auth required            | Purpose                                       |
+| --------------------- | ------------------------ | --------------------------------------------- |
+| `initialize(owner)`   | None (call-once pattern) | Store the owner address in persistent storage |
+| `set_admin(admin)`    | `owner.require_auth()`   | Owner-gated admin assignment                  |
+| `privileged_action()` | `admin.require_auth()`   | Admin-gated privileged operation              |
 
 ### Current scope
 
@@ -188,13 +188,14 @@ Key points:
 - Prefer dedicated setter methods guarded by the highest privilege.
 
 **Documented gaps in this crate:**
+
 - `require_auth_for_args` is not yet demonstrated — it further restricts authorization to a specific function+args tuple.
 - Auth trees (cross-contract `require_auth` propagation) are not covered.
 - Custom accounts (`__check_auth`) are not covered.
 
-  </TabItem>
+</TabItem>
 
-  <TabItem value="test" label="Tests">
+<TabItem value="test" label="Tests">
 
 The tests below match the actual test suite in [`examples/authorization/src/lib.rs`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/authorization/src/lib.rs):
 

@@ -15,21 +15,24 @@ export const DEFAULT_PREREQUISITES: PrerequisiteItem[] = [
   {
     id: 'rust',
     name: 'Rust (stable)',
-    description: 'Rust compiler and Cargo package manager for smart contract development. This cookbook has no rust-toolchain.toml; CI uses stable.',
+    description:
+      'Rust compiler and Cargo package manager for smart contract development. This cookbook has no rust-toolchain.toml; CI uses stable.',
     verifyCommand: 'rustc --version && cargo --version',
     guideUrl: '/docs/getting-started/setup#1-install-rust',
   },
   {
     id: 'stellar-cli',
     name: 'Stellar CLI',
-    description: 'Command-line tool to build, simulate, and deploy Soroban contracts (`stellar`). Replaces the older `soroban` binary name.',
+    description:
+      'Command-line tool to build, simulate, and deploy Soroban contracts (`stellar`). Replaces the older `soroban` binary name.',
     verifyCommand: 'stellar --version',
     guideUrl: '/docs/getting-started/setup#2-install-stellar-cli',
   },
   {
     id: 'wasm-target',
     name: 'WASM Target (wasm32-unknown-unknown)',
-    description: 'WebAssembly target used by this repository examples, CI, and scripts/test-examples.sh.',
+    description:
+      'WebAssembly target used by this repository examples, CI, and scripts/test-examples.sh.',
     verifyCommand: 'rustup target list --installed',
     guideUrl: '/docs/getting-started/setup#3-add-the-wasm-target-required',
   },
@@ -43,7 +46,8 @@ export const DEFAULT_PREREQUISITES: PrerequisiteItem[] = [
   {
     id: 'code-editor',
     name: 'Code Editor (VS Code / rust-analyzer)',
-    description: 'Editor configured with rust-analyzer. Link examples/Cargo.toml when opening this repository.',
+    description:
+      'Editor configured with rust-analyzer. Link examples/Cargo.toml when opening this repository.',
     optional: true,
   },
 ];

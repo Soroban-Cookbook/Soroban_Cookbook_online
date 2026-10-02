@@ -16,6 +16,7 @@ import DocFeedback from '@site/src/components/DocFeedback';
 import ScrollSpyActivator from '@site/src/components/ScrollSpyActivator';
 import ProgressToggleButton from '@site/src/components/ProgressToggleButton/ProgressToggleButton';
 import { RecommendationWidget } from '@site/src/components/recommendations';
+import DocStructuredData from '../DocStructuredData';
 import styles from './styles.module.css';
 
 type Props = React.ComponentProps<typeof Content>;
@@ -33,6 +34,7 @@ export default function DocItemContentWrapper(props: Props): ReactNode {
 
   return (
     <>
+      <DocStructuredData />
       {label && rawTime != null && rawTime !== '' ? (
         <div className={styles.estimatedTimeRow}>
           <EstimatedTime time={rawTime} />

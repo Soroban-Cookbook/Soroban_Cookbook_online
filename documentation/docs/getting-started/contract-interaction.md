@@ -10,7 +10,7 @@ image: /img/soroban-social-card.png
 
 This tutorial shows how to interact with a deployed Soroban contract from both the command line and application contexts. It covers read-only and state-changing calls, argument encoding, frontend integration patterns, and common error cases with fixes.
 
-Under the hood, all state-changing contract invocations use a two-phase lifecycle: the CLI or SDK first performs an off-chain **preflight simulation** to discover the transaction's storage **footprint** and authorization tree, and then submits the signed transaction for on-chain execution. To understand how footprints and auth modes work in depth, see the [Simulation and Footprints](/docs/concepts/simulation-and-footprints) guide.
+Under the hood, all state-changing contract invocations use a two-phase lifecycle: the CLI or SDK first performs an off-chain **preflight simulation** to discover the transaction's storage **footprint** and authorization tree, and then submits the signed transaction for on-chain execution. To understand how footprints and auth modes work in depth, see the [Simulation and Footprints](../concepts/simulation-and-footprints) guide.
 
 ## Prerequisites
 
@@ -266,7 +266,7 @@ const response = await fetch('/api/contract/invoke', {
 ### 7. Footprint mismatch / on-chain storage failure
 
 - Problem: The invocation succeeded during simulation but failed on-chain with `HostError: Error(Storage, MissingValue)` or a footprint violation. This occurs when state changes between preflight simulation and on-chain inclusion, causing the contract to access an undeclared storage key.
-- Fix: Re-simulate the transaction against the latest ledger to refresh the footprint and authorization tree, minimize simulation-to-submission latency, and avoid dynamic on-chain key lookups. See [Simulation and Footprints](/docs/concepts/simulation-and-footprints) for details.
+- Fix: Re-simulate the transaction against the latest ledger to refresh the footprint and authorization tree, minimize simulation-to-submission latency, and avoid dynamic on-chain key lookups. See [Simulation and Footprints](../concepts/simulation-and-footprints) for details.
 
 ## Best practices
 
@@ -278,8 +278,8 @@ const response = await fetch('/api/contract/invoke', {
 
 ## Related resources
 
-- [Simulation and Footprints](/docs/concepts/simulation-and-footprints) — understand preflight simulation, footprints, auth modes, and on-chain failures
-- [Wallet integration guide](/docs/getting-started/wallets) — connect Freighter and sign transactions from a dapp
+- [Simulation and Footprints](../concepts/simulation-and-footprints) — understand preflight simulation, footprints, auth modes, and on-chain failures
+- [Wallet integration guide](./wallets) — connect Freighter and sign transactions from a dapp
 - [Pattern Library](/docs/patterns/overview) — reusable contract patterns
 - [Transaction Anatomy: Invoking a Contract](./invoke-host-function) — XDR structure and Stellar Lab walkthrough
 - [JavaScript SDK](./js-sdk.md) — browser RPC client and Freighter signing

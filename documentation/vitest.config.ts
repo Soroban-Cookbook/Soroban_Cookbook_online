@@ -10,12 +10,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     css: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: [
-      ...configDefaults.exclude,
-      'e2e/**',
-      '**/sanitizeUrl.test.ts',
-      'src/utils/__tests__/**',
-    ],
+    exclude: [...configDefaults.exclude, 'e2e/**', '**/sanitizeUrl.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary', 'json'],
@@ -81,6 +76,14 @@ export default defineConfig({
         './src/__mocks__/docusaurus-plugin-content-docs-client.ts',
       ),
       '@theme/Layout': path.resolve(__dirname, './src/__mocks__/@theme/Layout.tsx'),
+      '@theme-original/SearchBar': path.resolve(
+        __dirname,
+        './src/__mocks__/@theme-original/SearchBar.tsx',
+      ),
+      '@theme-original/SearchPage': path.resolve(
+        __dirname,
+        './src/__mocks__/@theme-original/SearchPage.tsx',
+      ),
     },
   },
 });

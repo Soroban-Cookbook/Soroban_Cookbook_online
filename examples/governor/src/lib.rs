@@ -287,11 +287,17 @@ impl Governor {
             proposal_id,
             voter: voter.clone(),
         };
-        if env.storage().instance().has(&DataKey::Vote(vote_key.clone())) {
+        if env
+            .storage()
+            .instance()
+            .has(&DataKey::Vote(vote_key.clone()))
+        {
             return Err(GovernorError::AlreadyVoted);
         }
 
-        env.storage().instance().set(&DataKey::Vote(vote_key), &support);
+        env.storage()
+            .instance()
+            .set(&DataKey::Vote(vote_key), &support);
 
         match support {
             Vote::For => proposal.for_votes += 1,
@@ -371,8 +377,7 @@ impl Governor {
             .instance()
             .set(&DataKey::Proposal(proposal_id), &proposal);
 
-        env.events()
-            .publish((TOPIC_PROPOSAL_QUEUED,), proposal_id);
+        env.events().publish((TOPIC_PROPOSAL_QUEUED,), proposal_id);
 
         Ok(())
     }
@@ -467,9 +472,8 @@ impl Governor {
             return Ok(ProposalState::Defeated);
         }
 
-        let for_bps = (proposal.for_votes as u128)
-            .saturating_mul(BASIS_POINTS)
-            / total_votes as u128;
+        let for_bps =
+            (proposal.for_votes as u128).saturating_mul(BASIS_POINTS) / total_votes as u128;
 
         if for_bps < config.approval_threshold_bps as u128 {
             return Ok(ProposalState::Defeated);
@@ -521,7 +525,10 @@ impl Governor {
             Some(c) => c,
             None => return 0,
         };
-        let proposal: Proposal = match env.storage().instance().get(&DataKey::Proposal(proposal_id))
+        let proposal: Proposal = match env
+            .storage()
+            .instance()
+            .get(&DataKey::Proposal(proposal_id))
         {
             Some(p) => p,
             None => return 0,
@@ -553,13 +560,12 @@ mod tests {
         let governor = GovernorClient::new(env, &governor_id);
 
         governor.initialize(
-            &admin,
-            &7200,  // voting_period: 2 hours
-            &100,   // voting_delay: 100 blocks
-            &3,     // quorum: 3 votes
-            &1,     // proposal_threshold: 1 token
-            &5000,  // approval_threshold_bps: 50%
-            &3600,  // timelock_delay: 1 hour
+            &admin, &7200, // voting_period: 2 hours
+            &100,  // voting_delay: 100 blocks
+            &3,    // quorum: 3 votes
+            &1,    // proposal_threshold: 1 token
+            &5000, // approval_threshold_bps: 50%
+            &3600, // timelock_delay: 1 hour
         );
 
         (admin, governor)
@@ -646,7 +652,10 @@ mod tests {
 
         let proposal = governor.get_proposal(&id);
         assert_eq!(proposal.proposer, proposer);
-        assert_eq!(proposal.description, String::from_str(&env, "Test proposal"));
+        assert_eq!(
+            proposal.description,
+            String::from_str(&env, "Test proposal")
+        );
         assert_eq!(proposal.for_votes, 0);
         assert_eq!(proposal.against_votes, 0);
         assert_eq!(proposal.abstain_votes, 0);

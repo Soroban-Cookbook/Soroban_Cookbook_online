@@ -1,8 +1,6 @@
-import type { SidebarsConfig } from '@docusaus/plugin-content-docs';
-import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
-/**
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 
+/**
  * Soroban Cookbook Sidebar Configuration
  * Creating a structured learning path for Soroban development
  */
@@ -34,22 +32,12 @@ const sidebars: SidebarsConfig = {
         'getting-started/api-security',
         'getting-started/wallets',
         'getting-started/debugging',
-        'getting-started/api-security',
-        'contributing',
-        'contributing/add-tested-example',
-        'contributing/soroban-test-snapshots',
-        'contributing/analytics-events',
-        'contributing/versioning-strategy',
       ],
     },
     {
       type: 'category',
       label: 'Migrations',
-      items: [
-        'migrations/index',
-        'migrations/baseline-22-0',
-        'migrations/template',
-      ],
+      items: ['migrations/index', 'migrations/baseline-22-0', 'migrations/template'],
     },
     {
       type: 'category',
@@ -77,7 +65,6 @@ const sidebars: SidebarsConfig = {
         'concepts/rpc-and-horizon',
         'concepts/contract-ids',
         'concepts/testing-strategies',
-        'concepts/token-standards',
       ],
     },
     {
@@ -89,10 +76,8 @@ const sidebars: SidebarsConfig = {
         'patterns/hello-world',
         'patterns/basic-token',
         'patterns/token-wrapper',
-        'patterns/token-snapshot',
         'patterns/balance-snapshot',
         'patterns/custom-types',
-        'patterns/token-standards',
         'patterns/authorization',
         'patterns/address-authorization',
         'patterns/error-handling',
@@ -100,14 +85,11 @@ const sidebars: SidebarsConfig = {
         'patterns/cross-contract',
         'patterns/escrow-basic',
         'patterns/escrow-multiparty',
-        'patterns/escrow-basic',
         'patterns/multi-token-vault',
         'patterns/batch-operations',
         'patterns/optimization-playbook',
         'patterns/lifecycle-upgrades',
         'patterns/proposal-lifecycle',
-        'patterns/simple-dao',
-        'patterns/reentrancy-guard',
         'patterns/pull-payment',
         'patterns/flash-loan',
         'patterns/staking',
@@ -115,11 +97,11 @@ const sidebars: SidebarsConfig = {
         'patterns/timelock-vault',
         'patterns/contract-factory',
         'patterns/contract-registry',
+        'patterns/htlc-swap',
         'patterns/soulbound-token',
         'patterns/oracle-consumer',
         'patterns/oracle-price-source',
         'patterns/token-vesting',
-        'patterns/contract-registry',
         'patterns/multisig-wallet',
       ],
     },
@@ -128,7 +110,6 @@ const sidebars: SidebarsConfig = {
       label: 'Security',
       items: [
         'security/fundamentals',
-        'security/governance',
         'security/defi-patterns',
         'security/token-audit',
         'security/upgrade-checklist',
@@ -174,9 +155,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Legal',
-      items: [
-        'legal/privacy',
-      ],
+      items: ['legal/privacy'],
     },
   ],
   contributorSidebar: [
@@ -186,6 +165,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'contributing',
         'contributing/add-tested-example',
+        'contributing/soroban-test-snapshots',
         'contributing/analytics-events',
         'contributing/versioning-strategy',
         'contributing/accessibility-guide',
@@ -198,132 +178,6 @@ const sidebars: SidebarsConfig = {
       ],
     },
   ],
-const sidebars SidebarsConfig = {
-	tutorialSidebar: [
-		{
-		 type: 'category',
-		 label: 'Getting Started',
-		 items: [
-			'getting-started/setup',
-			'getting-started/setup-linux',
-			'getting-started/setup-windows',
-			'getting-started/setup-macos',
-			'/getting-started/development-tools',
-			'getting-started/first-contract',
-			'/getting-started/building-and-compilation',
-			'/getting-started/browser-server-compilation',
-			'getting-started/contract-testing',
-			'getting-started/local-testing-and-simulation',
-			'getting-started/deploy-testnet',
-			'/getting-started/deploy-mainnet',
-			'getting-started/contract-interaction',
-			'/getting-started/debugging',
-			'contributing',
-			'contributing/add-tested-example',
-			'/contributing/analytics-events',
-			'contributing/versioning-strategy',
-		],
-		},
-		{
-		 type: 'category',
-		 label: 'Migrations',
-		 items: [
-			'migrations/index',
-			'migrations/baseline-22-0',
-			'migrations/template',
-			'contributing/offline-behavior',
-		],
-		},
-		{
-		 type: 'category',
-		 label: 'Core Concepts',
-		 items: [
-			'concepts/introduction',
-			'concepts/overview',
-			'concepts/best-practices',
-			'concepts/error-handling',
-			'concepts/storage',
-			'concepts/authorization',
-			'/concepts/events',
-			'concepts/time-and-scheduling',
-			'concepts/gas-and-resources',
-			'concepts/cross-contract-invocation',
-			'/concepts/randomness',
-		],
-		},
-		{
-		 type: 'category',
-		 label: 'Patterns',
-		 items: [
-			'patterns/overview',
-			'patterns/hello-world',
-			'patterns/basic-token',
-			'patterns/token-snapshot',
-			'patterns/custom-types',
-			'patterns/token-standards',
-			'patterns/authorization',
-			'patterns/error-handling',
-			'patterns/error-recovery',
-			'patterns/escrow-multiparty',
-			'patterns/multi-token-vault',
-			'patterns/optimization-playbook',
-			'patterns/lifecycle-upgrades',
-			'patterns/proposal-lifecycle',
-			'patterns/reentrancy-guard',
-			'patterns/pull-payment',
-			'patterns/streaming-payments',
-			'patterns/contract-registry',
-			'patterns/htlc-swap',
-		],
-		},
-		{
-		 type: 'category',
-		 label: 'Security',
-		 items: ['security/fundamentals', 'security/governance', 'security/defi-patterns', 'security/upgrade-checklist'],
-		},
-		{
-		 type: 'category',
-		 label: 'Design System',
-		 items: [
-			'design-system/buttons',
-			'design-system/typography',
-			'/design-system/badges-tags',
-			'/design-system/empty-states',
-		],
-		},
-		{
-		 type: 'category',
-		 label: 'Components',
-		 items: ['components/buttons', 'components/testimonials'],
-		},
-		{
-		 type: 'category',
-		 label: 'Responsive',
-		 items: ['responsive/breakpoints'],
-		},
-		{
-		 type: 'category',
-		 label: 'Security Audit',
-		 items: ['security/code-audit'],
-		},
-		{
-		 type: 'category',
-		 label: 'Planning',
-		 items: [
-			'planning/ab-testing',
-			'/planning/code-playground',
-			'planning/video-tutorial-getting-started',
-			'/planning/video-tutorial-first-contract',
-		],
-		},
-		{
-		 type: 'category',
-		 label: 'Legal',
-		 items: [
-			'legal/privacy',
-		],
-		},
-	],
 };
 
 export default sidebars;

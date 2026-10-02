@@ -344,9 +344,6 @@ mod tests {
         client.initialise(&admin);
 
         let caller = Address::generate(&env);
-        assert_eq!(
-            client.try_try_act(&caller),
-            Err(Ok(Error::NotInitialised))
-        );
+        assert_eq!(client.try_try_act(&caller), Err(Ok(Error::NotInitialised)));
     }
 }

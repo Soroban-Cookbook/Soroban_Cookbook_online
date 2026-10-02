@@ -70,13 +70,18 @@ for dir in "${EXAMPLE_DIRS[@]}"; do
   # Skip the workspace root itself
   [ -f "$dir/Cargo.toml" ] || continue
 
+  # Scaffolding-only placeholders (Cargo.toml + README, no contract source yet)
+  # have nothing to build or test — skip until the example actually lands.
+  if [ ! -f "$dir/src/lib.rs" ]; then
+    log_info "Skipping '${name}' — scaffolding-only placeholder (no src/lib.rs yet)"
+    continue
+  fi
+
   log_info "Testing '${name}' …"
 
   # Upgradeable example requires v2 Wasm to be built before running tests.
   if [ "$name" = "upgradeable" ] && [ -f "$dir/v2/Cargo.toml" ]; then
     log_info "Building v2 Wasm for '${name}' …"
-    if ! cargo build --locked --manifest-path "$dir/v2/Cargo.toml" \
-        --target wasm32-unknown-unknown --release \
     WASM_TARGET="wasm32v1-none"
     if ! cargo build --manifest-path "$dir/v2/Cargo.toml" \
         --target "$WASM_TARGET" --release \
@@ -100,8 +105,6 @@ for dir in "${EXAMPLE_DIRS[@]}"; do
   # Contract factory requires child Wasm to be built before running tests.
   if [ "$name" = "contract-factory" ] && [ -f "$dir/child/Cargo.toml" ]; then
     log_info "Building child Wasm for '${name}' …"
-    if ! cargo build --locked --manifest-path "$dir/child/Cargo.toml" \
-        --target wasm32-unknown-unknown --release \
     WASM_TARGET="wasm32v1-none"
     if ! cargo build --manifest-path "$dir/child/Cargo.toml" \
         --target "$WASM_TARGET" --release \
@@ -122,7 +125,6 @@ for dir in "${EXAMPLE_DIRS[@]}"; do
     cp -f "$dir/child/target/$WASM_TARGET/release/contract_factory_child.wasm" "$dir/child/target/wasm32v1-none/release/contract_factory_child.wasm" 2>/dev/null || true
   fi
 
-  if cargo test --locked --manifest-path "$dir/Cargo.toml" 2>&1; then
   if cargo test --manifest-path "$dir/Cargo.toml" --lib 2>&1; then
     log_pass "'${name}' — all tests passed"
     (( PASS++ )) || true

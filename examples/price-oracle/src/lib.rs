@@ -84,11 +84,7 @@ impl PriceOracle {
     /// * `admin` – address that is authorised to publish prices
     pub fn init(env: Env, admin: Address) {
         // Prevent re-initialisation.
-        if env
-            .storage()
-            .instance()
-            .has(&DataKey::Admin)
-        {
+        if env.storage().instance().has(&DataKey::Admin) {
             panic!("already initialized");
         }
         env.storage().instance().set(&DataKey::Admin, &admin);
@@ -407,8 +403,8 @@ mod tests {
         let data = client.get_price(&asset);
         assert_eq!(data.len(), 3);
         assert_eq!(data.get_unchecked(0), 2_000_000_000_i128); // price
-        assert_eq!(data.get_unchecked(1), 6_i128);              // decimals
-        // timestamp ≥ 0 (just verify it's plausible)
+        assert_eq!(data.get_unchecked(1), 6_i128); // decimals
+                                                   // timestamp ≥ 0 (just verify it's plausible)
         assert!(data.get_unchecked(2) >= 0);
     }
 

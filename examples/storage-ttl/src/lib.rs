@@ -152,7 +152,10 @@ mod tests {
         client.extend_cache(&1, &3000, &7000);
 
         env.as_contract(&contract_id, || {
-            assert_eq!(env.storage().persistent().get_ttl(&DataKey::Record(1)), 5000);
+            assert_eq!(
+                env.storage().persistent().get_ttl(&DataKey::Record(1)),
+                5000
+            );
             assert_eq!(env.storage().instance().get_ttl(), 10_000);
             assert_eq!(env.storage().temporary().get_ttl(&DataKey::Cache(1)), 7000);
         });
@@ -172,7 +175,10 @@ mod tests {
         client.extend_record(&1, &2000, &3000);
 
         env.as_contract(&contract_id, || {
-            assert_eq!(env.storage().persistent().get_ttl(&DataKey::Record(1)), 5000);
+            assert_eq!(
+                env.storage().persistent().get_ttl(&DataKey::Record(1)),
+                5000
+            );
         });
     }
 
@@ -219,7 +225,10 @@ mod tests {
         assert!(resources.write_bytes > 0);
 
         env.as_contract(&contract_id, || {
-            assert_eq!(env.storage().persistent().get_ttl(&DataKey::Record(1)), 5000);
+            assert_eq!(
+                env.storage().persistent().get_ttl(&DataKey::Record(1)),
+                5000
+            );
         });
         assert_eq!(client.get_record(&1), Some(100));
     }

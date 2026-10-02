@@ -71,9 +71,7 @@ test.describe('prefers-reduced-motion – global CSS rule', () => {
     expect(tokenValue).toBe('0ms');
   });
 
-  test('--sb-motion-duration-fast token resolves to 0ms under reduced motion', async ({
-    page,
-  }) => {
+  test('--sb-motion-duration-fast token resolves to 0ms under reduced motion', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
 
@@ -120,9 +118,7 @@ test.describe('prefers-reduced-motion – interactive components remain usable',
     }
   });
 
-  test('patterns overview page loads and shows content under reduced motion', async ({
-    page,
-  }) => {
+  test('patterns overview page loads and shows content under reduced motion', async ({ page }) => {
     const guard = attachConsoleGuard(page);
     await page.goto('/docs/patterns/overview', { waitUntil: 'networkidle' });
 
@@ -137,9 +133,7 @@ test.describe('prefers-reduced-motion – ThemeToggle icon transitions', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Theme toggle is accessible via its aria-label.
-    const toggle = page
-      .getByRole('button', { name: /switch to (dark|light) mode/i })
-      .first();
+    const toggle = page.getByRole('button', { name: /switch to (dark|light) mode/i }).first();
 
     // Even if no toggle is in the main navbar (it may be in mobile sidebar),
     // the ThemeToggle component CSS should not break anything.

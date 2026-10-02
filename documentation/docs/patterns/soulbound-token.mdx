@@ -52,13 +52,13 @@ for an ERC-20-style implementation with allowances.
 
 ### Typical use-cases
 
-| Use-case | Example |
-|---|---|
-| **Verifiable credentials** | KYC attestation, academic certificate |
-| **Achievement badges** | "First 100 contributors" milestone |
-| **Membership records** | DAO membership, on-chain passport |
-| **Access passes** | Permissioned, non-tradable access tokens |
-| **Reputation scores** | Weighted contribution points |
+| Use-case                   | Example                                  |
+| -------------------------- | ---------------------------------------- |
+| **Verifiable credentials** | KYC attestation, academic certificate    |
+| **Achievement badges**     | "First 100 contributors" milestone       |
+| **Membership records**     | DAO membership, on-chain passport        |
+| **Access passes**          | Permissioned, non-tradable access tokens |
+| **Reputation scores**      | Weighted contribution points             |
 
 <PatternSection id="prerequisites" title="Prerequisites">
 
@@ -378,6 +378,7 @@ pub fn transfer(_env: Env, _from: Address, _to: Address, _amount: i128) {
 ```
 
 This means:
+
 - No amount of balance will allow a transfer to succeed.
 - There is no bypass, allowance, or admin override for transfers.
 - Clients receive a descriptive panic message rather than a silent no-op.
@@ -385,6 +386,7 @@ This means:
 ### Admin Authorization
 
 Every mutating operation (mint, burn) requires both:
+
 1. **Identity check**: the `admin` argument must equal the stored admin address.
 2. **Signature check**: `admin.require_auth()` verifies the caller's cryptographic
    signature in the Soroban auth framework.
@@ -407,14 +409,14 @@ error. After burning, the holder's balance decreases and the total supply shrink
 
 ### Comparison: Token Types
 
-| Property | Basic Token | Soulbound Token |
-|---|---|---|
-| **Transfer** | ✅ Allowed | ❌ Always panics |
-| **Transfer-from** | ✅ Allowed | ❌ Always panics |
-| **Approve / Allowance** | ✅ Supported | ❌ Not available |
-| **Mint** | Anyone | Admin only |
-| **Burn** | Holder self-burns | Admin only |
-| **Use-case** | Currency, governance | Credentials, badges |
+| Property                | Basic Token          | Soulbound Token     |
+| ----------------------- | -------------------- | ------------------- |
+| **Transfer**            | ✅ Allowed           | ❌ Always panics    |
+| **Transfer-from**       | ✅ Allowed           | ❌ Always panics    |
+| **Approve / Allowance** | ✅ Supported         | ❌ Not available    |
+| **Mint**                | Anyone               | Admin only          |
+| **Burn**                | Holder self-burns    | Admin only          |
+| **Use-case**            | Currency, governance | Credentials, badges |
 
 </PatternSection>
 
@@ -446,7 +448,7 @@ error. After burning, the holder's balance decreases and the total supply shrink
 <PatternSection id="related-patterns" title="Related Patterns">
 
 - [Basic Token](/docs/patterns/basic-token) — Freely transferable token with mint, transfer, and balance
-- [Token Snapshot](/docs/patterns/token-snapshot) — Balance snapshots for governance voting
+- [Token Snapshot](./balance-snapshot) — Balance snapshots for governance voting
 - [Authorization](/docs/patterns/authorization) — Fine-grained `require_auth()` patterns
 - [Access Control](/docs/patterns/authorization) — Role-based access control
 - [`examples/token-transfer/`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/token-transfer) — Full ERC-20-like token with allowances

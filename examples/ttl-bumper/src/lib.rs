@@ -161,11 +161,7 @@ impl TtlBumper {
     ///                      fund/configure the bounty pool
     /// * `bounty_per_key` – stroops credited to the keeper per extended key
     pub fn init(env: Env, admin: Address, bounty_per_key_amount: i128) -> Result<(), Error> {
-        if env
-            .storage()
-            .instance()
-            .has(&DataKey::Admin)
-        {
+        if env.storage().instance().has(&DataKey::Admin) {
             return Err(Error::AlreadyInitialized);
         }
         if bounty_per_key_amount < 0 {
@@ -192,10 +188,8 @@ impl TtlBumper {
         let new_pool = pool.checked_add(amount).ok_or(Error::Overflow)?;
         set_bounty_pool(&env, new_pool);
 
-        env.events().publish(
-            (symbol_short!("fund_pool"),),
-            (amount, new_pool),
-        );
+        env.events()
+            .publish((symbol_short!("fund_pool"),), (amount, new_pool));
         Ok(())
     }
 
@@ -249,11 +243,7 @@ impl TtlBumper {
 
     /// Remove a key from the registry.
     /// Admin only.
-    pub fn deregister_key(
-        env: Env,
-        contract: Address,
-        key_name: Symbol,
-    ) -> Result<(), Error> {
+    pub fn deregister_key(env: Env, contract: Address, key_name: Symbol) -> Result<(), Error> {
         let admin = Self::require_admin(&env)?;
         admin.require_auth();
         if load_entry(&env, &contract, &key_name).is_none() {
@@ -261,10 +251,8 @@ impl TtlBumper {
         }
         remove_entry(&env, &contract, &key_name);
 
-        env.events().publish(
-            (symbol_short!("dereg_k"), contract),
-            key_name,
-        );
+        env.events()
+            .publish((symbol_short!("dereg_k"), contract), key_name);
         Ok(())
     }
 
@@ -457,11 +445,7 @@ mod tests {
     }
 
     /// Register a key with default threshold=100 / extend_to=518_400.
-    fn register_key(
-        client: &TtlBumperClient,
-        contract: &Address,
-        key: &Symbol,
-    ) {
+    fn register_key(client: &TtlBumperClient, contract: &Address, key: &Symbol) {
         client.register_key(contract, key, &100_u32, &518_400_u32);
     }
 
@@ -650,7 +634,11 @@ mod tests {
 
         let targets = vec![
             &env,
-            BumpTarget { contract: c, key_name: k, simulated_ttl: 10 },
+            BumpTarget {
+                contract: c,
+                key_name: k,
+                simulated_ttl: 10,
+            },
         ];
         client.bump_keys(&keeper, &targets);
 
@@ -673,9 +661,21 @@ mod tests {
 
         let targets = vec![
             &env,
-            BumpTarget { contract: c.clone(), key_name: k1, simulated_ttl: 5 },
-            BumpTarget { contract: c.clone(), key_name: k2, simulated_ttl: 5 },
-            BumpTarget { contract: c.clone(), key_name: k3, simulated_ttl: 5 },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k1,
+                simulated_ttl: 5,
+            },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k2,
+                simulated_ttl: 5,
+            },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k3,
+                simulated_ttl: 5,
+            },
         ];
         client.bump_keys(&keeper, &targets);
 
@@ -694,7 +694,11 @@ mod tests {
 
         let targets = vec![
             &env,
-            BumpTarget { contract: c, key_name: k, simulated_ttl: 10 },
+            BumpTarget {
+                contract: c,
+                key_name: k,
+                simulated_ttl: 10,
+            },
         ];
         client.bump_keys(&keeper, &targets);
 
@@ -711,14 +715,26 @@ mod tests {
         let k_healthy = Symbol::new(&env, "Healthy");
         let k_unknown = Symbol::new(&env, "Unknown");
 
-        register_key(&client, &c, &k_at_risk);  // threshold = 100
-        register_key(&client, &c, &k_healthy);  // threshold = 100
+        register_key(&client, &c, &k_at_risk); // threshold = 100
+        register_key(&client, &c, &k_healthy); // threshold = 100
 
         let targets = vec![
             &env,
-            BumpTarget { contract: c.clone(), key_name: k_at_risk,  simulated_ttl: 10  },
-            BumpTarget { contract: c.clone(), key_name: k_healthy,   simulated_ttl: 500 },
-            BumpTarget { contract: c.clone(), key_name: k_unknown,   simulated_ttl: 5   },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k_at_risk,
+                simulated_ttl: 10,
+            },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k_healthy,
+                simulated_ttl: 500,
+            },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k_unknown,
+                simulated_ttl: 5,
+            },
         ];
 
         let results = client.bump_keys(&keeper, &targets);
@@ -752,11 +768,20 @@ mod tests {
             let ki = Symbol::new(&env, "OraclePrice");
             let targets = vec![
                 &env,
-                BumpTarget { contract: c.clone(), key_name: ki, simulated_ttl: 1 },
+                BumpTarget {
+                    contract: c.clone(),
+                    key_name: ki,
+                    simulated_ttl: 1,
+                },
             ];
             let result = client.bump_keys(&keeper, &targets);
             // All 100 bumps should succeed before the pool runs out.
-            assert_eq!(result.get_unchecked(0), BumpResult::Extended, "bump {} failed", i);
+            assert_eq!(
+                result.get_unchecked(0),
+                BumpResult::Extended,
+                "bump {} failed",
+                i
+            );
         }
 
         assert_eq!(client.pool_balance(), 0);
@@ -764,7 +789,11 @@ mod tests {
         // 101st bump must fail.
         let targets = vec![
             &env,
-            BumpTarget { contract: c.clone(), key_name: k, simulated_ttl: 1 },
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k,
+                simulated_ttl: 1,
+            },
         ];
         let result = client.try_bump_keys(&keeper, &targets);
         assert_eq!(result, Err(Ok(Error::InsufficientBountyPool)));
@@ -785,7 +814,11 @@ mod tests {
         for _ in 0..50 {
             let targets = vec![
                 &env,
-                BumpTarget { contract: c.clone(), key_name: k.clone(), simulated_ttl: 9999 },
+                BumpTarget {
+                    contract: c.clone(),
+                    key_name: k.clone(),
+                    simulated_ttl: 9999,
+                },
             ];
             client.bump_keys(&keeper, &targets);
         }
@@ -873,7 +906,11 @@ mod tests {
         client.register_key(&c, &k, &100_u32, &518_400_u32);
         let targets = vec![
             &env,
-            BumpTarget { contract: c, key_name: k, simulated_ttl: 100 },
+            BumpTarget {
+                contract: c,
+                key_name: k,
+                simulated_ttl: 100,
+            },
         ];
         let results = client.bump_keys(&keeper, &targets);
         assert_eq!(results.get_unchecked(0), BumpResult::Extended);
@@ -890,7 +927,11 @@ mod tests {
         client.register_key(&c, &k, &100_u32, &518_400_u32);
         let targets = vec![
             &env,
-            BumpTarget { contract: c, key_name: k, simulated_ttl: 101 },
+            BumpTarget {
+                contract: c,
+                key_name: k,
+                simulated_ttl: 101,
+            },
         ];
         let results = client.bump_keys(&keeper, &targets);
         assert_eq!(results.get_unchecked(0), BumpResult::Skipped);
@@ -906,7 +947,11 @@ mod tests {
         register_key(&client, &c, &k);
         let targets = vec![
             &env,
-            BumpTarget { contract: c, key_name: k, simulated_ttl: 0 },
+            BumpTarget {
+                contract: c,
+                key_name: k,
+                simulated_ttl: 0,
+            },
         ];
         let results = client.bump_keys(&keeper, &targets);
         assert_eq!(results.get_unchecked(0), BumpResult::Extended);
@@ -946,9 +991,21 @@ mod tests {
         let remaining_ttl = 450_u32;
         let targets = vec![
             &env,
-            BumpTarget { contract: infra1.clone(), key_name: price_key.clone(), simulated_ttl: remaining_ttl },
-            BumpTarget { contract: infra2.clone(), key_name: admin_key.clone(), simulated_ttl: remaining_ttl },
-            BumpTarget { contract: infra3.clone(), key_name: vault_key.clone(), simulated_ttl: remaining_ttl },
+            BumpTarget {
+                contract: infra1.clone(),
+                key_name: price_key.clone(),
+                simulated_ttl: remaining_ttl,
+            },
+            BumpTarget {
+                contract: infra2.clone(),
+                key_name: admin_key.clone(),
+                simulated_ttl: remaining_ttl,
+            },
+            BumpTarget {
+                contract: infra3.clone(),
+                key_name: vault_key.clone(),
+                simulated_ttl: remaining_ttl,
+            },
         ];
 
         let results = client.bump_keys(&keeper, &targets);
@@ -1037,7 +1094,11 @@ mod tests {
         let keeper = Address::generate(&env);
         let targets = vec![
             &env,
-            BumpTarget { contract: c, key_name: k, simulated_ttl: 1 },
+            BumpTarget {
+                contract: c,
+                key_name: k,
+                simulated_ttl: 1,
+            },
         ];
         let result = client.try_bump_keys(&keeper, &targets);
         assert!(result.is_err());
@@ -1057,8 +1118,22 @@ mod tests {
         register_key(&client, &c, &k1);
         register_key(&client, &c, &k2);
 
-        let t1 = vec![&env, BumpTarget { contract: c.clone(), key_name: k1, simulated_ttl: 5 }];
-        let t2 = vec![&env, BumpTarget { contract: c.clone(), key_name: k2, simulated_ttl: 5 }];
+        let t1 = vec![
+            &env,
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k1,
+                simulated_ttl: 5,
+            },
+        ];
+        let t2 = vec![
+            &env,
+            BumpTarget {
+                contract: c.clone(),
+                key_name: k2,
+                simulated_ttl: 5,
+            },
+        ];
 
         client.bump_keys(&keeper1, &t1);
         client.bump_keys(&keeper2, &t2);

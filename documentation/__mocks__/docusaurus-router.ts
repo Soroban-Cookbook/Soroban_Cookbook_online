@@ -1,7 +1,13 @@
 // Mutable mock for @docusaurus/router used by vitest tests.
 // Tests can import and mutate `mockLocation` to control what useLocation returns.
 
-export const mockLocation = { pathname: '/', search: '' };
+export const mockLocation = {
+  pathname: '/',
+  search: '',
+  hash: '',
+  state: null as unknown,
+  key: 'default',
+};
 
 export function useLocation() {
   return { ...mockLocation };

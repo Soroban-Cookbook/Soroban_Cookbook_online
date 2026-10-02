@@ -25,7 +25,13 @@ function parseMarkdownFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const relPath = path.relative(docsRoot, filePath).replace(/\\/g, '/');
   // Skip index pages or home page
-  if (relPath === 'index.md' || relPath === 'index.mdx' || relPath.endsWith('/index.md') || relPath.endsWith('/index.mdx')) return null;
+  if (
+    relPath === 'index.md' ||
+    relPath === 'index.mdx' ||
+    relPath.endsWith('/index.md') ||
+    relPath.endsWith('/index.mdx')
+  )
+    return null;
 
   // Extract ID (e.g. "getting-started/setup")
   const id = relPath.replace(/\.(md|mdx)$/, '');
@@ -55,7 +61,7 @@ function parseMarkdownFile(filePath) {
 
       const matchTags = line.match(/^tags:\s*\[(.*)\]$/i);
       if (matchTags) {
-        frontmatterTags = matchTags[1].split(',').map(t => t.trim().replace(/['"]/g, ''));
+        frontmatterTags = matchTags[1].split(',').map((t) => t.trim().replace(/['"]/g, ''));
       }
     }
   }
@@ -72,7 +78,7 @@ function parseMarkdownFile(filePath) {
 
   // Parse JSX PatternMeta tag
   let difficulty = 'beginner'; // default
-  let category = '';
+  let category;
   let status = 'stable';
 
   // Category based on path directory
@@ -114,7 +120,13 @@ function parseMarkdownFile(filePath) {
     category = 'getting-started';
   } else if (id.startsWith('concepts/')) {
     category = 'concepts';
-    if (id.includes('storage') || id.includes('auth') || id.includes('gas') || id.includes('cross-contract') || id.includes('events')) {
+    if (
+      id.includes('storage') ||
+      id.includes('auth') ||
+      id.includes('gas') ||
+      id.includes('cross-contract') ||
+      id.includes('events')
+    ) {
       difficulty = 'intermediate';
     } else {
       difficulty = 'beginner';
@@ -152,32 +164,67 @@ function parseMarkdownFile(filePath) {
   // Auto tags based on keywords
   const lowerContent = content.toLowerCase();
   const lowerTitle = title.toLowerCase();
-  
-  if (lowerContent.includes('auth') || lowerContent.includes('authorization') || lowerContent.includes('permission') || lowerTitle.includes('auth')) {
+
+  if (
+    lowerContent.includes('auth') ||
+    lowerContent.includes('authorization') ||
+    lowerContent.includes('permission') ||
+    lowerTitle.includes('auth')
+  ) {
     tags.add('auth');
   }
-  if (lowerContent.includes('storage') || lowerContent.includes('instance') || lowerContent.includes('persistent') || lowerTitle.includes('storage')) {
+  if (
+    lowerContent.includes('storage') ||
+    lowerContent.includes('instance') ||
+    lowerContent.includes('persistent') ||
+    lowerTitle.includes('storage')
+  ) {
     tags.add('storage');
   }
-  if (lowerContent.includes('event') || lowerContent.includes('publish') || lowerTitle.includes('event')) {
+  if (
+    lowerContent.includes('event') ||
+    lowerContent.includes('publish') ||
+    lowerTitle.includes('event')
+  ) {
     tags.add('events');
   }
-  if (lowerContent.includes('optimize') || lowerContent.includes('gas') || lowerContent.includes('efficiency') || lowerTitle.includes('optimize')) {
+  if (
+    lowerContent.includes('optimize') ||
+    lowerContent.includes('gas') ||
+    lowerContent.includes('efficiency') ||
+    lowerTitle.includes('optimize')
+  ) {
     tags.add('optimization');
   }
-  if (lowerContent.includes('error') || lowerContent.includes('panic') || lowerTitle.includes('error')) {
+  if (
+    lowerContent.includes('error') ||
+    lowerContent.includes('panic') ||
+    lowerTitle.includes('error')
+  ) {
     tags.add('errors');
   }
-  if (lowerContent.includes('token') || lowerContent.includes('balance') || lowerTitle.includes('token')) {
+  if (
+    lowerContent.includes('token') ||
+    lowerContent.includes('balance') ||
+    lowerTitle.includes('token')
+  ) {
     tags.add('tokens');
   }
-  if (lowerContent.includes('governance') || lowerContent.includes('dao') || lowerTitle.includes('governance')) {
+  if (
+    lowerContent.includes('governance') ||
+    lowerContent.includes('dao') ||
+    lowerTitle.includes('governance')
+  ) {
     tags.add('governance');
   }
-  if (lowerContent.includes('upgrade') || lowerContent.includes('lifecycle') || lowerTitle.includes('upgrade')) {
+  if (
+    lowerContent.includes('upgrade') ||
+    lowerContent.includes('lifecycle') ||
+    lowerTitle.includes('upgrade')
+  ) {
     tags.add('upgrade');
   }
-  
+
   return {
     id,
     title,
@@ -187,7 +234,7 @@ function parseMarkdownFile(filePath) {
     status,
     time: time || 10,
     tags: Array.from(tags),
-    href: `/docs/${id}`
+    href: `/docs/${id}`,
   };
 }
 
@@ -236,7 +283,9 @@ function checkRegistryOutput(registry) {
 
     if (actual !== expected) {
       console.error(`contentRegistry.json is stale at ${outputPath}`);
-      console.error('Run `node scripts/generate-content-registry.mjs` and commit the updated file.');
+      console.error(
+        'Run `node scripts/generate-content-registry.mjs` and commit the updated file.',
+      );
       process.exit(1);
     }
   } finally {

@@ -112,21 +112,19 @@ pub struct PausableToken;
 impl PausableToken {
     /// Deploy-time setup: stores token metadata, assigns initial Admin role,
     /// and initializes the emergency stop to unpaused.
-    pub fn __constructor(
-        env: Env,
-        admin: Address,
-        name: String,
-        symbol: String,
-        decimals: u32,
-    ) {
+    pub fn __constructor(env: Env, admin: Address, name: String, symbol: String, decimals: u32) {
         env.storage()
             .persistent()
             .set(&DataKey::Role(admin), &Role::Admin);
         env.storage().instance().set(&DataKey::Paused, &false);
         env.storage().persistent().set(&DataKey::Name, &name);
         env.storage().persistent().set(&DataKey::Symbol, &symbol);
-        env.storage().persistent().set(&DataKey::Decimals, &decimals);
-        env.storage().persistent().set(&DataKey::TotalSupply, &0i128);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Decimals, &decimals);
+        env.storage()
+            .persistent()
+            .set(&DataKey::TotalSupply, &0i128);
     }
 
     // ─── Access Control (ACL) ─────────────────────────────────────────────────
@@ -136,8 +134,11 @@ impl PausableToken {
         granter.require_auth();
         require_role(&env, &granter, Role::Admin)?;
 
-        env.storage().persistent().set(&DataKey::Role(user.clone()), &role);
-        env.events().publish((symbol_short!("grant"), granter, user), role);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Role(user.clone()), &role);
+        env.events()
+            .publish((symbol_short!("grant"), granter, user), role);
         Ok(())
     }
 
@@ -146,8 +147,11 @@ impl PausableToken {
         granter.require_auth();
         require_role(&env, &granter, Role::Admin)?;
 
-        env.storage().persistent().remove(&DataKey::Role(user.clone()));
-        env.events().publish((symbol_short!("revoke"), granter, user), ());
+        env.storage()
+            .persistent()
+            .remove(&DataKey::Role(user.clone()));
+        env.events()
+            .publish((symbol_short!("revoke"), granter, user), ());
         Ok(())
     }
 
@@ -213,7 +217,8 @@ impl PausableToken {
             .persistent()
             .set(&supply_key, &(supply + amount));
 
-        env.events().publish((symbol_short!("mint"), minter, to), amount);
+        env.events()
+            .publish((symbol_short!("mint"), minter, to), amount);
         Ok(())
     }
 
@@ -246,7 +251,8 @@ impl PausableToken {
             .persistent()
             .set(&to_key, &(to_balance + amount));
 
-        env.events().publish((symbol_short!("transfer"), from, to), amount);
+        env.events()
+            .publish((symbol_short!("transfer"), from, to), amount);
         Ok(())
     }
 
@@ -295,7 +301,8 @@ impl PausableToken {
             .persistent()
             .set(&to_key, &(to_balance + amount));
 
-        env.events().publish((symbol_short!("transfer"), from, to), amount);
+        env.events()
+            .publish((symbol_short!("transfer"), from, to), amount);
         Ok(())
     }
 
@@ -330,12 +337,7 @@ impl PausableToken {
     }
 
     /// Approve `spender` to spend `amount` from `owner`. Blocked when paused.
-    pub fn approve(
-        env: Env,
-        owner: Address,
-        spender: Address,
-        amount: i128,
-    ) -> Result<(), Error> {
+    pub fn approve(env: Env, owner: Address, spender: Address, amount: i128) -> Result<(), Error> {
         fail_if_paused(&env)?;
         owner.require_auth();
 
@@ -346,7 +348,8 @@ impl PausableToken {
         let allowance_key = DataKey::Allowance(owner.clone(), spender.clone());
         env.storage().persistent().set(&allowance_key, &amount);
 
-        env.events().publish((symbol_short!("approve"), owner, spender), amount);
+        env.events()
+            .publish((symbol_short!("approve"), owner, spender), amount);
         Ok(())
     }
 
@@ -585,7 +588,9 @@ mod tests {
         f.client.pause(&f.pauser);
 
         // transfer_from must fail while paused
-        let result = f.client.try_transfer_from(&f.user2, &f.user1, &f.admin, &200);
+        let result = f
+            .client
+            .try_transfer_from(&f.user2, &f.user1, &f.admin, &200);
         assert_eq!(result, Err(Ok(Error::ContractPaused)));
 
         // State remains intact
@@ -717,12 +722,16 @@ mod tests {
         f.client.approve(&f.user1, &f.user2, &50);
 
         // Exceeds allowance
-        let result = f.client.try_transfer_from(&f.user2, &f.user1, &f.admin, &80);
+        let result = f
+            .client
+            .try_transfer_from(&f.user2, &f.user1, &f.admin, &80);
         assert_eq!(result, Err(Ok(Error::InsufficientAllowance)));
 
         // Exceeds balance with sufficient allowance
         f.client.approve(&f.user1, &f.user2, &500);
-        let result = f.client.try_transfer_from(&f.user2, &f.user1, &f.admin, &200);
+        let result = f
+            .client
+            .try_transfer_from(&f.user2, &f.user1, &f.admin, &200);
         assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
 
         // Negative approval

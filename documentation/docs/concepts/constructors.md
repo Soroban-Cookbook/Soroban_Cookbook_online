@@ -133,7 +133,7 @@ This is a good mental model for most Soroban contracts: a constructor establishe
 - [Storage Patterns](./storage.md)
 - [Authorization](./authorization.md)
 - [Best Practices](./best-practices.md)
-- [Lifecycle Upgrades Pattern](../patterns/lifecycle-upgrades.md)
+- [Lifecycle Upgrades Pattern](../patterns/lifecycle-upgrades)
 
 ## Next steps
 

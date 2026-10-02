@@ -112,7 +112,9 @@ impl SoulboundToken {
         env.storage().persistent().set(&DataKey::Admin, &admin);
         env.storage().persistent().set(&DataKey::Name, &name);
         env.storage().persistent().set(&DataKey::Symbol, &symbol);
-        env.storage().persistent().set(&DataKey::Decimals, &decimals);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Decimals, &decimals);
         env.storage()
             .persistent()
             .set(&DataKey::TotalSupply, &0_i128);
@@ -144,22 +146,14 @@ impl SoulboundToken {
 
         // Update holder balance.
         let balance_key = DataKey::Balance(to.clone());
-        let current: i128 = env
-            .storage()
-            .persistent()
-            .get(&balance_key)
-            .unwrap_or(0);
+        let current: i128 = env.storage().persistent().get(&balance_key).unwrap_or(0);
         env.storage()
             .persistent()
             .set(&balance_key, &(current + amount));
 
         // Update total supply.
         let supply_key = DataKey::TotalSupply;
-        let supply: i128 = env
-            .storage()
-            .persistent()
-            .get(&supply_key)
-            .unwrap_or(0);
+        let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
         env.storage()
             .persistent()
             .set(&supply_key, &(supply + amount));
@@ -216,11 +210,7 @@ impl SoulboundToken {
         Self::require_admin(&env, &admin);
 
         let balance_key = DataKey::Balance(from.clone());
-        let current: i128 = env
-            .storage()
-            .persistent()
-            .get(&balance_key)
-            .unwrap_or(0);
+        let current: i128 = env.storage().persistent().get(&balance_key).unwrap_or(0);
 
         if current < amount {
             return Err(Error::InsufficientBalance);
@@ -231,17 +221,15 @@ impl SoulboundToken {
             .set(&balance_key, &(current - amount));
 
         let supply_key = DataKey::TotalSupply;
-        let supply: i128 = env
-            .storage()
-            .persistent()
-            .get(&supply_key)
-            .unwrap_or(0);
+        let supply: i128 = env.storage().persistent().get(&supply_key).unwrap_or(0);
         env.storage()
             .persistent()
             .set(&supply_key, &(supply - amount));
 
-        env.events()
-            .publish((symbol_short!("burn"), from.clone()), (admin.clone(), amount));
+        env.events().publish(
+            (symbol_short!("burn"), from.clone()),
+            (admin.clone(), amount),
+        );
 
         Ok(())
     }
@@ -328,7 +316,10 @@ mod tests {
     fn test_initialize_stores_metadata() {
         let (env, admin, client) = setup();
 
-        assert_eq!(client.name(), String::from_str(&env, "Soroban Contributor Badge"));
+        assert_eq!(
+            client.name(),
+            String::from_str(&env, "Soroban Contributor Badge")
+        );
         assert_eq!(client.symbol(), String::from_str(&env, "SCB"));
         assert_eq!(client.decimals(), 0);
         assert_eq!(client.admin(), admin);
