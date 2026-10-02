@@ -850,18 +850,14 @@
   },
   {
     "id": "getting-started/debugging",
-    "title": "Debugging Guide",
-    "description": "Systematic debugging workflows and practical troubleshooting techniques for Soroban smart contract development",
+    "title": "debugging",
+    "description": "Soroban tutorial on debugging.",
     "category": "getting-started",
     "difficulty": "beginner",
     "status": "stable",
-    "time": 25,
+    "time": 10,
     "tags": [
-      "auth",
-      "storage",
-      "events",
-      "errors",
-      "tokens"
+      "governance"
     ],
     "href": "/docs/getting-started/debugging"
   },
@@ -1014,6 +1010,19 @@
     "href": "/docs/getting-started/networks"
   },
   {
+    "id": "getting-started/python-sdk",
+    "title": "Python SDK",
+    "description": "Soroban tutorial on Python SDK.",
+    "category": "getting-started",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": [
+      "errors"
+    ],
+    "href": "/docs/getting-started/python-sdk"
+  },
+  {
     "id": "getting-started/setup",
     "title": "Environment Setup",
     "description": "Set up your Soroban development environment — install Rust, Stellar CLI, the WASM target, and rust-analyzer.",
@@ -1052,6 +1061,7 @@
     "time": 25,
     "tags": [
       "auth",
+      "events",
       "errors"
     ],
     "href": "/docs/getting-started/setup-macos"
@@ -1091,18 +1101,15 @@
   },
   {
     "id": "getting-started/testing-errors",
-    "title": "Testing Error Scenarios",
-    "description": "Guide to testing error handling in Soroban contracts",
+    "title": "testing-errors",
+    "description": "Soroban tutorial on testing-errors.",
     "category": "getting-started",
     "difficulty": "beginner",
     "status": "stable",
-    "time": 20,
+    "time": 10,
     "tags": [
-      "auth",
-      "storage",
-      "events",
       "errors",
-      "tokens"
+      "governance"
     ],
     "href": "/docs/getting-started/testing-errors"
   },
@@ -1173,6 +1180,7 @@
       "auth",
       "storage",
       "errors",
+      "tokens",
       "governance"
     ],
     "href": "/docs/patterns/access-control"
@@ -1288,6 +1296,7 @@
       "",
       "auth",
       "storage",
+      "events",
       "errors",
       "tokens",
       "upgrade"
@@ -1325,7 +1334,9 @@
       "storage",
       "beginner",
       "auth",
-      "errors"
+      "events",
+      "errors",
+      "tokens"
     ],
     "href": "/docs/patterns/counter"
   },
@@ -1446,6 +1457,7 @@
     "time": 10,
     "tags": [
       "auth",
+      "storage",
       "errors",
       "tokens",
       "governance",
@@ -1462,6 +1474,9 @@
     "status": "stable",
     "time": 10,
     "tags": [
+      "auth",
+      "storage",
+      "events",
       "errors",
       "tokens"
     ],
@@ -1491,13 +1506,18 @@
     "difficulty": "intermediate",
     "status": "stable",
     "time": 10,
-    "tags": [],
+    "tags": [
+      "auth",
+      "storage",
+      "events",
+      "tokens"
+    ],
     "href": "/docs/patterns/htlc-swap"
   },
   {
     "id": "patterns/lifecycle-upgrades",
     "title": "Contract Lifecycle & Upgrade Safety",
-    "description": "Authoritative guide on contract deployment phases, versioning, and upgrade safety in Sorban.",
+    "description": "Authoritative guide on contract deployment phases, versioning, and upgrade safety in Soroban.",
     "category": "patterns",
     "difficulty": "advanced",
     "status": "stable",
@@ -1558,6 +1578,7 @@
     "status": "stable",
     "time": 25,
     "tags": [
+      "auth",
       "storage",
       "events",
       "optimization",
@@ -1633,6 +1654,7 @@
     "tags": [
       "auth",
       "storage",
+      "events",
       "errors",
       "tokens",
       "governance",
@@ -1656,23 +1678,6 @@
       "tokens"
     ],
     "href": "/docs/patterns/pull-payment"
-  },
-  {
-    "id": "patterns/reentrancy-guard",
-    "title": "reentrancy-guard",
-    "description": "Soroban tutorial on reentrancy-guard.",
-    "category": "patterns",
-    "difficulty": "intermediate",
-    "status": "stable",
-    "time": 10,
-    "tags": [
-      "auth",
-      "storage",
-      "events",
-      "errors",
-      "tokens"
-    ],
-    "href": "/docs/patterns/reentrancy-guard"
   },
   {
     "id": "patterns/soulbound-token",
@@ -1717,7 +1722,8 @@
       "storage",
       "events",
       "errors",
-      "tokens"
+      "tokens",
+      "governance"
     ],
     "href": "/docs/patterns/streaming-payments"
   },
@@ -1737,44 +1743,6 @@
       "tokens"
     ],
     "href": "/docs/patterns/timelock-vault"
-  },
-  {
-    "id": "patterns/token-snapshot",
-    "title": "Token Snapshot",
-    "description": "Create immutable point-in-time balance snapshots for governance voting, dividend distribution, and audit trails — with flash-loan resistance and claim tracking.",
-    "category": "patterns",
-    "difficulty": "intermediate",
-    "status": "stable",
-    "time": 25,
-    "tags": [
-      "auth",
-      "storage",
-      "events",
-      "optimization",
-      "errors",
-      "tokens",
-      "governance"
-    ],
-    "href": "/docs/patterns/token-snapshot"
-  },
-  {
-    "id": "patterns/token-standards",
-    "title": "Token Standards & Implementation",
-    "description": "Comprehensive guide to Soroban token standards, SEP-41 interface, Stellar Asset Contract (SAC), custom tokens, and NFTs.",
-    "category": "patterns",
-    "difficulty": "intermediate",
-    "status": "stable",
-    "time": 30,
-    "tags": [
-      "auth",
-      "storage",
-      "events",
-      "optimization",
-      "errors",
-      "tokens",
-      "governance"
-    ],
-    "href": "/docs/patterns/token-standards"
   },
   {
     "id": "patterns/token-vesting",
@@ -1886,6 +1854,7 @@
     "time": 10,
     "tags": [
       "auth",
+      "storage",
       "events",
       "optimization",
       "errors",
@@ -1913,23 +1882,6 @@
       "upgrade"
     ],
     "href": "/docs/security/fundamentals"
-  },
-  {
-    "id": "security/governance",
-    "title": "Governance Security",
-    "description": "Security considerations for decentralized governance contracts in Soroban — voting systems, proposal mechanisms, and attack mitigation.",
-    "category": "security",
-    "difficulty": "intermediate",
-    "status": "stable",
-    "time": 10,
-    "tags": [
-      "auth",
-      "events",
-      "tokens",
-      "governance",
-      "upgrade"
-    ],
-    "href": "/docs/security/governance"
   },
   {
     "id": "security/token-audit",

@@ -213,10 +213,7 @@ impl LendingPool {
         collateral.transfer(&user, &env.current_contract_address(), &amount);
 
         let mut pos = Self::load_position(&env, &user);
-        pos.collateral = pos
-            .collateral
-            .checked_add(amount)
-            .ok_or(Error::Overflow)?;
+        pos.collateral = pos.collateral.checked_add(amount).ok_or(Error::Overflow)?;
         Self::save_position(&env, &user, &pos);
 
         let total = Self::total_collateral(env.clone());
@@ -248,10 +245,7 @@ impl LendingPool {
         // debt-token units — oracle_price un-scales it)
         // max_debt_value   = collateral_value * max_ltv_bps / 10_000
         // Chain checked multiplications; each can overflow independently.
-        let collateral_value = pos
-            .collateral
-            .checked_mul(price)
-            .ok_or(Error::Overflow)?;
+        let collateral_value = pos.collateral.checked_mul(price).ok_or(Error::Overflow)?;
         let max_ltv_bps: u32 = env
             .storage()
             .instance()
@@ -334,13 +328,8 @@ impl LendingPool {
             return Err(Error::InvalidAmount);
         }
 
-        let new_collateral = pos
-            .collateral
-            .checked_sub(amount)
-            .ok_or(Error::Overflow)?;
-        let collateral_value = new_collateral
-            .checked_mul(price)
-            .ok_or(Error::Overflow)?;
+        let new_collateral = pos.collateral.checked_sub(amount).ok_or(Error::Overflow)?;
+        let collateral_value = new_collateral.checked_mul(price).ok_or(Error::Overflow)?;
         let max_ltv_bps: u32 = env
             .storage()
             .instance()
@@ -400,10 +389,7 @@ impl LendingPool {
         // like borrow/withdraw compare `debt` against a collateral-derived
         // cap) must exceed collateral_value * threshold. `collateral_value`
         // is in raw debt-token units because `price` is un-scaled.
-        let collateral_value = pos
-            .collateral
-            .checked_mul(price)
-            .ok_or(Error::Overflow)?;
+        let collateral_value = pos.collateral.checked_mul(price).ok_or(Error::Overflow)?;
         let threshold_bps: u32 = env
             .storage()
             .instance()
@@ -454,13 +440,14 @@ impl LendingPool {
         Self::save_position(
             &env,
             &user,
-            &Position { collateral: new_collateral, debt: new_debt },
+            &Position {
+                collateral: new_collateral,
+                debt: new_debt,
+            },
         );
 
         let total = Self::total_collateral(env.clone());
-        let new_total = total
-            .checked_sub(collateral_due)
-            .ok_or(Error::Overflow)?;
+        let new_total = total.checked_sub(collateral_due).ok_or(Error::Overflow)?;
         env.storage()
             .instance()
             .set(&DataKey::TotalCollateral, &new_total);
@@ -472,7 +459,11 @@ impl LendingPool {
             .set(&DataKey::TotalDebt, &new_total_debt);
 
         let collateral = token::Client::new(&env, &Self::collateral_token(&env)?);
-        collateral.transfer(&env.current_contract_address(), &liquidator, &collateral_due);
+        collateral.transfer(
+            &env.current_contract_address(),
+            &liquidator,
+            &collateral_due,
+        );
 
         Ok(())
     }
@@ -556,7 +547,10 @@ impl LendingPool {
         env.storage()
             .persistent()
             .get(&DataKey::Position(user.clone()))
-            .unwrap_or(Position { collateral: 0, debt: 0 })
+            .unwrap_or(Position {
+                collateral: 0,
+                debt: 0,
+            })
     }
 
     fn save_position(env: &Env, user: &Address, pos: &Position) {

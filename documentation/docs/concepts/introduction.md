@@ -159,7 +159,7 @@ Soroban adds programmability to Stellar without compromising its core strengths:
 
 Ready to start building? Here's the recommended path:
 
-1. **[Environment Setup](../getting-started/setup.md)** - Get your development tools ready
+1. **[Environment Setup](../getting-started/setup)** - Get your development tools ready
 2. **[Your First Contract](../getting-started/first-contract.md)** - Build and test a simple contract
 3. **[Core Concepts](./overview)** - Understand storage, authorization, and events
 4. **[Deploy to Testnet](../getting-started/deploy-testnet.md)** - Put your contract on the network
@@ -188,7 +188,7 @@ With Soroban, you can create:
 
 ## Next Steps
 
-- **Just starting?** → [Set up your environment](../getting-started/setup.md)
+- **Just starting?** → [Set up your environment](../getting-started/setup)
 - **Want to understand more?** → [Read core concepts](./overview)
 - **Ready to code?** → [Build your first contract](../getting-started/first-contract.md)
 

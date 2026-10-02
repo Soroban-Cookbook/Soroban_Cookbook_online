@@ -25,6 +25,7 @@ Contracts build to the shared workspace target directory,
 | Example | What it covers | Pattern page |
 | ------- | -------------- | ------------ |
 | [`access-control`](access-control/README.md) | Role-Based Access Control | [Authorization Patterns](https://soroban-cookbook.dev/docs/patterns/authorization) |
+| [`airdrop-bitmap`](airdrop-bitmap/README.md) | Compact bitmap allowlist for small airdrops | [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) |
 | [`authorization`](authorization/README.md) | Owner and Admin Authorization | [Authorization Patterns](https://soroban-cookbook.dev/docs/patterns/authorization) |
 | [`balance-snapshot`](balance-snapshot/README.md) | Balance Snapshots | [Token Snapshot Pattern](https://soroban-cookbook.dev/docs/patterns/token-snapshot) |
 | [`batch-ops`](batch-ops/README.md) | Batched Operations | [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) |
@@ -45,6 +46,7 @@ Contracts build to the shared workspace target directory,
 | [`hello-world`](hello-world/README.md) | Hello World | [Hello World Pattern](https://soroban-cookbook.dev/docs/patterns/hello-world) |
 | [`htlc-swap`](htlc-swap/README.md) | Hashed Timelock Contract (HTLC) Swap | [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) |
 | [`lending`](lending/README.md) | Collateralized Lending (LTV, oracle freshness, liquidation) | [DeFi Security Patterns](https://soroban-cookbook.dev/docs/security/defi-patterns) |
+| [`merkle-proof`](merkle-proof/README.md) | Merkle-Proof Verified Airdrop Claims | [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) |
 | [`multisig-wallet`](multisig-wallet/README.md) | Multisig Wallet | [Authorization](https://soroban-cookbook.dev/docs/concepts/authorization) |
 | [`oracle-consumer`](oracle-consumer/README.md) | Oracle Consumer | [Oracle Consumer Pattern](https://soroban-cookbook.dev/docs/patterns/oracle-consumer) |
 | [`pagination`](pagination/README.md) | Cursor-Based Pagination for Vec and Map Collections | [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) |

@@ -16,10 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
 const baseUrl = process.env.BASE_URL ?? 'http://127.0.0.1:3000';
-const outDir = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '../static/img/press',
-);
+const outDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../static/img/press');
 
 // All shots are captured in light mode: the site's dark theme currently leaves
 // heading/navbar colors at their light values, which makes the homepage h1
@@ -51,6 +48,8 @@ try {
     // Docusaurus reads the stored theme before paint, so seed it to guarantee
     // the screenshot matches the requested mode rather than the OS default.
     await page.addInitScript((theme) => {
+      // This callback executes in the browser context, not Node.
+      // eslint-disable-next-line no-undef
       window.localStorage.setItem('theme', theme);
     }, THEME);
 

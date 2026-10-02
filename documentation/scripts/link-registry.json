@@ -20,10 +20,7 @@
     "getting-started/setup": {
       "category": "getting-started",
       "minInternalLinks": 3,
-      "requiredLinks": [
-        "/docs/getting-started/first-contract",
-        "/docs/concepts/overview"
-      ]
+      "requiredLinks": ["/docs/getting-started/first-contract", "/docs/concepts/overview"]
     },
     "getting-started/setup-linux": {
       "category": "getting-started",
@@ -115,11 +112,7 @@
     "contributing/internal-linking": {
       "category": "contributing",
       "minInternalLinks": 3,
-      "requiredLinks": [
-        "/docs/contributing",
-        "/docs/concepts/overview",
-        "/docs/patterns/overview"
-      ]
+      "requiredLinks": ["/docs/contributing", "/docs/concepts/overview", "/docs/patterns/overview"]
     },
     "concepts/introduction": {
       "category": "concepts",
@@ -163,7 +156,10 @@
     "concepts/simulation-and-footprints": {
       "category": "concepts",
       "minInternalLinks": 2,
-      "requiredLinks": ["/docs/getting-started/contract-interaction", "/docs/concepts/gas-and-resources"]
+      "requiredLinks": [
+        "/docs/getting-started/contract-interaction",
+        "/docs/concepts/gas-and-resources"
+      ]
     },
     "concepts/error-handling": {
       "category": "concepts",
@@ -178,10 +174,7 @@
     "patterns/overview": {
       "category": "patterns",
       "minInternalLinks": 4,
-      "requiredLinks": [
-        "/docs/patterns/hello-world",
-        "/docs/security/token-audit"
-      ]
+      "requiredLinks": ["/docs/patterns/hello-world", "/docs/security/token-audit"]
     },
     "patterns/hello-world": {
       "category": "patterns",
@@ -226,26 +219,17 @@
     "security/fundamentals": {
       "category": "security",
       "minInternalLinks": 3,
-      "requiredLinks": [
-        "/docs/security/token-audit",
-        "/docs/concepts/authorization"
-      ]
+      "requiredLinks": ["/docs/security/token-audit", "/docs/concepts/authorization"]
     },
     "security/governance": {
       "category": "security",
       "minInternalLinks": 2,
-      "requiredLinks": [
-        "/docs/security/fundamentals",
-        "/docs/patterns/proposal-lifecycle"
-      ]
+      "requiredLinks": ["/docs/security/fundamentals", "/docs/patterns/proposal-lifecycle"]
     },
     "security/token-audit": {
       "category": "security",
       "minInternalLinks": 3,
-      "requiredLinks": [
-        "/docs/security/fundamentals",
-        "/docs/patterns/overview"
-      ]
+      "requiredLinks": ["/docs/security/fundamentals", "/docs/patterns/overview"]
     },
     "design-system/buttons": {
       "category": "design-system",

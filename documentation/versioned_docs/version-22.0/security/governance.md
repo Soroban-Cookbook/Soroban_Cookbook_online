@@ -31,7 +31,7 @@ A typical governance system includes:
 **Mitigation Strategies:**
 
 - **Time-Locked Voting Power:** Require tokens to be locked for a minimum period (e.g., 7 days) before they can be used to vote.
-- **Snapshot-Based Voting:** Use historical balances (snapshots) instead of current balances to determine voting power. See [Token Pattern Security Audit — Snapshots](/docs/security/token-audit#29-snapshot-balances-governance--dividends) for snapshot hardening.
+- **Snapshot-Based Voting:** Use historical balances (snapshots) instead of current balances to determine voting power. See [Token Pattern Security Audit — Snapshots](/docs/security/token-audit) for snapshot hardening.
 - **Voting Delay:** Add a delay between proposal creation and the start of voting to give stakeholders time to react.
 - **Staking-Based Voting:** Only allow staked tokens (with unstaking delays) to vote.
 

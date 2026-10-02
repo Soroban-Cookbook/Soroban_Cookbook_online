@@ -7,8 +7,8 @@
 //! - Reentrancy protection through proper state management
 //! - Fallback mechanisms for external contract failures
 
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, Symbol};
 use crate::token::{TokenClient, TokenError};
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, Symbol};
 
 #[derive(Clone)]
 #[contracttype]
@@ -36,7 +36,6 @@ pub enum VaultError {
     /// Invalid amount
     InvalidAmount = 6,
 }
-
 
 #[contract]
 pub struct Vault;
@@ -211,7 +210,7 @@ impl Vault {
                 // Contract-level failure is recoverable and should fall back to the safe default.
                 env.storage().instance().set(&DataKey::EmergencyMode, &true);
                 Ok(-1)
-            },
+            }
             Err(_host_error) => {
                 // Both contract-level and host-level failure modes are treated as
                 // recoverable here: the vault falls back to a safe default and enables

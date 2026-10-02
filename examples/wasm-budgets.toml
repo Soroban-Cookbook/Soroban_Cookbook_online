@@ -25,6 +25,7 @@
 
 [budgets]
 hello-world = 1919
+merkle-proof = 21800
 counter = 2089
 authorization = 2303
 registry = 5229

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Soroban Cookbook
 #![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, token, Address, Env};
 //! ## Rounding policy
 //!
 //! Every swap computes its output amount with `checked_div`, which truncates
@@ -13,9 +12,7 @@ use soroban_sdk::{contract, contracterror, contractimpl, contracttype, token, Ad
 //! `reserve_a * reserve_b` never decreases across a swap. See
 //! `test_invariant_never_decreases_across_swaps` below for a property test
 //! that exercises this over many pseudo-random swap sequences.
-use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, token, Address, Env,
-};
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, token, Address, Env};
 
 #[contracttype]
 #[derive(Clone, Debug)]
@@ -78,7 +75,6 @@ impl ConstantProductAmm {
     /// panic message rather than a bare unwrap in case a future call path
     /// reaches them pre-initialisation.
     fn get_reserves_internal(env: &Env) -> Reserves {
-        env.storage().persistent().get(&DataKey::Reserves).unwrap()
         match env.storage().persistent().get(&DataKey::Reserves) {
             Some(reserves) => reserves,
             None => panic!("constant-product-amm: reserves not initialized"),
@@ -755,47 +751,46 @@ mod tests {
     #[test]
     fn test_fee_accrual_to_lps() {
         let setup = setup();
-        
+
         // Alice adds initial liquidity
-        let (initial_a, initial_b, lp_tokens) = setup.client.add_liquidity(
-            &setup.alice, 
-            &100_000, 
-            &100_000, 
-            &0, 
-            &0
-        );
-        
+        let (initial_a, initial_b, lp_tokens) =
+            setup
+                .client
+                .add_liquidity(&setup.alice, &100_000, &100_000, &0, &0);
+
         // Bob performs multiple swaps, paying 0.3% fee each time
         for _ in 0..10 {
             setup.client.swap_a_for_b(&setup.bob, &1_000, &0);
             setup.client.swap_b_for_a(&setup.bob, &1_000, &0);
         }
-        
+
         // Alice removes her liquidity
-        let (withdrawn_a, withdrawn_b) = setup.client.remove_liquidity(
-            &setup.alice,
-            &lp_tokens,
-            &0,
-            &0
-        );
-        
+        let (withdrawn_a, withdrawn_b) =
+            setup
+                .client
+                .remove_liquidity(&setup.alice, &lp_tokens, &0, &0);
+
         // Alice should receive more than she deposited due to accumulated fees
         assert!(
             withdrawn_a >= initial_a || withdrawn_b >= initial_b,
             "LP should receive at least as much as deposited due to fee accrual. \
              Deposited: ({}, {}), Withdrawn: ({}, {})",
-            initial_a, initial_b, withdrawn_a, withdrawn_b
+            initial_a,
+            initial_b,
+            withdrawn_a,
+            withdrawn_b
         );
-        
+
         // Calculate the value increase (approximate, as it depends on swap direction)
         let initial_value = initial_a + initial_b;
         let final_value = withdrawn_a + withdrawn_b;
-        
+
         // With 20 swaps and 0.3% fee each, there should be measurable fee accrual
         assert!(
             final_value > initial_value,
             "Total value should increase due to fees. Initial: {}, Final: {}",
-            initial_value, final_value
+            initial_value,
+            final_value
         );
     }
 }

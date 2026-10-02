@@ -18,9 +18,9 @@ introduced in Phase 8 (issue #644).
 ## Snippet-drift convention
 
 Every Rust fence that carries a `src=` attribute in its info string is
-treated as a direct copy of the referenced file under `examples/`.  CI runs
+treated as a direct copy of the referenced file under `examples/`. CI runs
 `scripts/check-snippet-drift.sh` to verify that the snippet has not drifted
-from its source.  If the two differ, the check fails and the PR is blocked.
+from its source. If the two differ, the check fails and the PR is blocked.
 
 ```
 ```rust src=counter/src/lib.rs
@@ -47,6 +47,8 @@ example deliberately leaves out.
 <TabItem value="contract" label="counter/src/lib.rs">
 
 ```rust src=counter/src/lib.rs
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Soroban Cookbook
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Env};
 
@@ -204,20 +206,20 @@ The moment you extend this pattern, the reasoning stops applying. Concretely:
 
 - **If you add a hook or callback** (an oracle push, a reward payout, a
   `transfer` of some minted asset), the callee gets control back in the middle
-  of your function. Re-read every value you are about to write *after* the
+  of your function. Re-read every value you are about to write _after_ the
   call, or the callee can hand you a stale balance.
 - **`reset` is the dangerous one.** It writes `0` to the single key
   `COUNTER_KEY` with no authorization. Paired with any external call added to
   the same function, it becomes a trivial griefing vector — anyone can zero the
   counter mid-operation.
 - **Prefer the guard the repo already ships.** The
-  [Reentrancy Guard pattern](./reentrancy-guard) sets a storage flag before
+  Reentrancy Guard pattern sets a storage flag before
   external work and clears it after, so a re-entrant call panics instead of
   corrupting state. Copy that shape rather than hand-rolling a check.
 - **`get` is safe to call from anywhere.** It only reads, so it is fine to
   expose as a cross-contract entry point.
 
-In short: this example is reentrancy-free because it is reentrancy-*trivial*.
+In short: this example is reentrancy-free because it is reentrancy-_trivial_.
 Keep it that way, or adopt the guard pattern when you extend it.
 
 ## Related patterns

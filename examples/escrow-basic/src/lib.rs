@@ -336,11 +336,9 @@ mod tests {
     use soroban_sdk::{
         symbol_short,
         testutils::Address as _,
-        token::{self, StellarAssetClient},
-        Address, Env, Val,
         testutils::{Address as _, Events as _},
         token::{self, StellarAssetClient},
-        Address, Env,
+        Address, Env, Val,
     };
 
     /// Helper: register a Stellar asset contract and mint tokens to `to`.

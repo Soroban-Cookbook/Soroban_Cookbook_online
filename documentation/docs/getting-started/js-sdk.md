@@ -14,19 +14,19 @@ npm install stellar-sdk
 
 ```javascript
 // index.js
-const { Account, Keypair, Networks, Server, TransactionBuilder } = require("stellar-sdk");
-const { Contract } = require("stellar-sdk"); // v12+ may not export Contract directly; use the lower-level API
+const { Account, Keypair, Networks, Server, TransactionBuilder } = require('stellar-sdk');
+const { Contract } = require('stellar-sdk'); // v12+ may not export Contract directly; use the lower-level API
 
 // 1. Setup
-const horizon = new Server("https://horizon.stellar.org");
+const horizon = new Server('https://horizon.stellar.org');
 
 // Funded keypair (use testnet friendbot or your own funded account)
 const senderKeypair = Keypair.random(); // In production, load from secret seed
 const senderAccount = await horizon.loadAccount(senderKeypair.publicKey());
 
 // 2. Contract configuration
-const contractId = "GBY...your-upgradeable-contract-id";
-const contract = new Contract(contractId, "default");
+const contractId = 'GBY...your-upgradeable-contract-id';
+const contract = new Contract(contractId, 'default');
 
 // Or with explicit WASM hash (v2 upgrade)
 // const contract = new Contract(contractId, "v2_wasm_hash");
@@ -34,23 +34,21 @@ const contract = new Contract(contractId, "default");
 // 3. Function invocation: set_value(42)
 // The contract's `set_value` takes a single i32 argument
 const setTx = new TransactionBuilder(senderAccount, {
-  fee: "100",
+  fee: '100',
   networkPassphrase: Networks.TESTNET,
 })
   .setTimeout(30)
-  .addOperation(Contract.createFunctionCallOp("set_value", [42]))
+  .addOperation(Contract.createFunctionCallOp('set_value', [42]))
   .build();
 
 // 4. Sign and submit
 setTx.sign(senderKeypair);
 const setTxHash = await horizon.submitTransaction(setTx);
-console.log("set_value tx submitted:", setTxHash);
+console.log('set_value tx submitted:', setTxHash);
 
 // 5. Read value back
-const response = await horizon.transactions()
-  .forTransaction(setTxHash)
-  .call();
-console.log("Transaction posted successfully!");
+const response = await horizon.transactions().forTransaction(setTxHash).call();
+console.log('Transaction posted successfully!');
 ```
 
 ## Upgrade Flow (v1 → v2)
@@ -59,17 +57,20 @@ console.log("Transaction posted successfully!");
 // After uploading v2 WASM to Horizon and getting its hash:
 // const newWasmHash = "new_hash_here";
 
-// 1. Fund and load the admin account that can upgrade
-const adminKeypair = Keypair.fromSecret("SA...admin-secret");
+// 1. Fund and load the admin account that can upgrade.
+//    Resolve the signer from your environment or secret manager — never
+//    hardcode secret keys in code that ships to users. See API Security
+//    (./api-security.md) for the recommended key-handling patterns.
+const adminKeypair = loadAdminKeypair(); // must return a stellar-sdk Keypair
 const adminAccount = await horizon.loadAccount(adminKeypair.publicKey());
 
 // 2. Build upgrade transaction
 const upgradeTx = new TransactionBuilder(adminAccount, {
-  fee: "100",
+  fee: '100',
   networkPassphrase: Networks.TESTNET,
 })
   .setTimeout(30)
-  .addOperation(Contract.createFunctionCallOp("upgrade", [new Uint8Array(32).fill(0)])) // v2 wasm hash as BytesN<32>
+  .addOperation(Contract.createFunctionCallOp('upgrade', [new Uint8Array(32).fill(0)])) // v2 wasm hash as BytesN<32>
   .build();
 
 // 3. Sign and submit
@@ -79,11 +80,11 @@ await horizon.submitTransaction(upgradeTx);
 // 4. Interact with upgraded contract
 // The same contract ID now runs v2 code:
 const upgradedTx = new TransactionBuilder(adminAccount, {
-  fee: "100",
+  fee: '100',
   networkPassphrase: Networks.TESTNET,
 })
   .setTimeout(30)
-  .addOperation(Contract.createFunctionCallOp("set_value", [999]))
+  .addOperation(Contract.createFunctionCallOp('set_value', [999]))
   .build();
 
 upgradedTx.sign(adminKeypair);
@@ -100,7 +101,9 @@ await horizon.submitTransaction(upgradedTx);
   only the registered admin can call it.
 - Node test scripts are skipped in CI without network; use the test harness
   (`cargo test`) for unit logic verification.
+
 ---
+
 time: 15
 sidebar_position: 10
 title: JavaScript SDK
@@ -141,9 +144,7 @@ async function submitWithFreighter(tx) {
     networkPassphrase: Networks.TESTNET,
   });
 
-  return server.sendTransaction(
-    TransactionBuilder.fromXDR(signed.signedTxXdr, Networks.TESTNET),
-  );
+  return server.sendTransaction(TransactionBuilder.fromXDR(signed.signedTxXdr, Networks.TESTNET));
 }
 ```
 

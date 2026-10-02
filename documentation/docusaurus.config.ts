@@ -34,7 +34,11 @@ const config: Config = {
     // Unset by default, so no analytics script ever loads until an operator
     // opts in by setting the secret. See DEPLOYMENT.md → Analytics.
     /** GA4 measurement ID (e.g. "G-XXXXXXX") for conversion funnel tracking. */
-    gaMeasurementId: process.env.GA_MEASUREMENT_ID ?? process.env.GTAG_MEASUREMENT_ID ?? process.env.GOOGLE_ANALYTICS_ID ?? '',
+    gaMeasurementId:
+      process.env.GA_MEASUREMENT_ID ??
+      process.env.GTAG_MEASUREMENT_ID ??
+      process.env.GOOGLE_ANALYTICS_ID ??
+      '',
     /** Microsoft Clarity project ID for heatmaps/session replay. */
     clarityProjectId: process.env.CLARITY_PROJECT_ID ?? '',
   },
@@ -223,11 +227,7 @@ const config: Config = {
       '@docusaurus/plugin-pwa',
       {
         debug: false,
-        offlineModeActivationStrategies: [
-          'appInstalled',
-          'standalone',
-          'queryString',
-        ],
+        offlineModeActivationStrategies: ['appInstalled', 'standalone', 'queryString'],
         pwaHead: [
           {
             tagName: 'link',
@@ -571,9 +571,6 @@ const config: Config = {
       copyright: `Built by the community • Powered by Stellar • MIT License • © ${new Date().getFullYear()}`,
     },
     prism: {
-      // Always use a dark high-contrast theme — github light token colors
-      // fail WCAG AA on #f6f8fa backgrounds in axe audits.
-      theme: prismThemes.vsDark,
       theme: accessibleGithubPrismTheme,
       darkTheme: prismThemes.vsDark,
       additionalLanguages: ['rust', 'toml', 'bash'],

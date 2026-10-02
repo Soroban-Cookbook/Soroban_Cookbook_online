@@ -4,10 +4,7 @@
 
 extern crate std;
 
-use soroban_sdk::{
-    testutils::Address as _,
-    Address, Env,
-};
+use soroban_sdk::{testutils::Address as _, Address, Env};
 
 /// A compact bitmap-based airdrop allowlist tracker.
 ///
@@ -102,6 +99,7 @@ fn test_multiple_claimants() {
 }
 
 #[test]
+#[should_panic(expected = "Airdrop already claimed by index 0")]
 fn test_double_claim_panics() {
     let mut bitmap = AirdropBitmap::new(10);
 

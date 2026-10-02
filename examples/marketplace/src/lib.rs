@@ -32,8 +32,8 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Env, Symbol,
-    Vec, Bytes,
+    contract, contracterror, contractimpl, contracttype, symbol_short, token, Address, Bytes, Env,
+    Symbol, Vec,
 };
 
 // ─── Errors ────────────────────────────────────────────────────────────────────
@@ -98,9 +98,13 @@ impl Marketplace {
     pub fn list(env: Env, seller: Address, token: Address, price: i128, nft_id: Bytes) -> u64 {
         seller.require_auth();
         if price <= 0 {
-            panic!(Error::InvalidPrice);
+            panic!("{:?}", Error::InvalidPrice);
         }
-        let id: u64 = env.storage().persistent().get(&DataKey::NextId).unwrap_or(0);
+        let id: u64 = env
+            .storage()
+            .persistent()
+            .get(&DataKey::NextId)
+            .unwrap_or(0);
         let next = id + 1;
         env.storage().persistent().set(&DataKey::NextId, &next);
         let listing = Listing {
@@ -113,10 +117,8 @@ impl Marketplace {
         env.storage()
             .persistent()
             .set(&DataKey::Listing(id), &listing);
-        env.events().publish(
-            (symbol_short!("list"),),
-            (seller, id, price),
-        );
+        env.events()
+            .publish((symbol_short!("list"),), (seller, id, price));
         id
     }
 
@@ -130,12 +132,14 @@ impl Marketplace {
             .storage()
             .persistent()
             .get(&DataKey::Listing(listing_id));
-        let mut listing = maybe_listing.ok_or_else(|| panic!(Error::NotFound)).unwrap();
+        let mut listing = maybe_listing
+            .ok_or_else(|| panic!("{:?}", Error::NotFound))
+            .unwrap();
         if listing.state != ListingState::Active {
-            panic!(Error::AlreadyClosed);
+            panic!("{:?}", Error::AlreadyClosed);
         }
         if buyer == listing.seller {
-            panic!(Error::Unauthorized);
+            panic!("{:?}", Error::Unauthorized);
         }
         // Transfer payment from buyer to seller.
         let token_client = token::Client::new(&env, &listing.token);
@@ -146,10 +150,8 @@ impl Marketplace {
         env.storage()
             .persistent()
             .set(&DataKey::Listing(listing_id), &listing);
-        env.events().publish(
-            (symbol_short!("buy"),),
-            (buyer, listing_id, listing.price),
-        );
+        env.events()
+            .publish((symbol_short!("buy"),), (buyer, listing_id, listing.price));
     }
 
     /// Cancel an active listing. Only the seller may cancel.
@@ -159,25 +161,27 @@ impl Marketplace {
             .storage()
             .persistent()
             .get(&DataKey::Listing(listing_id));
-        let mut listing = maybe_listing.ok_or_else(|| panic!(Error::NotFound)).unwrap();
+        let mut listing = maybe_listing
+            .ok_or_else(|| panic!("{:?}", Error::NotFound))
+            .unwrap();
         if listing.state != ListingState::Active {
-            panic!(Error::AlreadyClosed);
+            panic!("{:?}", Error::AlreadyClosed);
         }
         if seller != listing.seller {
-            panic!(Error::Unauthorized);
+            panic!("{:?}", Error::Unauthorized);
         }
         listing.state = ListingState::Cancelled;
         env.storage()
             .persistent()
             .set(&DataKey::Listing(listing_id), &listing);
-        env.events().publish(
-            (symbol_short!("cancel"),),
-            (seller, listing_id),
-        );
+        env.events()
+            .publish((symbol_short!("cancel"),), (seller, listing_id));
     }
 
     /// Retrieve a listing (for read‑only callers).
     pub fn get_listing(env: Env, listing_id: u64) -> Option<Listing> {
-        env.storage().persistent().get(&DataKey::Listing(listing_id))
+        env.storage()
+            .persistent()
+            .get(&DataKey::Listing(listing_id))
     }
 }

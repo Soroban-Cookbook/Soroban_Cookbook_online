@@ -244,6 +244,6 @@ See the [Contract Testing Guide](./contract-testing.md).
 
 ### Next steps
 
-- [Environment Setup](./setup.md)
+- [Environment Setup](./setup)
 - [Your First Contract](./first-contract.md)
 - [Building and Compilation](./building-and-compilation.md)

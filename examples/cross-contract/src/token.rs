@@ -87,8 +87,12 @@ impl Token {
         let to_balance = Self::balance(env.clone(), to.clone());
 
         // Update balances
-        env.storage().persistent().set(&DataKey::Balance(from.clone()), &(from_balance - amount));
-        env.storage().persistent().set(&DataKey::Balance(to.clone()), &(to_balance + amount));
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(from.clone()), &(from_balance - amount));
+        env.storage()
+            .persistent()
+            .set(&DataKey::Balance(to.clone()), &(to_balance + amount));
         env.storage()
             .persistent()
             .set(&DataKey::Balance(from.clone()), &(from_balance - amount));

@@ -48,7 +48,9 @@ Use this pattern to bootstrap a simple token system, understand state management
 </PatternCallout>
 
 <PatternCallout variant="note" title="Teaching Token">
-The `examples/token-transfer` example demonstrates a teaching token implementation. It is **not** the Stellar Asset Contract (SAC) used for production assets. For production, refer to the [Stellar Asset Contract (SAC)](./token-standards.mdx#sac) documentation.
+  The `examples/token-transfer` example demonstrates a teaching token implementation. It is **not**
+  the Stellar Asset Contract (SAC) used for production assets. For production, refer to the [Stellar
+  Asset Contract (SAC)](../concepts/stellar-asset-contract) documentation.
 </PatternCallout>
 
 <PatternSection id="prerequisites" title="Prerequisites">
@@ -74,16 +76,16 @@ inflate the supply at will.
 Read the two limits that matter most before you copy anything:
 
 - **Reentrancy** — none of `mint`, `balance`, or `transfer` makes a cross-contract
-  call, so there is no re-entrant call to defend against *as written*. The moment
+  call, so there is no re-entrant call to defend against _as written_. The moment
   you add one (a transfer-fee hook, a mint callback, a cross-chain message), that
-  protection is gone. See [Reentrancy limits](#reentrancy-and-storage-ttl-limits).
+  protection is gone. See [Reentrancy limits](#reentrancy-limits).
 - **Storage TTL / data expiry** — balances live in `persistent` storage, which
   expires. This example never extends a TTL, so a balance can be **archived and
   then permanently deleted**, silently turning into a zero balance. See
-  [Reentrancy and storage TTL limits](#reentrancy-and-storage-ttl-limits).
+  [Reentrancy and storage TTL limits](#reentrancy-limits).
 
-For a real token, use the [Stellar Asset Contract (SAC)](./token-standards.mdx#sac)
-or the [SEP-41 standard](./token-standards.mdx) instead of deploying this.
+For a real token, use the [Stellar Asset Contract (SAC)](../concepts/stellar-asset-contract)
+or the [SEP-41 standard](../concepts/token-standards) instead of deploying this.
 
 </PatternCallout>
 
@@ -281,6 +283,7 @@ The `transfer` function calls `from.require_auth()` to ensure the transaction is
 ### Error Handling
 
 Three error codes cover the main failure modes:
+
 - **InsufficientBalance**: Sender doesn't have enough tokens
 - **InvalidAmount**: Zero or negative amounts are rejected
 - **SelfTransfer**: Transferring to yourself is a no-op and disallowed
@@ -308,7 +311,7 @@ The guarantees you can rely on today, and what breaks them:
 
 - **`transfer` is checks-then-effects.** It reads the sender balance, verifies
   `from_balance >= amount`, and only then writes both sides. That ordering is
-  safe *only* because no untrusted code runs between the read and the write.
+  safe _only_ because no untrusted code runs between the read and the write.
 - **Adding any external call breaks it.** Insert a transfer-fee hook, a mint
   callback, a cross-chain `invoke_contract`, or a SAC payment between the read
   and the write and the pattern is exploitable: re-read both balances after the
@@ -319,7 +322,7 @@ The guarantees you can rely on today, and what breaks them:
   check, not a reentrancy guard. It stops unauthorized senders; it does not stop
   a callee re-entering.
 - **Use the repo's guard shape.** The
-  [Reentrancy Guard pattern](./reentrancy-guard) sets a storage flag before any
+  Reentrancy Guard pattern sets a storage flag before any
   external work and clears it afterwards, so a re-entrant call panics rather than
   double-spending. Adopt it whenever you extend this contract.
 
@@ -364,22 +367,22 @@ leaves open, not an exhaustive audit.
 
 4. **Allowance/Approval**: For more advanced use cases, implement an approve/transferFrom pattern allowing third parties to move tokens on behalf of the owner.
 
-5. **Reentrancy Limits**: Safe only while the contract makes no cross-contract calls. `transfer` relies on a checks-then-effects ordering that assumes no untrusted code runs between reading the sender balance and writing it. Add a guard from the [Reentrancy Guard pattern](./reentrancy-guard) before adding any external call.
+5. **Reentrancy Limits**: Safe only while the contract makes no cross-contract calls. `transfer` relies on a checks-then-effects ordering that assumes no untrusted code runs between reading the sender balance and writing it. Add a guard from the Reentrancy Guard pattern before adding any external call.
 
-6. **Storage TTL / Data Expiry**: Balances are in `persistent` storage and no TTL is ever extended, so a balance can be archived and then permanently deleted — reading back as `0` via `.unwrap_or(0)`. Extend TTLs on every balance touched, restore archived entries on read, and budget for rent. See [Reentrancy and storage TTL limits](#reentrancy-and-storage-ttl-limits).
+6. **Storage TTL / Data Expiry**: Balances are in `persistent` storage and no TTL is ever extended, so a balance can be archived and then permanently deleted — reading back as `0` via `.unwrap_or(0)`. Extend TTLs on every balance touched, restore archived entries on read, and budget for rent. See [Reentrancy and storage TTL limits](#reentrancy-limits).
 
 </PatternSection>
 
 <PatternSection id="comparison" title="Comparison: Basic Token vs. SAC">
 
-| Feature | Basic Token | SAC (Stellar Asset Contract) |
-|---------|-------------|-----|
-| **Standards** | Custom | Soroban standard |
-| **Decimals** | Built-in only | Full decimal support |
-| **Approvals** | Not included | Built-in allowances |
-| **Admin** | None | Admin actions (freeze, clawback) |
-| **Production Ready** | No | Yes |
-| **Learning Value** | High | N/A |
+| Feature              | Basic Token   | SAC (Stellar Asset Contract)     |
+| -------------------- | ------------- | -------------------------------- |
+| **Standards**        | Custom        | Soroban standard                 |
+| **Decimals**         | Built-in only | Full decimal support             |
+| **Approvals**        | Not included  | Built-in allowances              |
+| **Admin**            | None          | Admin actions (freeze, clawback) |
+| **Production Ready** | No            | Yes                              |
+| **Learning Value**   | High          | N/A                              |
 
 For production systems, use SAC. This pattern is ideal for learning and prototyping.
 
@@ -391,7 +394,7 @@ For production systems, use SAC. This pattern is ideal for learning and prototyp
 - [Authorization](/docs/patterns/authorization) — Fine-grained access control patterns
 - [Custom Types](/docs/patterns/custom-types) — Extending data structures
 - [Token Pattern Security Audit](/docs/security/token-audit) — Checklist to run before deploying any token contract, including the unrestricted-minting and supply-cap gaps called out above
-- [Token Vesting](/docs/patterns/token-vesting) — Linear release schedules with a cliff, built on the token interface
+- [Token Vesting](./token-vesting) — Linear release schedules with a cliff, built on the token interface
 
 </PatternSection>
 
@@ -409,12 +412,14 @@ The compiled WASM binary is located at `target/wasm32-unknown-unknown/release/to
 ### Deploy to Testnet
 
 1. **Generate or use an existing account**:
+
    ```bash
    stellar keys generate --global token-admin
    stellar keys fund token-admin --network testnet
    ```
 
 2. **Deploy the contract**:
+
    ```bash
    stellar contract deploy \
      --wasm target/wasm32-unknown-unknown/release/token_transfer.wasm \

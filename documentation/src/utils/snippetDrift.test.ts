@@ -187,7 +187,8 @@ describe('snippetMatchesFile', () => {
   });
 
   it('returns true for identical multi-line blocks', () => {
-    const code = '#![no_std]\nuse soroban_sdk::{contract, contractimpl, Env};\n\n#[contract]\npub struct Counter;';
+    const code =
+      '#![no_std]\nuse soroban_sdk::{contract, contractimpl, Env};\n\n#[contract]\npub struct Counter;';
     expect(snippetMatchesFile(makeSnippet(code), code)).toBe(true);
   });
 });

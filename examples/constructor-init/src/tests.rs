@@ -5,7 +5,10 @@
 use soroban_sdk::testutils::Address as _;
 use soroban_sdk::{Address, Env};
 
-use crate::{ConstructorRegistry, ConstructorRegistryClient, Error, InitializeRegistry, InitializeRegistryClient};
+use crate::{
+    ConstructorRegistry, ConstructorRegistryClient, Error, InitializeRegistry,
+    InitializeRegistryClient,
+};
 
 // ─────────────────────────────────────────────
 // Modern path: `__constructor`

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import VideoPlayer from '../VideoPlayer';
+import styles from '../VideoPlayer.module.css';
 
 // Mock the utils module to control parseVideoUrl behavior
 vi.mock('../utils', () => ({
@@ -80,32 +81,26 @@ describe('VideoPlayer', () => {
 
   it('renders title and description when provided', () => {
     render(
-      <VideoPlayer
-        url={validYouTubeUrl}
-        title="Getting Started"
-        description="Learn the basics"
-      />
+      <VideoPlayer url={validYouTubeUrl} title="Getting Started" description="Learn the basics" />,
     );
     expect(screen.getByText('Getting Started')).toBeInTheDocument();
     expect(screen.getByText('Learn the basics')).toBeInTheDocument();
   });
 
   it('applies custom aspect ratio class', () => {
-    const { container } = render(
-      <VideoPlayer url={validYouTubeUrl} aspectRatio={4 / 3} />
-    );
-    const wrapper = container.querySelector('.wrapper'); // adjust if class name differs
+    const { container } = render(<VideoPlayer url={validYouTubeUrl} aspectRatio={4 / 3} />);
+    const wrapper = container.querySelector(`.${styles.wrapper}`);
     expect(wrapper).toBeInTheDocument();
-    // The component uses getAspectRatioClass which returns a CSS module class.
-    // We can check that the wrapper has the class via className or style.
-    // Since CSS modules use hashed class names, we check the presence of the wrapper.
+    // CSS module classes are hashed at build time, so compare against the
+    // same module the component imports rather than literal class names.
+    expect(wrapper).toHaveClass(styles.ratio4x3);
   });
 
   it('uses 16:9 as default aspect ratio', () => {
     const { container } = render(<VideoPlayer url={validYouTubeUrl} />);
-    const wrapper = container.querySelector('.wrapper');
+    const wrapper = container.querySelector(`.${styles.wrapper}`);
     expect(wrapper).toBeInTheDocument();
-    // Default should be 16:9
+    expect(wrapper).toHaveClass(styles.ratio16x9);
   });
 
   it('sets loading="lazy" on iframe', () => {

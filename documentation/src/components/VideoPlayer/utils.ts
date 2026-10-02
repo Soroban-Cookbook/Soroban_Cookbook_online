@@ -25,6 +25,11 @@ export function extractYouTubeId(url: string): string | null {
 
     // youtube.com or www.youtube.com
     if (hostname.includes('youtube.com')) {
+      // Embed URLs: youtube.com/embed/<id>
+      const embedMatch = urlObj.pathname.match(/^\/embed\/([^/?#]+)/);
+      if (embedMatch) {
+        return embedMatch[1];
+      }
       const videoId = urlObj.searchParams.get('v');
       return videoId;
     }
@@ -61,11 +66,11 @@ export function extractVimeoId(url: string): string | null {
 
     const urlObj = new URL(url);
 
-    // vimeo.com or www.vimeo.com
+    // vimeo.com, www.vimeo.com or player.vimeo.com (/video/<id> embeds)
     if (urlObj.hostname.includes('vimeo.com')) {
       const pathParts = urlObj.pathname.split('/').filter((p) => p);
-      const videoId = pathParts[0];
-      return /^\d+$/.test(videoId) ? videoId : null;
+      const videoId = pathParts.find((part) => /^\d+$/.test(part));
+      return videoId ?? null;
     }
 
     return null;

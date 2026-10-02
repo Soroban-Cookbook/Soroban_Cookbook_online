@@ -70,12 +70,8 @@ describe('CookieConsent', () => {
     it('renders the banner when no consent has been recorded', () => {
       renderBanner();
       expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: /accept analytics/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: /reject analytics/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /accept analytics/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /reject analytics/i })).toBeInTheDocument();
     });
 
     it('does not render the banner once consent has already been recorded', () => {
@@ -100,9 +96,7 @@ describe('CookieConsent', () => {
       fireEvent.click(screen.getByRole('button', { name: /accept analytics/i }));
 
       expect(readConsent()?.analytics).toBe('accepted');
-      const stored = JSON.parse(
-        localStorage.getItem(CONSENT_STORAGE_KEY) || '{}',
-      );
+      const stored = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) || '{}');
       expect(stored.analytics).toBe('accepted');
       expect(stored.version).toBe(1);
     });
@@ -141,9 +135,7 @@ describe('CookieConsent', () => {
       fireEvent.click(screen.getByRole('button', { name: /reject analytics/i }));
 
       expect(readConsent()?.analytics).toBe('rejected');
-      const stored = JSON.parse(
-        localStorage.getItem(CONSENT_STORAGE_KEY) || '{}',
-      );
+      const stored = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) || '{}');
       expect(stored.analytics).toBe('rejected');
     });
 

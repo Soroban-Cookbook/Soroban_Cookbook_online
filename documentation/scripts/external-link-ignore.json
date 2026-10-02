@@ -13,7 +13,5 @@
     "soroban-testnet\\.stellar\\.org",
     "validationcloud\\.io/v1/"
   ],
-  "urls": [
-    "https://github.com/your-repo"
-  ]
+  "urls": ["https://github.com/your-repo"]
 }

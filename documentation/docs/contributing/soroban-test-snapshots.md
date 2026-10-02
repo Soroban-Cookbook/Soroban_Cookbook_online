@@ -8,7 +8,7 @@ import OptimizedImage from '@site/src/components/OptimizedImage';
 
 Soroban SDK test snapshots are committed JSON records of the observable state left by a test environment. They make authorization, ledger, and event changes visible in version control so reviewers can distinguish an intentional contract change from unrelated generated-file churn.
 
-These fixtures are different from the on-chain [Token Snapshot pattern](/docs/patterns/token-snapshot). The files covered here are test artifacts under an example crate's `test_snapshots/` directory.
+These fixtures are different from the on-chain [Token Snapshot pattern](../patterns/balance-snapshot). The files covered here are test artifacts under an example crate's `test_snapshots/` directory.
 
 ## How the files are written
 

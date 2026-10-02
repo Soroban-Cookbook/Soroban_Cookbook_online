@@ -207,7 +207,6 @@ impl TimelockVault {
     /// Return the Unix timestamp at which the vault unlocks.
     pub fn unlock_time(env: Env) -> Result<u64, Error> {
         Self::assert_initialised(&env)?;
-        Ok(env.storage().instance().get(&DataKey::UnlockTime).unwrap())
         Ok(env
             .storage()
             .instance()
@@ -218,7 +217,6 @@ impl TimelockVault {
     /// Return the locked amount.
     pub fn amount(env: Env) -> Result<i128, Error> {
         Self::assert_initialised(&env)?;
-        Ok(env.storage().instance().get(&DataKey::Amount).unwrap())
         Ok(env
             .storage()
             .instance()
@@ -237,7 +235,6 @@ impl TimelockVault {
     /// Return the beneficiary address.
     pub fn beneficiary(env: Env) -> Result<Address, Error> {
         Self::assert_initialised(&env)?;
-        Ok(env.storage().instance().get(&DataKey::Beneficiary).unwrap())
         Ok(env
             .storage()
             .instance()
@@ -248,7 +245,6 @@ impl TimelockVault {
     /// Return how many seconds remain until unlock, or 0 if already unlocked.
     pub fn time_remaining(env: Env) -> Result<u64, Error> {
         Self::assert_initialised(&env)?;
-        let unlock_time: u64 = env.storage().instance().get(&DataKey::UnlockTime).unwrap();
         let unlock_time: u64 = env
             .storage()
             .instance()

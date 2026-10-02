@@ -23,16 +23,16 @@ A **pull payment** inverts the direction of a payout: instead of a contract push
 This pattern mitigates two failure classes in push-style payout contracts:
 
 1. **Failed downstream transfers** — if the pushed transfer reverts, the whole transaction reverts and the payout may be stuck or need to be re-run. With a pull payment the credit is recorded first and funds are drawn on demand.
-2. **Reentrancy** — because the credit is zeroed in storage *before* the external token transfer (Checks-Effects-Interactions), a re-entering call sees a zero balance and cannot double-spend.
+2. **Reentrancy** — because the credit is zeroed in storage _before_ the external token transfer (Checks-Effects-Interactions), a re-entering call sees a zero balance and cannot double-spend.
 
-It is a natural complement to the [Reentrancy Guard Pattern](/docs/patterns/reentrancy-guard): the guard blocks re-entrant calls with a mutex, while pull payments remove the vulnerable interaction window altogether.
+It is a natural complement to the Reentrancy Guard Pattern: the guard blocks re-entrant calls with a mutex, while pull payments remove the vulnerable interaction window altogether.
 
 <PatternSection id="prerequisites" title="Prerequisites">
 
 - Rust and `soroban-sdk` version 27+
 - Familiarity with token contract clients (`token::Client`, `StellarAssetClient`)
 - Understanding of the **Checks-Effects-Interactions** ordering
-- Familiarity with the [Reentrancy Guard Pattern](/docs/patterns/reentrancy-guard)
+- Familiarity with the Reentrancy Guard Pattern
 
 </PatternSection>
 
@@ -110,7 +110,7 @@ pub fn credit_payment(env: Env, beneficiary: Address, amount: i128) -> Result<()
 The withdrawal is ordered deliberately:
 
 1. **Checks** — authenticate the beneficiary and validate the amount against the credit.
-2. **Effects** — zero (or reduce) the credit in storage *before* any interaction.
+2. **Effects** — zero (or reduce) the credit in storage _before_ any interaction.
 3. **Interactions** — perform the token transfer last.
 
 ```rust
@@ -161,7 +161,7 @@ Zeroing the credit before the transfer means a reverting or re-entered transfer 
 - **Authorize withdrawals** — `beneficiary.require_auth()` ensures only the credited account can pull its payment.
 - **Gate crediting** — only the `Owner` stored at `init` may `credit_payment`, preventing arbitrary inflation of credits.
 - **Validate amounts** — reject non-positive amounts and amounts exceeding the credited balance.
-- **Relationship to reentrancy** — pull payments reduce the interaction surface; combine with a [reentrancy guard](/docs/patterns/reentrancy-guard) when you still perform external calls elsewhere.
+- **Relationship to reentrancy** — pull payments reduce the interaction surface; combine with a reentrancy guard when you still perform external calls elsewhere.
 
 </PatternSection>
 

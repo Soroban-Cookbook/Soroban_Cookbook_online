@@ -35,9 +35,7 @@ function normalizeTarget(raw, sourceId) {
   if (!target) return null;
 
   if (target.startsWith('/docs/')) {
-    return target
-      .replace(/\/$/, '')
-      .replace(/\.(md|mdx)$/, '') || '/docs';
+    return target.replace(/\/$/, '').replace(/\.(md|mdx)$/, '') || '/docs';
   }
   if (target.startsWith('/')) return null;
 
@@ -78,10 +76,7 @@ function resolveDocFile(docPath) {
     return path.join(docsRoot, 'index.md');
   }
   const slug = docPath.replace(/^\/docs\//, '');
-  candidates.unshift(
-    path.join(docsRoot, `${slug}.md`),
-    path.join(docsRoot, `${slug}.mdx`),
-  );
+  candidates.unshift(path.join(docsRoot, `${slug}.md`), path.join(docsRoot, `${slug}.mdx`));
   return candidates.find((p) => fs.existsSync(p)) ?? null;
 }
 
@@ -101,10 +96,7 @@ for (const file of allFiles) {
 }
 
 for (const [id, rules] of Object.entries(registry.pages)) {
-  const file =
-    id === 'index'
-      ? path.join(docsRoot, 'index.md')
-      : resolveDocFile(id);
+  const file = id === 'index' ? path.join(docsRoot, 'index.md') : resolveDocFile(id);
   if (!file) {
     issues.push({ id, type: 'missing-file', detail: 'Registry page has no doc file' });
     continue;
@@ -115,9 +107,7 @@ for (const [id, rules] of Object.entries(registry.pages)) {
 
   for (const required of rules.requiredLinks ?? []) {
     const normalized = required.replace(/\/$/, '');
-    const found = [...links].some(
-      (l) => l === normalized || l === `${normalized}/`,
-    );
+    const found = [...links].some((l) => l === normalized || l === `${normalized}/`);
     if (!found) {
       issues.push({
         id,

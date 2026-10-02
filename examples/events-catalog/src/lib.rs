@@ -30,7 +30,9 @@ impl EventsCatalog {
             active: true,
         };
 
-        env.storage().persistent().set(&DataKey::Profile(account.clone()), &profile);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Profile(account.clone()), &profile);
 
         env.events().publish(
             (Symbol::new(&env, "profile_set"), account.clone()),
@@ -50,14 +52,14 @@ impl EventsCatalog {
             .persistent()
             .set(&DataKey::Profile(account.clone()), &profile);
 
-        env.events()
-            .publish((Symbol::new(&env, "profile_status"), account.clone()), active);
+        env.events().publish(
+            (Symbol::new(&env, "profile_status"), account.clone()),
+            active,
+        );
     }
 
     pub fn get_profile(env: Env, account: Address) -> Option<Profile> {
-        env.storage()
-            .persistent()
-            .get(&DataKey::Profile(account))
+        env.storage().persistent().get(&DataKey::Profile(account))
     }
 }
 
@@ -96,7 +98,10 @@ mod tests {
             xdr::ContractEventBody::V0(body) => body,
         };
 
-        assert_eq!(xdr_body.topics[0], xdr::ScVal::from_val(&env, &profile_topic));
+        assert_eq!(
+            xdr_body.topics[0],
+            xdr::ScVal::from_val(&env, &profile_topic)
+        );
         assert_eq!(xdr_body.topics[1], xdr::ScVal::from_val(&env, &account_val));
         assert_eq!(xdr_body.data, xdr::ScVal::from_val(&env, &profile_data));
     }

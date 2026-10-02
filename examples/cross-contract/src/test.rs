@@ -52,7 +52,6 @@ mod tests {
 
         // User deposits tokens into vault
         vault_client.deposit(&user, &deposit_amount);
-        
 
         // Check balances
         assert_eq!(vault_client.user_balance(&user), deposit_amount);
@@ -60,7 +59,6 @@ mod tests {
 
         // User withdraws some tokens
         vault_client.withdraw(&user, &withdraw_amount);
-        
 
         // Check final balances
         assert_eq!(
@@ -99,8 +97,14 @@ mod tests {
         let withdraw_amount = 200i128; // More than deposited
 
         // Setup: user deposits tokens
-        token_client.try_mint(&user, &deposit_amount).unwrap().unwrap();
-        vault_client.try_deposit(&user, &deposit_amount).unwrap().unwrap();
+        token_client
+            .try_mint(&user, &deposit_amount)
+            .unwrap()
+            .unwrap();
+        vault_client
+            .try_deposit(&user, &deposit_amount)
+            .unwrap()
+            .unwrap();
         token_client.mint(&user, &deposit_amount);
         vault_client.deposit(&user, &deposit_amount);
 
@@ -122,7 +126,6 @@ mod tests {
         // Setup: mint tokens and enable emergency mode
         token_client.mint(&user, &amount);
         vault_client.set_emergency_mode(&true);
-        
 
         assert!(vault_client.is_emergency_mode());
 
@@ -146,7 +149,6 @@ mod tests {
 
         // Admin performs emergency withdrawal
         let recovered_balance = vault_client.emergency_withdraw(&user);
-        
 
         assert_eq!(recovered_balance, amount);
         assert_eq!(vault_client.user_balance(&user), 0);
@@ -203,7 +205,6 @@ mod tests {
 
         // Update vault to use second token contract
         vault_client.update_token_contract(&token_id_2);
-        
 
         let current_token = vault_client.token_contract();
         assert_eq!(current_token, token_id_2);
@@ -278,7 +279,6 @@ mod tests {
 
         // Setup
         token_client.mint(&user, &amount);
-        
 
         // Deposit tokens
         vault_client.deposit(&user, &amount);

@@ -17,5 +17,10 @@
     "bun.lock",
     "package-lock.json"
   ],
+  "ignoreRegExpList": [
+    "/\\b[SCG][A-Z0-9]{12,}\\b/",
+    "/[A-Za-z0-9+/]{25,}={0,2}/",
+    "/\\.\\.\\.[A-Za-z0-9]{3,}/"
+  ],
   "flagWords": []
 }

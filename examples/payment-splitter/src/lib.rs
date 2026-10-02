@@ -1,7 +1,5 @@
 #![no_std]
-use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, token, Address, Env, Vec,
-};
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, token, Address, Env, Vec};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -57,7 +55,7 @@ impl PaymentSplitter {
     }
 
     /// Split the current token balance of this contract among the payees according to their shares.
-    /// 
+    ///
     /// Dust Policy: Due to integer division (balance * share / 10000), a small amount of "dust"
     /// may remain in the contract. This dust is left in the contract and will be included in the
     /// balance during the next split.
@@ -68,11 +66,7 @@ impl PaymentSplitter {
             .get(&DataKey::Token)
             .ok_or(Error::NotInitialized)?;
 
-        let payees: Vec<(Address, i128)> = env
-            .storage()
-            .instance()
-            .get(&DataKey::Payees)
-            .unwrap();
+        let payees: Vec<(Address, i128)> = env.storage().instance().get(&DataKey::Payees).unwrap();
 
         let client = token::Client::new(&env, &token_addr);
         let balance = client.balance(&env.current_contract_address());
@@ -96,14 +90,10 @@ impl PaymentSplitter {
             .instance()
             .get(&DataKey::Admin)
             .ok_or(Error::NotInitialized)?;
-        
+
         admin.require_auth();
 
-        let token_addr: Address = env
-            .storage()
-            .instance()
-            .get(&DataKey::Token)
-            .unwrap();
+        let token_addr: Address = env.storage().instance().get(&DataKey::Token).unwrap();
 
         let client = token::Client::new(&env, &token_addr);
         client.transfer(&env.current_contract_address(), &to, &amount);
@@ -129,7 +119,7 @@ mod tests {
         let env = Env::default();
         let contract_id = env.register(PaymentSplitter, ());
         let client = PaymentSplitterClient::new(&env, &contract_id);
-        
+
         let admin = Address::generate(&env);
         let token = Address::generate(&env);
         let payee1 = Address::generate(&env);
@@ -147,7 +137,7 @@ mod tests {
         let env = Env::default();
         let contract_id = env.register(PaymentSplitter, ());
         let client = PaymentSplitterClient::new(&env, &contract_id);
-        
+
         let admin = Address::generate(&env);
         let token = Address::generate(&env);
         let payee1 = Address::generate(&env);
@@ -163,12 +153,12 @@ mod tests {
     fn test_split_and_dust_handling() {
         let env = Env::default();
         env.mock_all_auths();
-        
+
         let (token_addr, token_client) = setup_token(&env);
-        
+
         let contract_id = env.register(PaymentSplitter, ());
         let client = PaymentSplitterClient::new(&env, &contract_id);
-        
+
         let admin = Address::generate(&env);
         let payee1 = Address::generate(&env);
         let payee2 = Address::generate(&env);
@@ -206,7 +196,7 @@ mod tests {
         // Do not mock auths so require_auth will panic if not provided
         let contract_id = env.register(PaymentSplitter, ());
         let client = PaymentSplitterClient::new(&env, &contract_id);
-        
+
         let admin = Address::generate(&env);
         let token = Address::generate(&env);
         let payee = Address::generate(&env);

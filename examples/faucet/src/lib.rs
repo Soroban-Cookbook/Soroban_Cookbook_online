@@ -93,22 +93,14 @@ impl Faucet {
         let current_ledger = env.ledger().sequence() as u64;
         let last_claim_key = DataKey::LastClaim(caller.clone());
         if env.storage().persistent().has(&last_claim_key) {
-            let last_claim: u64 = env
-                .storage()
-                .persistent()
-                .get(&last_claim_key)
-                .unwrap();
+            let last_claim: u64 = env.storage().persistent().get(&last_claim_key).unwrap();
             if cooldown > 0 && current_ledger.saturating_sub(last_claim) < cooldown as u64 {
                 return Err(Error::CooldownActive);
             }
         }
 
         // --- global cap check ---
-        let drip_amount: i128 = env
-            .storage()
-            .instance()
-            .get(&DataKey::DripAmount)
-            .unwrap();
+        let drip_amount: i128 = env.storage().instance().get(&DataKey::DripAmount).unwrap();
         let total: i128 = env
             .storage()
             .instance()
@@ -203,10 +195,7 @@ impl Faucet {
 
     /// Address of the contract admin.
     pub fn admin(env: Env) -> Address {
-        env.storage()
-            .instance()
-            .get(&DataKey::Admin)
-            .unwrap()
+        env.storage().instance().get(&DataKey::Admin).unwrap()
     }
 }
 

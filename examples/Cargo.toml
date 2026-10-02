@@ -25,6 +25,7 @@ members = [
     "htlc-swap",
     "lending",
     "marketplace",
+    "merkle-proof",
     "multi-token-vault",
     "multisig-wallet",
     "oracle-consumer",

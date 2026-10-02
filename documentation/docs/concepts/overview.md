@@ -39,7 +39,7 @@ Emit events and logs for contract monitoring and debugging.
 
 Proper error handling and recovery strategies.
 
-### [Simulation & Footprints](/docs/concepts/simulation-and-footprints)
+### [Simulation & Footprints](./simulation-and-footprints)
 
 Understand preflight simulation, ledger footprints, authorization modes, and why simulation success can still fail on-chain.
 
@@ -56,7 +56,7 @@ Start with:
 3. [Storage Patterns](/docs/concepts/storage) — Learn data persistence
 4. [Authorization](/docs/concepts/authorization) — Secure your contracts
 5. [Events](/docs/concepts/events) — Monitor contract activity
-6. [Simulation and Footprints](/docs/concepts/simulation-and-footprints) — Preflight lifecycle and footprints
+6. [Simulation and Footprints](./simulation-and-footprints) — Preflight lifecycle and footprints
 
 ## Resources
 
