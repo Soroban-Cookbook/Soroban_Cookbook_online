@@ -8,9 +8,6 @@ A multi-asset vault contract that tracks accounting balances for multiple differ
 - Vault-wide total tracking per token asset
 - Strict authorization gating on user deposits and withdrawals
 - Comprehensive input validation and typed errors
-# Multi-token Vault
-
-A vault for multiple tokens.
 
 ## Build
 
@@ -47,12 +44,12 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 - [Multi-Token Vault](https://soroban-cookbook.dev/docs/patterns/multi-token-vault) — the pattern page this example supports
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
-## Test
-
-```bash
-cargo test --manifest-path examples/multi-token-vault/Cargo.toml
-```
 
 ## Origin
 
 This example is original to the Soroban Cookbook repository.
+
+## License
+
+Distributed under the **MIT** license (see the repository root `LICENSE`),
+matching the repository's license policy for example crates.
