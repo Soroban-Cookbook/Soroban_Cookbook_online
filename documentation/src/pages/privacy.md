@@ -134,7 +134,9 @@ that every personal or sensitive value is removed.
 Typical bases for a documentation site of this type:
 
 - **Legitimate interest / necessity** for essential storage required to deliver
-  the service you request (theme, CSRF, consent record)
+  the service you request (theme, CSRF, consent record) and for essential
+  error monitoring (Sentry) when `SENTRY_DSN` is configured — Sentry loads
+  independently of analytics consent
 - **Consent** for optional analytics cookies/scripts
 - **Consent or contract** for newsletter email processing, depending on how the
   newsletter backend is operated
