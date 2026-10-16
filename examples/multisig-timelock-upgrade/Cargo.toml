@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Execute a call only after threshold signatures and an unlock time"
 license = "MIT"
-repository = "https://github.com/CosmWasm/cw-plus"
+repository = "https://github.com/Soroban-Cookbook/Soroban_Cookbook_online"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

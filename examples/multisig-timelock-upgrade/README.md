@@ -24,9 +24,9 @@ cargo test --manifest-path examples/multisig-timelock-upgrade/Cargo.toml
 
 ## Origin
 
-This example's metadata references the
-[CosmWasm cw-plus](https://github.com/CosmWasm/cw-plus) repository
-(`repository` field in `Cargo.toml`) as its upstream source.
+This example is original to the Soroban Cookbook repository. No upstream
+source is claimed; the `repository` field in `Cargo.toml` points at this
+repository.
 
 ## License
 

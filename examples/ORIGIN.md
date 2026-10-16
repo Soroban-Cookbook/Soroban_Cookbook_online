@@ -59,7 +59,7 @@ Example row:
 | [`marketplace`](marketplace/README.md) | unreviewed | — | — |
 | [`merkle-proof`](merkle-proof/README.md) | unreviewed | — | — |
 | [`multi-token-vault`](multi-token-vault/README.md) | unreviewed | — | — |
-| [`multisig-timelock-upgrade`](multisig-timelock-upgrade/README.md) | unreviewed | — | — |
+| [`multisig-timelock-upgrade`](multisig-timelock-upgrade/README.md) | original | — | 2026-10-16 |
 | [`multisig-wallet`](multisig-wallet/README.md) | unreviewed | — | — |
 | [`nft`](nft/README.md) | unreviewed | — | — |
 | [`oracle-consumer`](oracle-consumer/README.md) | unreviewed | — | — |
