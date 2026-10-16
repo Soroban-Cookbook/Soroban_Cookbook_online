@@ -69,6 +69,16 @@ Official documentation:
 
 ### When simulation matters
 
+:::caution Key handling and network risk
+The commands below touch keys, wallets, RPC, or a public network. Before you run any of them:
+
+- **Never commit, paste, or share secret keys or seed phrases.** Do not put them in source files, `.env` files, shell history, chat, screenshots, or issue reports. Prefer a named identity (for example `stellar keys generate --global <alias>` and `--source-account <alias>`) or a wallet extension (for example Freighter) so the secret never leaves the signer.
+- **Treat testnet and mainnet differently.** Testnet is for experimentation; mainnet moves real funds and is effectively irreversible. Confirm the network passphrase and RPC/Horizon URLs before signing, and prefer an explicit `--network testnet` over relying on a default.
+- **A public RPC or Horizon endpoint is not a private channel.** Public endpoints can be rate-limited, logged, or run by an untrusted operator. Do not send secrets or API tokens through an endpoint you do not control, and do not treat a passing testnet call as proof the same command is safe on mainnet.
+
+See [API Security](../getting-started/api-security.md) and [Deploy to Mainnet](../getting-started/deploy-mainnet.md) for the canonical checklists. The rules above stand on their own.
+:::
+
 Always simulate before production submission when:
 
 - Building contract invocations with unknown footprints
@@ -87,7 +97,7 @@ stellar contract invoke \
   -- send --help
 ```
 
-Point `STELLAR_RPC_URL` / config at a testnet RPC such as a public endpoint or your own node. See [Debugging Guide](../getting-started/debugging.md) for environment checks (`SOROBAN_RPC_URL` / CLI network config).
+Point `STELLAR_RPC_URL` / config at a testnet RPC such as a public endpoint or your own node. Re-read the [key handling and network risk](#when-simulation-matters) guards before adding `--source-account`: reference the account by alias, confirm you are on testnet, and never paste the secret key into the command. See [Debugging Guide](../getting-started/debugging.md) for environment checks (`SOROBAN_RPC_URL` / CLI network config).
 
 ## Horizon responsibilities
 
@@ -141,6 +151,8 @@ Submitting a Soroban transaction through tooling that only understands Horizon c
 
 - [Events](./events.md)
 - [Debugging Guide](../getting-started/debugging.md)
+- [API Security](../getting-started/api-security.md) — keeping secrets out of commands and choosing RPC endpoints
+- [Deploy to Mainnet](../getting-started/deploy-mainnet.md) — mainnet pre-deploy checklist
 - [Stellar Asset Contract (SAC)](./stellar-asset-contract.md)
 - [Soroban RPC docs](https://developers.stellar.org/docs/data/rpc)
 - [Horizon docs](https://developers.stellar.org/docs/data/horizon)
