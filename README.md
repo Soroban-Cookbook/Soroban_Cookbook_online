@@ -268,7 +268,7 @@ npm run typecheck
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-The example code in `examples/` is also covered by the MIT license. If any examples were adapted from external sources, appropriate attribution would be provided.
+The example code in `examples/` is also covered by the MIT license. If any examples are adapted from external sources, attribution is recorded in [NOTICE](NOTICE) and [examples/ORIGIN.md](examples/ORIGIN.md).
 
 ## 🌟 Acknowledgments
 

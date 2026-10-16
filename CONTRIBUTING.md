@@ -87,6 +87,10 @@ All example crates in [`examples/`](examples/) are licensed under the repository
 New example PRs should confirm the crate's `license` field follows this policy
 (see the checklist in the [pull request template](.github/pull_request_template.md)).
 
+Adapted or third-party material must also be recorded in the root
+[NOTICE](NOTICE) file and in [examples/ORIGIN.md](examples/ORIGIN.md), following
+the instructions in NOTICE. Only record sources maintainers can verify.
+
 ---
 
 
