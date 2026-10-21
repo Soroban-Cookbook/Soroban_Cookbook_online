@@ -1,0 +1,140 @@
+---
+sidebar_position: 1
+title: Soroban Ecosystem Map
+description: Interactive map of the Soroban ecosystem — developer tooling, wallets, infrastructure, protocols, learning resources, and community channels.
+tags: [ecosystem, overview, resources]
+---
+
+import EcosystemMap from '@site/src/components/EcosystemMap';
+
+# Soroban Ecosystem Map
+
+An interactive, categorised map of the Soroban smart-contract ecosystem.
+Use the filters and search to find developer tools, wallets, infrastructure,
+protocols, learning resources, and community channels.
+
+:::info About this map
+Every entry links to a verified external resource. The **Soroban Cookbook** (this
+project) is highlighted where it appears. Status badges indicate whether each
+project is **Active**, **Beta**, **Inactive**, or **Proposed**. Links are
+verified on the date shown on each card.
+:::
+
+<EcosystemMap />
+
+---
+
+## About this map {#about}
+
+The ecosystem map covers six categories:
+
+| Category | What it includes |
+|---|---|
+| 🛠️ Developer Tooling | CLIs, SDKs, testing frameworks, build tools |
+| 👛 Wallets | Browser extensions and mobile wallets for signing Soroban transactions |
+| 🏗️ Infrastructure & RPC | RPC providers, block explorers, indexers, and network APIs |
+| ⚙️ Protocols & DeFi | On-chain protocols built with Soroban contracts |
+| 📚 Learning Resources | Documentation, tutorials, and interactive courses |
+| 🤝 Community | Forums, chat servers, and grant programmes |
+
+### The Soroban Cookbook's position
+
+The **Soroban Cookbook** occupies a specific educational niche: it provides
+**working, annotated, tested smart contract patterns** covering ~52 use-cases
+(access control, escrow, DeFi primitives, governance, and more). It also
+includes a React frontend integration example showing how a dapp connects
+a Freighter wallet and calls a Soroban contract.
+
+Its role complements the [Stellar Developer Docs](https://developers.stellar.org/docs/smart-contracts)
+(which covers concepts and APIs) and [Soroban by Example](https://www.sorobanexamples.xyz/)
+(short focused snippets) by providing **comprehensive, copy-deployable
+patterns with tests, error handling, and documentation**.
+
+---
+
+## Maintenance guide {#maintenance}
+
+### Adding an entry
+
+1. Open `documentation/src/data/ecosystemData.ts`.
+2. Find the correct category (or add a new one).
+3. Append a new `EcosystemEntry` object to the `items` array:
+
+```ts
+{
+  id: 'my-project',           // unique slug
+  name: 'My Project',
+  description: 'One sentence. Be factual.',
+  url: 'https://myproject.io',
+  docsUrl: 'https://docs.myproject.io',  // optional
+  status: 'active',
+  lastVerified: '2026-10-20', // ISO 8601, set to today
+  tags: ['sdk', 'typescript'],
+},
+```
+
+4. Verify the URL is reachable before committing.
+5. Open a PR with the change. The PR description should note where the project
+   was found and why it belongs in the Cookbook's ecosystem map.
+
+### Updating an entry
+
+Change the relevant field(s) and update `lastVerified` to today's date.
+
+### Marking a project inactive
+
+Set `status: 'inactive'` — do not delete the entry. Inactive entries are
+displayed with reduced opacity to preserve historical context.
+
+### Removing a dead link
+
+If a project is gone with no successor, set `status: 'inactive'` and add a
+note to the description: `"(link no longer active as of YYYY-MM)"`.
+
+### Adding a new category
+
+Add a new `EcosystemCategory` object to the `ECOSYSTEM_CATEGORIES` array in
+`ecosystemData.ts`. The category will appear automatically in the filter tabs
+and on this page.
+
+### Regular review schedule
+
+The full dataset should be reviewed at least quarterly:
+
+1. Check every link is still reachable.
+2. Update `ECOSYSTEM_LAST_UPDATED` in `ecosystemData.ts`.
+3. Update any status badges that have changed.
+4. Add notable new projects that the community has validated.
+
+A lightweight way to track this: create a recurring GitHub Issue on the
+first Monday of each quarter with the title
+`[Ecosystem Map] Q{N} link verification`.
+
+### What does NOT belong here
+
+- Unverified or hypothetical projects.
+- Projects that require special access or are behind NDAs.
+- Commercial services without a public free tier or documented pricing.
+- Any project that has not shipped working code.
+- Projects the Cookbook maintainers cannot independently verify.
+
+---
+
+## Contributing
+
+To suggest an addition, correction, or removal:
+
+- **Quick edit:** Use the "Suggest an update" link at the bottom of the map
+  above to open a GitHub edit flow directly.
+- **PR:** Edit `documentation/src/data/ecosystemData.ts` and open a pull
+  request using the standard [Contributing Guide](/docs/contributing).
+- **Issue:** Open a
+  [GitHub Issue](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues)
+  if you are unsure whether a project fits. (GitHub Discussions are not
+  currently enabled on this repository.)
+
+:::caution Disclaimer
+This map is provided for informational purposes only. The Soroban Cookbook
+does not endorse any third-party project, service, or wallet listed here.
+Always do your own research before using any product with real assets on Mainnet.
+:::

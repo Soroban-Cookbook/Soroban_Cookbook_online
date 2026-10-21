@@ -280,6 +280,9 @@ const response = await fetch('/api/contract/invoke', {
 
 - [Simulation and Footprints](../concepts/simulation-and-footprints) — understand preflight simulation, footprints, auth modes, and on-chain failures
 - [Wallet integration guide](./wallets) — connect Freighter and sign transactions from a dapp
+- **React integration example** —
+  [`examples/frontend-integration-react`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/frontend-integration-react)
+  demonstrates wallet connect + contract invoke in a Vite React app
 - [Pattern Library](/docs/patterns/overview) — reusable contract patterns
 - [Transaction Anatomy: Invoking a Contract](./invoke-host-function) — XDR structure and Stellar Lab walkthrough
 - [JavaScript SDK](./js-sdk.md) — browser RPC client and Freighter signing
