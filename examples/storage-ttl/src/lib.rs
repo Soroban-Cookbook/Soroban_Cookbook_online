@@ -31,7 +31,7 @@
 //! state that must never silently disappear — balances, ownership,
 //! configuration.
 
-use soroban_sdk::{contract, contractimpl, contracttype, Env};
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Env};
 
 #[contracttype]
 pub enum DataKey {
@@ -39,6 +39,18 @@ pub enum DataKey {
     Record(u32),
     /// Temporary storage, keyed per cache entry.
     Cache(u32),
+}
+
+// ─── Errors ────────────────────────────────────────────────────────────────
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    /// Returned by `extend_record` when the record has never been set (or
+    /// has already expired). Extending the TTL of a missing key is a
+    /// caller error, not a silent no-op.
+    RecordNotFound = 1,
 }
 
 #[contract]
@@ -62,10 +74,20 @@ impl StorageTtl {
     /// if its current TTL is below `threshold` ledgers (a no-op
     /// otherwise). This is the "rent payment" for long-lived, important
     /// state.
-    pub fn extend_record(env: Env, record_id: u32, threshold: u32, extend_to: u32) {
+    ///
+    /// Returns `Error::RecordNotFound` if the record has never been set.
+    pub fn extend_record(env: Env, record_id: u32, threshold: u32, extend_to: u32) -> Result<(), Error> {
+        if !env
+            .storage()
+            .persistent()
+            .has(&DataKey::Record(record_id))
+        {
+            return Err(Error::RecordNotFound);
+        }
         env.storage()
             .persistent()
             .extend_ttl(&DataKey::Record(record_id), threshold, extend_to);
+        Ok(())
     }
 
     /// Extends the contract instance's own TTL. In a real deployment this
@@ -233,5 +255,28 @@ mod tests {
             );
         });
         assert_eq!(client.get_record(&1), Some(100));
+    }
+
+    #[test]
+    fn test_extend_record_on_missing_key_returns_contract_error() {
+        let env = create_env();
+        let contract_id = env.register(StorageTtl, ());
+        let client = StorageTtlClient::new(&env, &contract_id);
+
+        // Extending a key that was never set must return a contract error,
+        // not panic/unwrap or a host-level trap.
+        let result = client.try_extend_record(&42, &1000, &5000);
+        assert_eq!(result, Err(Ok(Error::RecordNotFound)));
+
+        // A stored record can still be extended successfully.
+        client.setup(&7, &7);
+        let result_ok = client.try_extend_record(&7, &1000, &5000);
+        assert_eq!(result_ok, Ok(Ok(())));
+        env.as_contract(&contract_id, || {
+            assert_eq!(
+                env.storage().persistent().get_ttl(&DataKey::Record(7)),
+                5000
+            );
+        });
     }
 }

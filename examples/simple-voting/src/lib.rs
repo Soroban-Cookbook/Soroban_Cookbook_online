@@ -854,4 +854,33 @@ mod tests {
         let result = client.try_delegate_vote(&alice, &alice);
         assert_eq!(result, Err(Ok(Error::SelfDelegation)));
     }
+
+    #[test]
+    fn test_delegated_power_counted_once_and_revoke_before_close_removed() {
+        let (env, _, client) = setup();
+        let alice = Address::generate(&env);
+        let bob = Address::generate(&env);
+        let carol = Address::generate(&env);
+        let id = client.create_proposal(&String::from_str(&env, "Delegation once + revoke before close"));
+
+        // Two delegators to the same delegatee; delegatee votes No.
+        // Delegated power must be counted exactly once per delegator (no inflation).
+        client.delegate_vote(&alice, &bob);
+        client.delegate_vote(&carol, &bob);
+        client.vote(&bob, &id, &Choice::No);
+
+        // Carol revokes BEFORE the proposal is closed.
+        client.revoke_delegation(&carol);
+        let result_revoke_twice = client.try_revoke_delegation(&carol);
+        assert_eq!(result_revoke_twice, Err(Ok(Error::NoDelegation)));
+
+        client.close_proposal(&id);
+
+        let proposal = client.tally(&id);
+        // Bob's direct No + only Alice's delegation remains; Carol's removed.
+        // Delegated power counted once (not doubled).
+        assert_eq!(proposal.no_votes, 2);
+        assert_eq!(proposal.yes_votes, 0);
+        assert!(!proposal.is_active);
+    }
 }
