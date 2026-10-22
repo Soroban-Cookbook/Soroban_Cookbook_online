@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './styles.module.css';
 
-type SnippetTab = {
+export type SnippetTab = {
   label: string;
   code: string;
   language?: string;
@@ -9,7 +9,7 @@ type SnippetTab = {
   highlightLines?: number[];
 };
 
-type CodeSnippetProps = {
+export type CodeSnippetProps = {
   code?: string;
   language?: string;
   fileName?: string;
@@ -30,32 +30,60 @@ export default function TabbedCodeSnippet({
   tabs,
   collapseAt = 14,
 }: CodeSnippetProps): React.ReactElement {
+  const isExplicitEmptyTabs = Array.isArray(tabs) && tabs.length === 0;
   const hasTabs = Boolean(tabs && tabs.length > 0);
+  const isEmptyState = isExplicitEmptyTabs || (!hasTabs && code.trim().length === 0);
+
   const [activeTab, setActiveTab] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyTimer = useRef<number | undefined>(undefined);
   const copyGeneration = useRef(0);
 
-  const resolved =
-    hasTabs && tabs
-      ? tabs[Math.max(0, Math.min(activeTab, tabs.length - 1))]
-      : { code, language, fileName, highlightLines };
+  const clampedTabIndex =
+    hasTabs && tabs ? Math.max(0, Math.min(activeTab, tabs.length - 1)) : 0;
 
   useEffect(() => {
-    setCopied(false);
-    return () => {
-      window.clearTimeout(copyTimer.current);
-      copyTimer.current = undefined;
-      // Ignore clipboard writes that finish after a code change or unmount.
-      copyGeneration.current += 1;
-    };
-  }, [resolved.code]);
+    if (!tabs || tabs.length === 0) {
+      if (activeTab !== 0) {
+        setActiveTab(0);
+      }
+      return;
+    }
+    if (activeTab >= tabs.length) {
+      setActiveTab(tabs.length - 1);
+    }
+  }, [tabs, activeTab]);
 
-  const rawLines = useMemo(() => resolved.code.replace(/\n$/, '').split('\n'), [resolved.code]);
+  const resolved =
+    hasTabs && tabs
+      ? tabs[clampedTabIndex]
+      : { code, language, fileName, highlightLines };
+
+const rawLines = useMemo(() => resolved.code.replace(/\n$/, '').split('\n'), [resolved.code]);
   const shouldCollapse = rawLines.length > collapseAt;
   const visibleLines = shouldCollapse && !expanded ? rawLines.slice(0, collapseAt) : rawLines;
-  const highlighted = normalizeHighlight(resolved.highlightLines);
+  const highlighted = normalizeHighlight(resolved?.highlightLines);
+
+  if (isEmptyState) {
+    return (
+      <div
+        className={styles.wrapper}
+        role="status"
+        aria-label="Empty code snippet"
+        data-testid="tabbed-code-snippet-empty">
+        <div className={styles.header}>
+          <span className={styles.fileName}>{fileName ?? 'snippet'}</span>
+          <span className={styles.language}>{language ?? 'text'}</span>
+        </div>
+        <div className={styles.pre}>
+          <span className={styles.line}>
+            <span className={styles.content}>No code snippet available.</span>
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const handleCopy = async () => {
     const generation = copyGeneration.current;
@@ -76,9 +104,10 @@ export default function TabbedCodeSnippet({
           {tabs.map((tab, idx) => (
             <button
               key={tab.label}
+              type="button"
               role="tab"
-              aria-selected={idx === activeTab}
-              className={`${styles.tabButton} ${idx === activeTab ? styles.tabButtonActive : ''}`}
+              aria-selected={idx === clampedTabIndex}
+              className={`${styles.tabButton} ${idx === clampedTabIndex ? styles.tabButtonActive : ''}`}
               onClick={() => {
                 setActiveTab(idx);
                 setExpanded(false);
@@ -92,7 +121,11 @@ export default function TabbedCodeSnippet({
       <div className={styles.header}>
         <span className={styles.fileName}>{resolved.fileName ?? 'snippet'}</span>
         <span className={styles.language}>{resolved.language ?? 'text'}</span>
-        <button className={styles.copyButton} onClick={handleCopy} aria-label="Copy code snippet">
+        <button
+          type="button"
+          className={styles.copyButton}
+          onClick={handleCopy}
+          aria-label="Copy code snippet">
           {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
@@ -114,7 +147,10 @@ export default function TabbedCodeSnippet({
       </pre>
 
       {shouldCollapse && (
-        <button className={styles.expandButton} onClick={() => setExpanded((current) => !current)}>
+        <button
+          type="button"
+          className={styles.expandButton}
+          onClick={() => setExpanded((current) => !current)}>
           {expanded ? 'Collapse' : `Expand (${rawLines.length - collapseAt} more lines)`}
         </button>
       )}
