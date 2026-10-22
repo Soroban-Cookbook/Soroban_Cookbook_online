@@ -54,7 +54,6 @@ const sidebars: SidebarsConfig = {
         'concepts/custom-accounts',
         'concepts/authorization-trees',
         'concepts/events',
-        'concepts/bytes-and-hashes',
         'concepts/time-and-scheduling',
         'concepts/gas-and-resources',
         'concepts/simulation-and-footprints',
@@ -115,6 +114,11 @@ const sidebars: SidebarsConfig = {
         'security/token-audit',
         'security/upgrade-checklist',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Ecosystem',
+      items: ['ecosystem-map'],
     },
   ],
   internalSidebar: [

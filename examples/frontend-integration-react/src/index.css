@@ -1,0 +1,330 @@
+/* SPDX-License-Identifier: MIT */
+/* Soroban Cookbook — Frontend Integration Example styles */
+
+:root {
+  --stellar-blue: #0091ff;
+  --stellar-blue-dark: #0070cc;
+  --success-green: #00d084;
+  --warning-amber: #ffb84d;
+  --error-red: #ff5656;
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-card-hover: #1e2130;
+  --border: #2a2d3a;
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ba3b5;
+  --text-muted: #5c6370;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.app-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.app-header {
+  text-align: center;
+  padding: 2rem 0 1rem;
+}
+
+.app-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.title-soroban { color: var(--stellar-blue); }
+.title-counter  { color: var(--text-primary); }
+
+.app-subtitle {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.app-footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.app-footer a {
+  color: var(--stellar-blue);
+  text-decoration: none;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.wallet-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.wallet-card--connected {
+  border-color: var(--success-green);
+}
+
+.wallet-card--warning {
+  border-color: var(--warning-amber);
+}
+
+.wallet-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.wallet-card__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.wallet-card__address {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.wallet-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.wallet-dot--green { background: var(--success-green); }
+
+.address-label { color: var(--text-muted); }
+
+/* ── Network badge ───────────────────────────────────────────────────── */
+.network-badge {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.network-badge--testnet {
+  background: rgba(0, 208, 132, 0.15);
+  color: var(--success-green);
+  border: 1px solid var(--success-green);
+}
+
+.network-badge--mainnet {
+  background: rgba(0, 145, 255, 0.15);
+  color: var(--stellar-blue);
+  border: 1px solid var(--stellar-blue);
+}
+
+.network-badge--unknown {
+  background: rgba(255, 184, 77, 0.15);
+  color: var(--warning-amber);
+  border: 1px solid var(--warning-amber);
+}
+
+/* ── Contract section ────────────────────────────────────────────────── */
+.contract-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.contract-meta {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.meta-label { color: var(--text-muted); }
+.meta-value { font-family: var(--font-mono); color: var(--text-secondary); word-break: break-all; }
+
+.counter-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+
+.counter-label {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.counter-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--stellar-blue);
+  font-family: var(--font-mono);
+  flex: 1;
+  text-align: right;
+}
+
+.contract-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--stellar-blue);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) { background: var(--stellar-blue-dark); }
+
+.btn--secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn--secondary:hover:not(:disabled) { background: var(--bg-card-hover); }
+
+.btn--danger {
+  background: rgba(255, 86, 86, 0.15);
+  color: var(--error-red);
+  border: 1px solid var(--error-red);
+}
+
+.btn--danger:hover:not(:disabled) { background: rgba(255, 86, 86, 0.25); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  font-size: 1.1rem;
+}
+
+.btn--ghost:hover:not(:disabled) { color: var(--text-primary); }
+
+.btn--small { padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+
+/* ── Alerts ──────────────────────────────────────────────────────────── */
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  position: relative;
+}
+
+.alert--success {
+  background: rgba(0, 208, 132, 0.1);
+  color: var(--success-green);
+  border: 1px solid var(--success-green);
+}
+
+.alert--warning {
+  background: rgba(255, 184, 77, 0.1);
+  color: var(--warning-amber);
+  border: 1px solid var(--warning-amber);
+}
+
+.alert--error {
+  background: rgba(255, 86, 86, 0.1);
+  color: var(--error-red);
+  border: 1px solid var(--error-red);
+}
+
+.alert__close {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+a { color: var(--stellar-blue); }
+
+@media (max-width: 480px) {
+  .app-title { font-size: 1.75rem; }
+  .counter-value { font-size: 1.75rem; }
+  .contract-actions { flex-direction: column; }
+}

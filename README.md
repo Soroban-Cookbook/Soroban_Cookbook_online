@@ -14,6 +14,9 @@ A user-friendly documentation website for the [Soroban Cookbook](https://github.
 - ⚡ **Fast Performance** - Built with Docusaurus for optimal speed
 - 🎯 **Difficulty Badges** - Patterns include difficulty badges (beginner, intermediate, advanced)
 - 💻 **Rust code examples** - Patterns provide Rust contract implementations with tests
+- 🗺️ **Ecosystem map** - Interactive map of Soroban tooling, wallets, infrastructure, and protocols ([docs/ecosystem-map](https://soroban-cookbook.github.io/Soroban_Cookbook_online/docs/ecosystem-map))
+- ⚛️ **Frontend integration example** - React + Freighter wallet app wired to the [`counter`](examples/counter) contract ([examples/frontend-integration-react](examples/frontend-integration-react))
+- 🧪 **Testing report** - Evidence-based inventory of tests, coverage gaps, and security checks ([docs/testing-report.md](docs/testing-report.md))
 
 ## 🎯 Planned Features
 
@@ -48,10 +51,14 @@ Soroban_Cookbook_online/
 ├── documentation/           # Main documentation site
 │   ├── docs/               # MDX documentation files
 │   ├── src/
-│   │   ├── components/    # React components
+│   │   ├── components/    # React components (incl. EcosystemMap)
+│   │   ├── data/          # Structured data (ecosystem map entries)
 │   │   ├── css/          # Styling
 │   │   └── pages/        # Static pages
 │   └── package.json
+├── examples/              # Rust contract examples + React frontend demo
+│   └── frontend-integration-react/  # React + Freighter dapp example
+├── docs/                  # Repo-level docs (testing report, security)
 ├── .github/workflows/     # CI/CD pipelines
 └── README.md             # This file
 ```
@@ -187,7 +194,7 @@ For the GitHub Actions deployment to work, ensure the following settings are con
 
 We welcome contributions of all kinds! Whether you're fixing a typo, adding a new contract pattern, or improving the UI, your help is appreciated.
 
-To get started, please read our **[Contributing Guide](https://soroban-cookbook.com/docs/contributing)** for detailed instructions on:
+To get started, please read our **[Contributing Guide](https://soroban-cookbook.github.io/Soroban_Cookbook_online/docs/contributing)** for detailed instructions on:
 - Setting up your local development environment.
 - Branching and pull request conventions.
 - Pre-submission validation steps.

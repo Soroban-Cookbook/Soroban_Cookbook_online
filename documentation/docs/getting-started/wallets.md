@@ -408,6 +408,9 @@ Use these steps to verify your integration before targeting Mainnet.
 
 ## Related resources
 
+- **React integration example** — runnable Freighter + contract app in
+  [`examples/frontend-integration-react`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/frontend-integration-react)
+  (wallet connect, network check, simulate → sign → submit, unit tests)
 - [Contract interaction tutorial](/docs/getting-started/contract-interaction) — CLI and backend invocation patterns
 - [Deploy to testnet](/docs/getting-started/deploy-testnet)
 - [Authorization concepts](/docs/concepts/authorization) — `require_auth` and multi-party signing
