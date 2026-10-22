@@ -334,11 +334,9 @@ impl EscrowBasic {
 mod tests {
     use super::*;
     use soroban_sdk::{
-        symbol_short,
-        testutils::Address as _,
         testutils::{Address as _, Events as _},
         token::{self, StellarAssetClient},
-        Address, Env, Val,
+        Address, Env,
     };
 
     /// Helper: register a Stellar asset contract and mint tokens to `to`.
@@ -537,23 +535,7 @@ mod tests {
     #[test]
     fn test_release_emits_event() {
         let (env, buyer, _seller, _arbiter, _token, client) = setup();
-        client.deposit().unwrap();
-
-        let before = env.events().all().len();
-        client.release(&buyer).unwrap();
-
-        let events = env.events().all();
-        assert!(events.len() > before);
-        let released: Vec<_> = events
-            .iter()
-            .filter(|e| {
-                e.1.iter()
-                    .any(|v| *v == Val::from(symbol_short!("release")))
-            })
-            .collect();
-        assert_eq!(released.len(), 1);
         client.deposit();
-
         client.release(&buyer);
 
         // `.all()` exposes only the most recent invocation's events.
@@ -569,5 +551,228 @@ mod tests {
 
         // `.all()` exposes only the most recent invocation's events.
         assert!(!env.events().all().events().is_empty());
+    }
+}
+
+// ─── Tests added for issue #1301 ─────────────────────────────────────────────
+//
+// These tests lock the release/refund authorisation rules so a future edit
+// cannot silently change them:
+//
+//   • release pays the seller ONLY when called by the buyer or the arbiter.
+//   • A stranger (neither buyer nor arbiter) cannot release; the call returns
+//     Error::UnauthorisedRelease.
+//   • refund returns funds to the buyer ONLY when called by the arbiter.
+//   • A non-arbiter caller of refund returns Error::UnauthorisedRefund.
+//   • All failure paths are tested with try_* (contract error, not unwrap).
+
+#[cfg(test)]
+mod tests_1301 {
+    use super::*;
+    use soroban_sdk::{
+        testutils::Address as _,
+        token::{self, StellarAssetClient},
+        Address, Env,
+    };
+
+    fn create_token<'a>(
+        env: &Env,
+        admin: &Address,
+        to: &Address,
+        amount: i128,
+    ) -> (Address, token::Client<'a>) {
+        let addr = env
+            .register_stellar_asset_contract_v2(admin.clone())
+            .address();
+        let sac = StellarAssetClient::new(env, &addr);
+        sac.mint(to, &amount);
+        let client = token::Client::new(env, &addr);
+        (addr, client)
+    }
+
+    /// Returns (env, buyer, seller, arbiter, token_addr, client) with
+    /// the escrow initialised (but NOT yet funded / deposited).
+    fn setup() -> (
+        Env,
+        Address,
+        Address,
+        Address,
+        Address,
+        EscrowBasicClient<'static>,
+    ) {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let buyer = Address::generate(&env);
+        let seller = Address::generate(&env);
+        let arbiter = Address::generate(&env);
+        let (token_addr, _) = create_token(&env, &buyer, &buyer, 1_000);
+
+        let contract_id = env.register(EscrowBasic, ());
+        let client = EscrowBasicClient::new(&env, &contract_id);
+        client.initialise(&buyer, &seller, &arbiter, &token_addr, &500);
+
+        (env, buyer, seller, arbiter, token_addr, client)
+    }
+
+    // ── Rule: release pays the seller only with the buyer's authorisation ────
+
+    /// Happy path: buyer releases → seller receives the escrowed tokens,
+    /// contract balance drops to zero.
+    #[test]
+    fn release_by_buyer_pays_seller_only() {
+        let (env, buyer, seller, _arbiter, token_addr, client) = setup();
+        client.deposit();
+
+        let tok = token::Client::new(&env, &token_addr);
+        let seller_before = tok.balance(&seller);
+        assert_eq!(tok.balance(&client.address), 500);
+
+        client.release(&buyer);
+
+        assert_eq!(client.get_state(), Some(EscrowState::Released));
+        // Seller received exactly the escrowed amount.
+        assert_eq!(tok.balance(&seller), seller_before + 500);
+        // Contract holds nothing after release.
+        assert_eq!(tok.balance(&client.address), 0);
+        // Buyer did NOT receive any tokens — funds went to seller, not buyer.
+        assert_eq!(tok.balance(&buyer), 500); // buyer started with 1_000, deposited 500
+    }
+
+    /// Arbiter may also release to the seller (dispute resolution in seller's
+    /// favour). Funds flow to the seller, not to the arbiter.
+    #[test]
+    fn release_by_arbiter_pays_seller_only() {
+        let (env, _buyer, seller, arbiter, token_addr, client) = setup();
+        client.deposit();
+
+        let tok = token::Client::new(&env, &token_addr);
+        client.release(&arbiter);
+
+        assert_eq!(client.get_state(), Some(EscrowState::Released));
+        assert_eq!(tok.balance(&seller), 500);
+        // Arbiter received nothing — funds went to seller, not arbiter.
+        assert_eq!(tok.balance(&arbiter), 0);
+        assert_eq!(tok.balance(&client.address), 0);
+    }
+
+    /// A stranger (not buyer, not arbiter) must receive Error::UnauthorisedRelease
+    /// — tested via try_release so the error is a contract error, not a panic.
+    #[test]
+    fn release_by_stranger_returns_unauthorised_release_error() {
+        let (env, _buyer, _seller, _arbiter, _token, client) = setup();
+        client.deposit();
+
+        // Generate from the same Env so the address is unique (a fresh
+        // Env::default() would share the same RNG seed and collide with
+        // the buyer address generated in setup()).
+        let stranger = Address::generate(&env);
+
+        let err = client.try_release(&stranger).unwrap_err();
+        // Must be a contract error (Ok inner), not a host panic (Err inner).
+        assert_eq!(err, Ok(Error::UnauthorisedRelease));
+    }
+
+    /// The seller themselves cannot call release — only buyer or arbiter can.
+    #[test]
+    fn release_by_seller_returns_unauthorised_release_error() {
+        let (_env, _buyer, seller, _arbiter, _token, client) = setup();
+        client.deposit();
+
+        let err = client.try_release(&seller).unwrap_err();
+        assert_eq!(err, Ok(Error::UnauthorisedRelease));
+    }
+
+    // ── Rule: refund pays the buyer only, arbiter-authorised ─────────────────
+
+    /// Happy path: arbiter refunds → buyer gets the escrowed tokens back,
+    /// no tokens go to seller or arbiter.
+    #[test]
+    fn refund_by_arbiter_pays_buyer_only() {
+        let (env, buyer, seller, arbiter, token_addr, client) = setup();
+        client.deposit();
+
+        let tok = token::Client::new(&env, &token_addr);
+        // buyer deposited 500 from their initial 1_000 balance
+        assert_eq!(tok.balance(&buyer), 500);
+
+        client.refund(&arbiter);
+
+        assert_eq!(client.get_state(), Some(EscrowState::Refunded));
+        // Buyer received their 500 tokens back.
+        assert_eq!(tok.balance(&buyer), 1_000);
+        // Seller received nothing.
+        assert_eq!(tok.balance(&seller), 0);
+        // Arbiter received nothing.
+        assert_eq!(tok.balance(&arbiter), 0);
+        // Contract holds nothing.
+        assert_eq!(tok.balance(&client.address), 0);
+    }
+
+    /// Buyer cannot refund themselves — only arbiter may trigger a refund.
+    #[test]
+    fn refund_by_buyer_returns_unauthorised_refund_error() {
+        let (_env, buyer, _seller, _arbiter, _token, client) = setup();
+        client.deposit();
+
+        let err = client.try_refund(&buyer).unwrap_err();
+        assert_eq!(err, Ok(Error::UnauthorisedRefund));
+    }
+
+    /// Seller cannot trigger a refund.
+    #[test]
+    fn refund_by_seller_returns_unauthorised_refund_error() {
+        let (_env, _buyer, seller, _arbiter, _token, client) = setup();
+        client.deposit();
+
+        let err = client.try_refund(&seller).unwrap_err();
+        assert_eq!(err, Ok(Error::UnauthorisedRefund));
+    }
+
+    /// A stranger cannot trigger a refund.
+    #[test]
+    fn refund_by_stranger_returns_unauthorised_refund_error() {
+        let (env, _buyer, _seller, _arbiter, _token, client) = setup();
+        client.deposit();
+
+        let stranger = Address::generate(&env);
+
+        let err = client.try_refund(&stranger).unwrap_err();
+        assert_eq!(err, Ok(Error::UnauthorisedRefund));
+    }
+
+    // ── Cross-cutting: double-settle guard ───────────────────────────────────
+
+    /// Once released, a second release attempt returns NotFunded (not a panic).
+    #[test]
+    fn second_release_returns_not_funded_error() {
+        let (_env, buyer, _seller, _arbiter, _token, client) = setup();
+        client.deposit();
+        client.release(&buyer);
+
+        let err = client.try_release(&buyer).unwrap_err();
+        assert_eq!(err, Ok(Error::NotFunded));
+    }
+
+    /// Once refunded, a release attempt returns NotFunded (not a panic).
+    #[test]
+    fn release_after_refund_returns_not_funded_error() {
+        let (_env, buyer, _seller, arbiter, _token, client) = setup();
+        client.deposit();
+        client.refund(&arbiter);
+
+        let err = client.try_release(&buyer).unwrap_err();
+        assert_eq!(err, Ok(Error::NotFunded));
+    }
+
+    /// deposit() entrypoint: buyer auth is required; state becomes Funded.
+    #[test]
+    fn deposit_requires_buyer_auth_and_transitions_to_funded() {
+        let (env, _buyer, _seller, _arbiter, token_addr, client) = setup();
+        client.deposit();
+
+        assert_eq!(client.get_state(), Some(EscrowState::Funded));
+        let tok = token::Client::new(&env, &token_addr);
+        assert_eq!(tok.balance(&client.address), 500);
     }
 }

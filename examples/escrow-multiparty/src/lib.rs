@@ -309,14 +309,6 @@ mod tests {
 
     fn funded(amount: i128) -> (Env, Actors, EscrowMultipartyClient<'static>) {
         let (env, actors, client) = setup();
-        client
-            .deposit(
-                &actors.depositor,
-                &actors.recipient,
-                &actors.arbitrator,
-                &amount,
-            )
-            .expect("deposit failed");
         client.deposit(
             &actors.depositor,
             &actors.recipient,
@@ -511,5 +503,215 @@ mod tests {
         assert_eq!(client.try_get_depositor(), Err(Ok(Error::NotInitialised)));
         assert_eq!(client.try_get_recipient(), Err(Ok(Error::NotInitialised)));
         assert_eq!(client.try_get_arbitrator(), Err(Ok(Error::NotInitialised)));
+    }
+}
+
+// ─── Tests added for issue #1302 ─────────────────────────────────────────────
+//
+// These tests lock the resolve behaviour so a future edit cannot silently break
+// the rule:
+//
+//   • resolve transitions the escrow to a terminal state exactly once.
+//   • A second call to resolve (after the first has already settled the
+//     escrow) returns Error::InvalidState — it does NOT move funds again.
+//   • Both resolution directions (release_to_recipient = true / false) are
+//     exercised.
+//   • All failure paths use try_* so they return a contract error, not unwrap.
+
+#[cfg(test)]
+mod tests_1302 {
+    use super::*;
+    use soroban_sdk::{testutils::Address as _, Env};
+
+    struct Actors {
+        depositor: Address,
+        recipient: Address,
+        arbitrator: Address,
+    }
+
+    fn setup() -> (Env, Actors, EscrowMultipartyClient<'static>) {
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register(EscrowMultiparty, ());
+        let client = EscrowMultipartyClient::new(&env, &id);
+        let actors = Actors {
+            depositor: Address::generate(&env),
+            recipient: Address::generate(&env),
+            arbitrator: Address::generate(&env),
+        };
+        (env, actors, client)
+    }
+
+    /// Deposit funds and open a dispute, leaving the escrow in Disputed state.
+    fn disputed(amount: i128) -> (Env, Actors, EscrowMultipartyClient<'static>) {
+        let (env, actors, client) = setup();
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &amount,
+        );
+        client.dispute(&actors.depositor);
+        (env, actors, client)
+    }
+
+    // ── drive: deposit ────────────────────────────────────────────────────────
+
+    #[test]
+    fn deposit_sets_pending_state_and_stores_amount() {
+        let (_, actors, client) = setup();
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &2_000,
+        );
+
+        assert_eq!(client.state(), State::Pending);
+        assert_eq!(client.get_amount(), 2_000);
+        assert_eq!(client.get_depositor(), actors.depositor);
+        assert_eq!(client.get_recipient(), actors.recipient);
+        assert_eq!(client.get_arbitrator(), actors.arbitrator);
+    }
+
+    // ── drive: dispute ────────────────────────────────────────────────────────
+
+    #[test]
+    fn dispute_by_depositor_transitions_to_disputed() {
+        let (_, actors, client) = setup();
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &500,
+        );
+
+        client.dispute(&actors.depositor);
+        assert_eq!(client.state(), State::Disputed);
+    }
+
+    #[test]
+    fn dispute_by_recipient_transitions_to_disputed() {
+        let (_, actors, client) = setup();
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &500,
+        );
+
+        client.dispute(&actors.recipient);
+        assert_eq!(client.state(), State::Disputed);
+    }
+
+    #[test]
+    fn dispute_by_arbitrator_returns_unauthorised_error() {
+        let (_, actors, client) = setup();
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &500,
+        );
+
+        // Arbitrator is not depositor or recipient — must be rejected.
+        let err = client.try_dispute(&actors.arbitrator).unwrap_err();
+        assert_eq!(err, Ok(Error::Unauthorised));
+    }
+
+    // ── drive: resolve — rule: moves funds exactly once ──────────────────────
+
+    /// Resolve in favour of the recipient: state becomes Released, returns the
+    /// correct amount. A subsequent resolve returns InvalidState — funds are
+    /// NOT moved a second time.
+    #[test]
+    fn resolve_releases_to_recipient_exactly_once() {
+        let (_, _actors, client) = disputed(1_000);
+
+        // First resolve: must succeed and return the full amount.
+        let returned = client.resolve(&true);
+        assert_eq!(returned, 1_000);
+        assert_eq!(client.state(), State::Released);
+
+        // Second resolve: escrow is already Released — must return InvalidState.
+        let err = client.try_resolve(&false).unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidState));
+
+        // Amount in storage must be unchanged (no second movement).
+        assert_eq!(client.get_amount(), 1_000);
+    }
+
+    /// Resolve in favour of the depositor: state becomes Cancelled, returns the
+    /// correct amount. A subsequent resolve returns InvalidState.
+    #[test]
+    fn resolve_cancels_to_depositor_exactly_once() {
+        let (_, _actors, client) = disputed(750);
+
+        let returned = client.resolve(&false);
+        assert_eq!(returned, 750);
+        assert_eq!(client.state(), State::Cancelled);
+
+        let err = client.try_resolve(&true).unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidState));
+    }
+
+    /// Calling resolve while still Pending (no dispute raised yet) must return
+    /// InvalidState — resolve requires the Disputed state.
+    #[test]
+    fn resolve_without_dispute_returns_invalid_state_error() {
+        let (_, actors, client) = setup();
+        client.deposit(
+            &actors.depositor,
+            &actors.recipient,
+            &actors.arbitrator,
+            &500,
+        );
+
+        // Escrow is Pending, not Disputed.
+        let err = client.try_resolve(&true).unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidState));
+    }
+
+    /// After a successful resolve, calling resolve again with the opposite
+    /// direction also returns InvalidState — the escrow is terminal.
+    #[test]
+    fn resolve_idempotency_both_directions_fail_after_settlement() {
+        let (_, _actors, client) = disputed(500);
+
+        // Settle in favour of recipient.
+        client.resolve(&true);
+        assert_eq!(client.state(), State::Released);
+
+        // Both directions must now fail.
+        assert_eq!(
+            client.try_resolve(&true).unwrap_err(),
+            Ok(Error::InvalidState)
+        );
+        assert_eq!(
+            client.try_resolve(&false).unwrap_err(),
+            Ok(Error::InvalidState)
+        );
+    }
+
+    // ── cross-cutting: release/cancel do not double-settle ───────────────────
+
+    /// After resolve (Released), release() also returns InvalidState.
+    #[test]
+    fn release_after_resolve_returns_invalid_state_error() {
+        let (_, _actors, client) = disputed(500);
+        client.resolve(&true);
+
+        let err = client.try_release().unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidState));
+    }
+
+    /// After resolve (Cancelled), cancel() also returns InvalidState.
+    #[test]
+    fn cancel_after_resolve_returns_invalid_state_error() {
+        let (_, _actors, client) = disputed(500);
+        client.resolve(&false);
+
+        let err = client.try_cancel().unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidState));
     }
 }

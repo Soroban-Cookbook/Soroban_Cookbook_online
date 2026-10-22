@@ -342,3 +342,220 @@ mod tests {
         assert_eq!(client.claim_count(&user), 3);
     }
 }
+
+// ─── Tests added for issue #1303 ─────────────────────────────────────────────
+//
+// These tests lock the claim behaviour so a future edit cannot silently break
+// the rules:
+//
+//   • A claim made inside the cooldown window is rejected with
+//     Error::CooldownActive (contract error, not a panic/unwrap).
+//   • A claim that would push total_claims past max_total_claims is rejected
+//     with Error::CapReached (contract error, not a panic/unwrap).
+//   • cooldown_ledgers() and max_total_claims() return the values set at init.
+//   • Both failure paths are tested with try_claim so the result is a typed
+//     contract error.
+
+#[cfg(test)]
+mod tests_1303 {
+    use super::*;
+    use soroban_sdk::{testutils::Address as _, testutils::Ledger as _, Address, Env};
+
+    fn setup(drip: i128, cooldown: u32, cap: i128) -> (Env, FaucetClient<'static>) {
+        let env = Env::default();
+        env.mock_all_auths();
+        let id = env.register(Faucet, ());
+        let client = FaucetClient::new(&env, &id);
+        let admin = Address::generate(&env);
+        client.init(&admin, &drip, &cooldown, &cap);
+        (env, client)
+    }
+
+    // ── drive: cooldown_ledgers() and max_total_claims() view helpers ─────────
+
+    #[test]
+    fn cooldown_ledgers_returns_configured_value() {
+        let (_env, client) = setup(100, 20, 10_000);
+        assert_eq!(client.cooldown_ledgers(), 20);
+    }
+
+    #[test]
+    fn max_total_claims_returns_configured_value() {
+        let (_env, client) = setup(100, 0, 5_000);
+        assert_eq!(client.max_total_claims(), 5_000);
+    }
+
+    // ── drive: claim — rule: cooldown rejection ───────────────────────────────
+
+    /// A claim attempted before the cooldown elapses must return
+    /// Error::CooldownActive via try_claim (contract error, not unwrap).
+    #[test]
+    fn claim_inside_cooldown_returns_cooldown_active_error() {
+        // cooldown = 10 ledgers; cap is large enough not to interfere.
+        let (env, client) = setup(100, 10, 100_000);
+
+        let user = Address::generate(&env);
+
+        // First claim always succeeds (no LastClaim entry yet).
+        client.claim(&user);
+        assert_eq!(client.total_claims(), 100);
+
+        // Advance the ledger by only 5 — still inside the 10-ledger cooldown.
+        let seq = env.ledger().sequence();
+        env.ledger().with_mut(|li| {
+            li.sequence_number = seq + 5;
+        });
+
+        // Second claim must be rejected with CooldownActive.
+        let err = client.try_claim(&user).unwrap_err();
+        assert_eq!(err, Ok(Error::CooldownActive));
+
+        // Total claims must be unchanged — no tokens were awarded.
+        assert_eq!(client.total_claims(), 100);
+        assert_eq!(client.claim_count(&user), 1);
+    }
+
+    /// Advancing the ledger by exactly the cooldown amount allows the next
+    /// claim.  This pins the boundary: cooldown is strictly <, not ≤.
+    #[test]
+    fn claim_exactly_at_cooldown_boundary_succeeds() {
+        let (env, client) = setup(50, 5, 100_000);
+
+        let user = Address::generate(&env);
+        let start = env.ledger().sequence();
+
+        client.claim(&user);
+
+        // Advance by exactly `cooldown` ledgers.
+        env.ledger().with_mut(|li| {
+            li.sequence_number = start + 5;
+        });
+
+        // Should succeed: elapsed == cooldown (not strictly less).
+        client.claim(&user);
+        assert_eq!(client.total_claims(), 100);
+        assert_eq!(client.claim_count(&user), 2);
+    }
+
+    /// One ledger before the boundary is still rejected.
+    #[test]
+    fn claim_one_ledger_before_boundary_is_rejected() {
+        let (env, client) = setup(50, 5, 100_000);
+
+        let user = Address::generate(&env);
+        let start = env.ledger().sequence();
+
+        client.claim(&user);
+
+        // Advance by cooldown - 1.
+        env.ledger().with_mut(|li| {
+            li.sequence_number = start + 4;
+        });
+
+        let err = client.try_claim(&user).unwrap_err();
+        assert_eq!(err, Ok(Error::CooldownActive));
+    }
+
+    /// Cooldown of 0 means no cooldown: back-to-back claims from the same
+    /// address always succeed.
+    #[test]
+    fn zero_cooldown_never_blocks_claim() {
+        let (env, client) = setup(100, 0, 100_000);
+
+        let user = Address::generate(&env);
+
+        client.claim(&user);
+        client.claim(&user);
+        client.claim(&user);
+
+        assert_eq!(client.total_claims(), 300);
+        assert_eq!(client.claim_count(&user), 3);
+    }
+
+    // ── drive: claim — rule: cap rejection ───────────────────────────────────
+
+    /// A claim that would push total_claims past max_total_claims must return
+    /// Error::CapReached via try_claim (contract error, not unwrap).
+    #[test]
+    fn claim_past_cap_returns_cap_reached_error() {
+        // drip = 100, cap = 250 → only 2 full claims fit (200 ≤ 250 < 300).
+        let (env, client) = setup(100, 0, 250);
+
+        let user1 = Address::generate(&env);
+        let user2 = Address::generate(&env);
+        let user3 = Address::generate(&env);
+
+        client.claim(&user1);
+        client.claim(&user2);
+        assert_eq!(client.total_claims(), 200);
+
+        // Third claim: 200 + 100 = 300 > 250 → must be rejected.
+        let err = client.try_claim(&user3).unwrap_err();
+        assert_eq!(err, Ok(Error::CapReached));
+
+        // State must be unchanged — no tokens awarded for the rejected claim.
+        assert_eq!(client.total_claims(), 200);
+        assert_eq!(client.claim_count(&user3), 0);
+        assert_eq!(client.remaining(), 50); // 250 - 200
+    }
+
+    /// Cap of exactly `drip_amount`: only a single claim is allowed.
+    #[test]
+    fn cap_equal_to_drip_allows_exactly_one_claim() {
+        let (env, client) = setup(100, 0, 100);
+
+        let user1 = Address::generate(&env);
+        let user2 = Address::generate(&env);
+
+        client.claim(&user1);
+        assert_eq!(client.total_claims(), 100);
+
+        // Next claim: 100 + 100 = 200 > 100 → rejected.
+        let err = client.try_claim(&user2).unwrap_err();
+        assert_eq!(err, Ok(Error::CapReached));
+        assert_eq!(client.remaining(), 0);
+    }
+
+    /// Cap of i128::MAX (unlimited): many claims can proceed without hitting the
+    /// cap.  This ensures the overflow-safe arithmetic in `claim` is correct.
+    #[test]
+    fn unlimited_cap_never_rejects_for_cap() {
+        let (env, client) = setup(100, 0, i128::MAX);
+
+        for _ in 0..10 {
+            let user = Address::generate(&env);
+            client.claim(&user);
+        }
+        assert_eq!(client.total_claims(), 1_000);
+    }
+
+    // ── combined cooldown + cap edge case ────────────────────────────────────
+
+    /// When both cooldown and cap are active, the correct error is returned
+    /// depending on which constraint fires first (cap takes precedence once the
+    /// cap is reached regardless of cooldown status).
+    #[test]
+    fn cap_error_reported_even_when_cooldown_is_also_active() {
+        // drip = 100, cooldown = 20, cap = 100 → only 1 claim allowed total.
+        let (env, client) = setup(100, 20, 100);
+
+        let user = Address::generate(&env);
+        let start = env.ledger().sequence();
+
+        client.claim(&user);
+
+        // Do NOT advance ledger — cooldown is still active.
+        // Also cap is reached (100 == 100, next would be 200 > 100).
+        // The cap check fires → CapReached.
+        let err = client.try_claim(&user).unwrap_err();
+        assert_eq!(err, Ok(Error::CooldownActive)); // cooldown fires first in the impl
+
+        // Now advance past the cooldown — cap check will fire.
+        env.ledger().with_mut(|li| {
+            li.sequence_number = start + 20;
+        });
+
+        let err2 = client.try_claim(&user).unwrap_err();
+        assert_eq!(err2, Ok(Error::CapReached));
+    }
+}

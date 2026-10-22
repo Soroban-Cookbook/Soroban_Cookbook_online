@@ -622,3 +622,267 @@ mod tests {
         }
     }
 }
+
+// ─── Tests added for issue #1304 ─────────────────────────────────────────────
+//
+// These tests lock the flash_loan behaviour so a future edit cannot silently
+// break the rule:
+//
+//   • An underpaying borrower (no repayment, or only partial repayment) leaves
+//     the pool's reserves AND fee counter completely unchanged after the call
+//     unwinds.  The host rolls back every state change — including the initial
+//     token transfer to the borrower — so the pool is in exactly the same
+//     state it was in before flash_loan was called.
+//   • The failure path is tested with std::panic::catch_unwind so it is
+//     observable as a Rust panic (not an Ok/Err return), matching the
+//     contract's panic!("flash-loan: repayment not received") implementation.
+//   • deposit_liquidity is exercised as the funding step for every test.
+
+#[cfg(test)]
+mod tests_1304 {
+    extern crate std;
+
+    use super::*;
+    use soroban_sdk::{
+        testutils::Address as _,
+        token::{self, StellarAssetClient},
+        Address, Env,
+    };
+
+    fn create_token<'a>(
+        env: &Env,
+        admin: &Address,
+        to: &Address,
+        amount: i128,
+    ) -> (Address, token::Client<'a>) {
+        let addr = env
+            .register_stellar_asset_contract_v2(admin.clone())
+            .address();
+        let sac = StellarAssetClient::new(env, &addr);
+        sac.mint(to, &amount);
+        let client = token::Client::new(env, &addr);
+        (addr, client)
+    }
+
+    /// Returns (env, pool_client, token_addr) with the pool initialised
+    /// (1% fee / 100 bps) and 1_000 tokens deposited as liquidity.
+    fn setup() -> (Env, FlashLoanPoolClient<'static>, Address) {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let admin = Address::generate(&env);
+        let lp = Address::generate(&env);
+        let (token_addr, _) = create_token(&env, &admin, &lp, 1_000);
+
+        let pool_id = env.register(FlashLoanPool, ());
+        let client = FlashLoanPoolClient::new(&env, &pool_id);
+
+        client.initialize(&admin, &token_addr, &100); // 1% == 100 bps
+        client.deposit_liquidity(&lp, &1_000);
+
+        (env, client, token_addr)
+    }
+
+    // ── drive: deposit_liquidity ──────────────────────────────────────────────
+
+    #[test]
+    fn deposit_liquidity_increases_pool_reserves() {
+        let (env, client, token_addr) = setup();
+
+        // Pool already holds 1_000 from setup; deposit 500 more.
+        let extra_lp = Address::generate(&env);
+        let sac = StellarAssetClient::new(&env, &token_addr);
+        sac.mint(&extra_lp, &500);
+
+        client.deposit_liquidity(&extra_lp, &500);
+
+        assert_eq!(client.available_liquidity(), 1_500);
+        let tok = token::Client::new(&env, &token_addr);
+        assert_eq!(tok.balance(&client.address), 1_500);
+    }
+
+    #[test]
+    fn deposit_liquidity_zero_amount_returns_invalid_amount_error() {
+        let (env, client, _token) = setup();
+        let lp = Address::generate(&env);
+        let err = client.try_deposit_liquidity(&lp, &0).unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidAmount));
+    }
+
+    // ── drive: flash_loan happy path ──────────────────────────────────────────
+
+    #[test]
+    fn flash_loan_charges_fee_and_returns_principal_to_pool() {
+        let (env, client, token_addr) = setup();
+
+        // Give the good borrower enough extra tokens to cover the fee.
+        let borrower_id = env.register(GoodBorrower1304, ());
+        let sac = StellarAssetClient::new(&env, &token_addr);
+        sac.mint(&borrower_id, &10);
+
+        let fee = client.flash_loan(&borrower_id, &500);
+        assert_eq!(fee, 5); // 1% of 500
+
+        let tok = token::Client::new(&env, &token_addr);
+        // Pool ends with original 1_000 + 5 fee.
+        assert_eq!(tok.balance(&client.address), 1_005);
+        assert_eq!(client.available_liquidity(), 1_005);
+        assert_eq!(client.fees_collected(), 5);
+        // Borrower's buffer: started with 10, paid 5 fee.
+        assert_eq!(tok.balance(&borrower_id), 5);
+    }
+
+    // ── drive: flash_loan — rule: underpaying borrower leaves pool unchanged ──
+
+    /// A borrower that repays nothing: pool reserves and fees must be exactly
+    /// the same before and after the panicking call.
+    #[test]
+    fn no_repay_borrower_leaves_reserves_and_fees_unchanged() {
+        let (env, client, token_addr) = setup();
+
+        let borrower_id = env.register(NoRepayBorrower1304, ());
+
+        let liquidity_before = client.available_liquidity();
+        let fees_before = client.fees_collected();
+        let tok = token::Client::new(&env, &token_addr);
+        let pool_balance_before = tok.balance(&client.address);
+
+        // The flash loan must panic when repayment is missing.
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            client.flash_loan(&borrower_id, &500);
+        }));
+        assert!(result.is_err(), "expected a panic for no-repay borrower");
+
+        // After the host rolls back the failed invocation, pool state is
+        // identical to its pre-call snapshot.
+        assert_eq!(client.available_liquidity(), liquidity_before);
+        assert_eq!(client.fees_collected(), fees_before);
+        assert_eq!(tok.balance(&client.address), pool_balance_before);
+        // Borrower received nothing — the transfer was rolled back too.
+        assert_eq!(tok.balance(&borrower_id), 0);
+    }
+
+    /// A borrower that repays only the principal but skips the fee: pool
+    /// reserves and fees must also be unchanged after rollback.
+    #[test]
+    fn partial_repay_borrower_leaves_reserves_and_fees_unchanged() {
+        let (env, client, token_addr) = setup();
+
+        let borrower_id = env.register(PartialRepayBorrower1304, ());
+
+        let liquidity_before = client.available_liquidity();
+        let fees_before = client.fees_collected();
+        let tok = token::Client::new(&env, &token_addr);
+        let pool_balance_before = tok.balance(&client.address);
+
+        // Repays principal only → fee requirement not met → panic.
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            client.flash_loan(&borrower_id, &500);
+        }));
+        assert!(result.is_err(), "expected a panic for partial-repay borrower");
+
+        // Pool state must be identical to the pre-call snapshot.
+        assert_eq!(client.available_liquidity(), liquidity_before);
+        assert_eq!(client.fees_collected(), fees_before);
+        assert_eq!(tok.balance(&client.address), pool_balance_before);
+        assert_eq!(tok.balance(&borrower_id), 0);
+    }
+
+    /// Two sequential failed loans: each one leaves the pool in the same state
+    /// as before — no cumulative drift in reserves or fees.
+    #[test]
+    fn repeated_failed_loans_do_not_drift_pool_state() {
+        let (env, client, token_addr) = setup();
+
+        let borrower_id = env.register(NoRepayBorrower1304, ());
+        let tok = token::Client::new(&env, &token_addr);
+
+        for _ in 0..3 {
+            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                client.flash_loan(&borrower_id, &500);
+            }));
+        }
+
+        // After three failed loans the pool is untouched.
+        assert_eq!(tok.balance(&client.address), 1_000);
+        assert_eq!(client.available_liquidity(), 1_000);
+        assert_eq!(client.fees_collected(), 0);
+    }
+
+    // ── drive: flash_loan — validation error paths ────────────────────────────
+
+    #[test]
+    fn flash_loan_zero_amount_returns_invalid_amount_error() {
+        let (env, client, _token) = setup();
+        let borrower_id = env.register(GoodBorrower1304, ());
+        let err = client.try_flash_loan(&borrower_id, &0).unwrap_err();
+        assert_eq!(err, Ok(Error::InvalidAmount));
+    }
+
+    #[test]
+    fn flash_loan_exceeds_liquidity_returns_insufficient_liquidity_error() {
+        let (env, client, _token) = setup();
+        let borrower_id = env.register(GoodBorrower1304, ());
+        // Pool has 1_000; borrow 1_001.
+        let err = client.try_flash_loan(&borrower_id, &1_001).unwrap_err();
+        assert_eq!(err, Ok(Error::InsufficientLiquidity));
+    }
+
+    // ── borrower fixtures (local to tests_1304) ───────────────────────────────
+
+    /// Repays principal + fee in full.
+    #[contract]
+    pub struct GoodBorrower1304;
+
+    #[contractimpl]
+    impl GoodBorrower1304 {
+        pub fn execute_operation(env: Env, pool: Address, asset: Address, amount: i128, fee: i128) {
+            let repay = amount
+                .checked_add(fee)
+                .expect("GoodBorrower1304: repayment overflow");
+            token::Client::new(&env, &asset).transfer(
+                &env.current_contract_address(),
+                &pool,
+                &repay,
+            );
+        }
+    }
+
+    /// Keeps everything — repays nothing.
+    #[contract]
+    pub struct NoRepayBorrower1304;
+
+    #[contractimpl]
+    impl NoRepayBorrower1304 {
+        pub fn execute_operation(
+            _env: Env,
+            _pool: Address,
+            _asset: Address,
+            _amount: i128,
+            _fee: i128,
+        ) {
+            // Intentionally does nothing.
+        }
+    }
+
+    /// Repays the principal but withholds the fee.
+    #[contract]
+    pub struct PartialRepayBorrower1304;
+
+    #[contractimpl]
+    impl PartialRepayBorrower1304 {
+        pub fn execute_operation(
+            env: Env,
+            pool: Address,
+            asset: Address,
+            amount: i128,
+            _fee: i128,
+        ) {
+            token::Client::new(&env, &asset).transfer(
+                &env.current_contract_address(),
+                &pool,
+                &amount,
+            );
+        }
+    }
+}
