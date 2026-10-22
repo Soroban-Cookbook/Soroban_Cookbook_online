@@ -105,6 +105,59 @@ describe('ActionCard', () => {
     await user.click(button);
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
+
+  it('fires onCtaClick once when activated with Enter', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    render(<ActionCard {...defaultProps} onCtaClick={handleClick} />);
+    await user.tab();
+    const button = screen.getByRole('button', { name: 'Deploy now →' });
+    expect(button).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onCtaClick once when activated with Space', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    render(<ActionCard {...defaultProps} onCtaClick={handleClick} />);
+    await user.tab();
+    await user.keyboard(' ');
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire onCtaClick on keyboard activation when disabled', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    render(<ActionCard {...defaultProps} onCtaClick={handleClick} disabled />);
+    const button = screen.getByRole('button', { name: 'Deploy now →' });
+    expect(button).toBeDisabled();
+    button.focus();
+    await user.keyboard('{Enter}');
+    await user.keyboard(' ');
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  it('does not fire onCtaClick on click when disabled', async () => {
+    const handleClick = vi.fn();
+    const user = userEvent.setup();
+    render(<ActionCard {...defaultProps} onCtaClick={handleClick} disabled />);
+    await user.click(screen.getByRole('button', { name: 'Deploy now →' }));
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  it('reaches the CTA link with the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<ActionCard {...defaultProps} ctaHref="/deploy" />);
+    await user.tab();
+    expect(screen.getByRole('link', { name: 'Deploy now →' })).toHaveFocus();
+  });
+
+  it('renders a disabled button instead of a link when disabled with ctaHref', () => {
+    render(<ActionCard {...defaultProps} ctaHref="/deploy" disabled />);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Deploy now →' })).toBeDisabled();
+  });
 });
 
 // ── GradientCard tests ────────────────────────────────────────────

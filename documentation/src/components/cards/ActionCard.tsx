@@ -13,6 +13,7 @@ export interface ActionCardProps {
   ctaHref?: string;
   onCtaClick?: () => void;
   icon?: ReactNode;
+  disabled?: boolean;
 }
 
 /**
@@ -41,21 +42,22 @@ export default function ActionCard({
   ctaHref,
   onCtaClick,
   icon,
+  disabled = false,
 }: ActionCardProps) {
+  const buttonClassName = clsx(styles.actionButton, styles[`actionButton--${variant}`]);
+
   return (
     <BaseCard className={clsx(styles.actionCard, styles[`actionCard--${variant}`])}>
       {icon && <div className={styles.actionIcon}>{icon}</div>}
       <h3 className={styles.actionTitle}>{title}</h3>
       <p className={styles.actionDescription}>{description}</p>
 
-      {ctaHref ? (
-        <a href={ctaHref} className={clsx(styles.actionButton, styles[`actionButton--${variant}`])}>
+      {ctaHref && !disabled ? (
+        <a href={ctaHref} className={buttonClassName}>
           {cta} →
         </a>
       ) : (
-        <button
-          onClick={onCtaClick}
-          className={clsx(styles.actionButton, styles[`actionButton--${variant}`])}>
+        <button type="button" onClick={onCtaClick} disabled={disabled} className={buttonClassName}>
           {cta} →
         </button>
       )}

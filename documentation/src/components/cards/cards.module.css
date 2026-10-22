@@ -345,6 +345,16 @@
   transform: translateX(2px);
 }
 
+.actionButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actionButton:disabled:hover {
+  opacity: 0.55;
+  transform: none;
+}
+
 .actionButton--default {
   background: #111;
   color: #fff;
