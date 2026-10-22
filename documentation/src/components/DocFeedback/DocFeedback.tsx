@@ -14,10 +14,7 @@ import styles from './DocFeedback.module.css';
  *      the response regardless of analytics.
  *
  * The vote is remembered per page in localStorage so readers are not asked
- * again on a page they already answered. This local storage is not
- * consent-gated: a vote may be stored even when analytics scripts are off
- * (the GA4 call is just a no-op). See documentation/docs/legal/privacy.md
- * and documentation/src/pages/privacy.md for the privacy disclosure.
+ * again on a page they already answered.
  */
 
 const DISCUSSION_URL =

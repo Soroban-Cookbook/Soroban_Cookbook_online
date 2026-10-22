@@ -36,40 +36,13 @@ entry, and removing only that entry does not change the banner's saved choice.
 To withdraw both, reject in the banner and also remove `sc-analytics-consent`
 via browser storage settings (or clear all site data).
 
-## Docs feedback votes
-
-Each documentation page ends with a "Was this page helpful?" widget (see
-`documentation/src/components/DocFeedback/DocFeedback.tsx`). When you click
-Yes or No, the widget stores your vote in your browser's `localStorage`
-under a key prefixed with `sc-doc-feedback:` (for example
-`sc-doc-feedback:/docs/getting-started`). The suffix is the page path, and the
-value is `yes` or `no`. This local record is used only to remember that you
-already answered for that page, so the widget does not ask again.
-
-The feedback widget has two independent capture paths:
-
-- **Local-only vote remembrance.** The `sc-doc-feedback:*` entry is
-written even when analytics consent is declined. It stays in your browser and
-is not sent to the site operator or any third party.
-- **Consent-gated analytics.** The vote is also sent to Google Analytics 4
-via `trackFeedback` in `documentation/src/utils/analytics`. Without analytics
-consent, the GA4 call is a no-op and nothing is sent. Separately, the
-widget's follow-up link opens a prefilled GitHub Discussion, which is only
-submitted if you choose to post it on GitHub.
-
-So a local vote may be stored in your browser even when analytics scripts
-are off. To clear these entries, open your browser's site data / storage
-settings for `soroban-cookbook.dev` and remove the `sc-doc-feedback:` keys
-or clear localStorage for the site. Clearing all site data also resets the
-consent banner and the `sc-analytics-consent` helper key described above.
-
 ## Error monitoring (Sentry, when enabled)
 
 When the deployment configures `SENTRY_DSN`, the site initializes Sentry
 error monitoring independently of the analytics consent banner (see
 `documentation/src/theme/Root.tsx`). Sentry is treated as essential
 error-monitoring traffic under the operator's legitimate interest in operating
-a reliable documentation site -- it is **not** consent-gated like GA4 or
+a reliable documentation site — it is **not** consent-gated like GA4 or
 Clarity. When `SENTRY_DSN` is absent (for example local development), Sentry
 is not initialized.
 
@@ -82,7 +55,7 @@ is removed, so avoid putting secrets in URLs.
 
 Retention and contact details follow the operator's Sentry project settings.
 <!-- PLACEHOLDER: State the operator's Sentry data-retention period and the privacy contact for Sentry-related requests once known. -->
-See the [canonical Privacy Policy],/privacy) (Error monitoring, Third-party
+See the [canonical Privacy Policy](/privacy) (Error monitoring, Third-party
 services, and Data retention rows) for the maintained disclosure.
 
 ## Newsletter submissions

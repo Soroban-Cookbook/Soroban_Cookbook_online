@@ -57,21 +57,13 @@ documentation site.
 | Bookmarks (`bookmarks`, `bookmarkedPatterns`) | `localStorage` | Save documentation and patterns | Functional |
 | Tutorial progress (`sc-tutorial-progress`) | `localStorage` | Remember completed pages | Functional |
 | Prerequisites (`soroban_prerequisites_checked_v1`) | `localStorage` | Remember checked setup items | Functional |
-| Feedback (`sc-doc-feedback:` followed by the page path) | `localStorage` | Remember a page's helpfulness vote; stored locally even when analytics is declined | Functional |
+| Feedback (`sc-doc-feedback:` followed by the page path) | `localStorage` | Remember a page's helpfulness vote | Functional |
 | Experiment visitor ID (`sc-visitor-id`) | `localStorage` | Keep variant assignment stable when an experiment is enabled | Optional experiment |
 
 Functional preferences and local reading history can be stored without accepting
 analytics. Experiments are currently disabled; if enabled, assignment can create
 `sc-visitor-id` without analytics consent, while exposure reporting checks the
 separate analytics helper. Clear site data to remove these stored entries.
-
-The docs feedback widget always writes your per-page vote to `localStorage`
-under the `sc-doc-feedback:` prefix (for example, `sc-doc-feedback:/privacy`),
-regardless of your analytics choice. This local entry is used only to show your
-previous vote for that page. It is separate from analytics: when analytics is
-declined, the GA4 feedback event is a no-op, but the local vote is still saved.
-To remove it, clear site data for `soroban-cookbook.dev` or delete the
-`sc-doc-feedback:*` entries in your browser's localStorage.
 
 ### Analytics and cookies (optional)
 
@@ -112,8 +104,6 @@ Usage events can include search terms, code-copy metadata, newsletter success
 (without the email address), CTA clicks, and feedback votes. Avoid entering
 secrets or personal information into search or page content. The GA4 loader sets
 `anonymize_ip: true`; this does not establish that all provider data is anonymous.
-Feedback votes are only sent to GA4 when analytics is accepted; the local
-`sc-doc-feedback:` entry described above is written either way.
 
 ### Newsletter submissions
 
@@ -188,7 +178,7 @@ for their processing and transfer terms.
 
 | Data                            | Retention                                                                                             |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Functional preferences, history, consent records, feedback votes, and experiment ID | Until cleared or overwritten by the relevant feature; no application expiry is set |
+| Functional preferences, history, consent records, and experiment ID | Until cleared or overwritten by the relevant feature; no application expiry is set |
 | CSRF token                      | Browser session, cleared after a successful newsletter request; may be rotated by the backend |
 | Newsletter email                | Controlled by the newsletter backend operator <!-- PLACEHOLDER: state retention period when known --> |
 | GA4 / Clarity analytics         | Per the operator's provider settings and provider policies; `analytics.ts` sets no retention period |
@@ -217,8 +207,6 @@ also remove `sc-analytics-consent` using browser storage settings, or clear all
 site data. Clearing only that helper entry does not change the banner's saved
 choice. Clearing all site data resets the banner and local preferences and
 removes site cookies; it does not erase data already held by providers.
-This also removes any `sc-doc-feedback:*` entries; to clear only feedback votes,
-delete those keys in your browser's localStorage for `soroban-cookbook.dev`.
 
 ### Newsletter / deletion requests
 
