@@ -205,4 +205,57 @@ describe('NewsletterSignup error states (#348)', () => {
       expect(screen.getByRole('status')).toHaveTextContent(/thanks/i);
     });
   });
+
+  it('sends the CSRF header with the subscribe request (#1355)', async () => {
+    render(<NewsletterSignup />);
+
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: 'tester@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /subscribe/i }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    const [, init] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(init.method).toBe('POST');
+    expect(init.headers).toMatchObject({
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': 'test-csrf-token',
+    });
+  });
+
+  it('triggers a single fetch when the subscribe button is double-clicked (#1355)', async () => {
+    let resolveFetch: ((value: unknown) => void) | undefined;
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<NewsletterSignup />);
+
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: 'tester@example.com' },
+    });
+
+    const button = screen.getByRole('button', { name: /subscribe/i });
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveFetch?.({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/thanks/i);
+    });
+  });
 });
