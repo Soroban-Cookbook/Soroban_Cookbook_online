@@ -94,7 +94,7 @@
     "wait-on": "9.5.1",
     "webpack": "5.112.0",
     "@testing-library/dom": "^10.4.2",
-    "vite": "^8.2.2"
+    "vite": "^8.3.5"
   },
   "browserslist": {
     "production": [
