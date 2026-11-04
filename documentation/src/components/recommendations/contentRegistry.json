@@ -328,7 +328,7 @@
   {
     "id": "concepts/randomness",
     "title": "Randomness & Entropy",
-    "description": "Understand on-chain randomness limitations, secure entropy sources, and safe patterns for Soroban smart contracts — including VDFs, commit-reveal schemes, and oracles.",
+    "description": "Understand on-chain randomness limitations, secure entropy sources, and safe patterns for Soroban smart contracts — including VDfs, commit-reveal schemes, and oracles.",
     "category": "concepts",
     "difficulty": "beginner",
     "status": "stable",
@@ -687,6 +687,20 @@
       "events"
     ],
     "href": "/docs/contributing/test-snapshots"
+  },
+  {
+    "id": "contributing/unaudited-example-notice",
+    "title": "Unaudited Example Notice Policy",
+    "description": "When pattern and security pages must show the shared unaudited / not-for-production notice, what it says, and where it goes.",
+    "category": "contributing",
+    "difficulty": "beginner",
+    "status": "stable",
+    "time": 10,
+    "tags": [
+      "auth",
+      "storage"
+    ],
+    "href": "/docs/contributing/unaudited-example-notice"
   },
   {
     "id": "contributing/versioning-strategy",
@@ -1152,7 +1166,11 @@
     "status": "stable",
     "time": 10,
     "tags": [
-      "storage"
+      "auth",
+      "storage",
+      "events",
+      "errors",
+      "tokens"
     ],
     "href": "/docs/legal/privacy"
   },

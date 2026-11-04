@@ -32,7 +32,10 @@ export default function FeatureCard({
   href,
 }: FeatureCardProps) {
   return (
-    <BaseCard href={href || undefined} ariaLabel={href ? title : undefined} className={styles.featureCard}>
+    <BaseCard
+      href={href || undefined}
+      ariaLabel={href ? title : undefined}
+      className={styles.featureCard}>
       {/* Icon pill — tinted with accent color via inline CSS variable */}
       <div
         className={styles.featureIcon}

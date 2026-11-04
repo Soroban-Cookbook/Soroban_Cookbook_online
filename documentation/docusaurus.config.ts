@@ -10,9 +10,15 @@ const gtagMeasurementId = process.env.GTAG_MEASUREMENT_ID || process.env.GOOGLE_
 const config: Config = {
   title: 'Soroban Cookbook',
   tagline: 'A comprehensive guide to building smart contracts on Stellar with Soroban',
-  favicon: 'img/logo.svg',
+  favicon: 'img/favicon.ico',
 
-  url: process.env.SITE_URL || 'https://soroban-cookbook.dev',
+  url:
+    process.env.SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'https://soroban-cookbook.dev'),
   baseUrl: process.env.BASE_URL || '/',
 
   organizationName: 'Soroban-Cookbook',
@@ -262,7 +268,7 @@ const config: Config = {
           {
             tagName: 'link',
             rel: 'mask-icon',
-            href: '/img/logo.svg',
+            href: '/img/soroban-logo.png',
             color: '#3ECC5F',
           },
           {
@@ -478,10 +484,11 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Soroban Cookbook',
+      title: '',
       logo: {
-        alt: 'Soroban Logo',
-        src: 'img/logo.svg',
+        alt: 'Soroban Cookbook',
+        src: 'img/soroban-logo.png',
+        height: 36,
       },
       items: [
         {

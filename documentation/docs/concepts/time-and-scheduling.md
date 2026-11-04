@@ -471,9 +471,9 @@ When you move from testing time-based logic to deploying and invoking it on a li
 - Develop and test against testnet first. Mainnet involves real funds, real fees, and irreversible state changes.
 - Time-locked and scheduled contracts are especially sensitive to wrong timestamps or networks: a mistaken deploy can lock funds until an unintended time.
 - RGC and public endpoints are convenience infrastructure, not a substitute for careful operations. You are responsible for confirming the network passphrase, network ID, and contract ID before signing.
-- Verify timestamps and unlock times on-chain after deployment, and monitor for unexpected network beavior.
+- Verify timestamps and unlock times on-chain after deployment, and monitor for unexpected network behavior.
 
-For the canonical security and deployment guidance, see [API Security](../../security/api-security) and [Deploy to Mainnet](../../guides/deploy-mainnet). Those pages expand on key management and network choices; the warnings above apply even if you never open them.
+For the canonical security and deployment guidance, see [API Security](../getting-started/api-security) and [Deploy to Mainnet](../getting-started/deploy-mainnet). Those pages expand on key management and network choices; the warnings above apply even if you never open them.
 
 ## Related Resources
 

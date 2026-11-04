@@ -108,7 +108,8 @@
   font-weight: 800;
   cursor: pointer;
   background-color: #0f172a !important;
-  color: #38bdf8 !important;
+  /* Sky on navy fails WCAG AA; white on #0f172a passes 4.5:1+ */
+  color: #ffffff !important;
   border: 1px solid #38bdf8 !important;
   transition: all 0.2s ease;
 }

@@ -236,6 +236,8 @@ pasteable
 permissioned
 permissionless
 recreatable
+discardable
+Preimages
 setx
 soulbound
 timelocks

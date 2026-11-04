@@ -69,11 +69,7 @@ impl MultisigTimelockUpgrade {
         Ok(())
     }
 
-    pub fn schedule(
-        env: Env,
-        proposer: Address,
-        new_wasm_hash: BytesN<32>,
-    ) -> Result<(), Error> {
+    pub fn schedule(env: Env, proposer: Address, new_wasm_hash: BytesN<32>) -> Result<(), Error> {
         proposer.require_auth();
 
         let owners: Vec<Address> = env
@@ -99,7 +95,9 @@ impl MultisigTimelockUpgrade {
         approvals.push_back(proposer);
 
         env.storage().instance().set(&DataKey::Pending, &proposal);
-        env.storage().instance().set(&DataKey::Approvals, &approvals);
+        env.storage()
+            .instance()
+            .set(&DataKey::Approvals, &approvals);
 
         Ok(())
     }
@@ -131,7 +129,9 @@ impl MultisigTimelockUpgrade {
         }
 
         approvals.push_back(signer);
-        env.storage().instance().set(&DataKey::Approvals, &approvals);
+        env.storage()
+            .instance()
+            .set(&DataKey::Approvals, &approvals);
 
         Ok(())
     }
@@ -173,7 +173,8 @@ impl MultisigTimelockUpgrade {
         env.storage().instance().remove(&DataKey::Pending);
         env.storage().instance().remove(&DataKey::Approvals);
 
-        env.deployer().update_current_contract_wasm(proposal.new_wasm_hash.clone());
+        env.deployer()
+            .update_current_contract_wasm(proposal.new_wasm_hash.clone());
 
         env.events()
             .publish((EVENT_UPGRADE,), proposal.new_wasm_hash);

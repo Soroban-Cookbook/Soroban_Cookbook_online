@@ -67,8 +67,7 @@ export default function SearchLoading(): React.JSX.Element | null {
       className={loading ? styles.banner : undefined}
       role="status"
       aria-live="polite"
-      aria-busy={loading}
-    >
+      aria-busy={loading}>
       {loading && (
         <>
           <div

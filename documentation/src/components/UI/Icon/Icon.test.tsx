@@ -25,16 +25,12 @@ describe('Icon', () => {
   });
 
   it('accepts ariaLabel as a fallback name for existing callers', () => {
-    const { container } = render(
-      <Icon icon={Copy} decorative={false} ariaLabel="Copy" />,
-    );
+    const { container } = render(<Icon icon={Copy} decorative={false} ariaLabel="Copy" />);
     const svg = container.querySelector('svg');
     expect(svg).toHaveAttribute('aria-label', 'Copy');
   });
 
   it('throws when decorative is false and no title or ariaLabel is provided', () => {
-    expect(() =>
-      render(<Icon icon={Box} decorative={false} />),
-    ).toThrow(/title is required/i);
+    expect(() => render(<Icon icon={Box} decorative={false} />)).toThrow(/title is required/i);
   });
 });

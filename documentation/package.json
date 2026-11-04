@@ -56,7 +56,7 @@
     "clsx": "^2.0.0",
     "lucide-react": "^1.58.0",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.2.8",
+    "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "web-vitals": "^6.2.1"
   },
@@ -78,7 +78,7 @@
     "@vitest/coverage-v8": "^5.0.5",
     "@vitest/ui": "^5.0.2",
     "cspell": "^10.3.6",
-    "eslint": "^10.13.0",
+    "eslint": "^9.17.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.7",
@@ -112,6 +112,8 @@
     "node": ">=20.0"
   },
   "overrides": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "webpack": "5.112.0",
     "eslint-scope": "5.1.1",
     "websocket-driver": "0.7.5",

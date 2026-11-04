@@ -258,6 +258,13 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Install Stellar CLI (required by soroban-sdk 28 build.rs)
+        run: |
+          if ! command -v stellar >/dev/null 2>&1; then
+            cargo install --locked stellar-cli --version 25.2.0 --features opt
+          fi
+          stellar --version
+
       - name: Cache Cargo registry
         uses: actions/cache@v6
         with:
@@ -294,6 +301,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32v1-none
+
+      - name: Install Stellar CLI (required by soroban-sdk 28 build.rs)
+        run: |
+          if ! command -v stellar >/dev/null 2>&1; then
+            cargo install --locked stellar-cli --version 25.2.0 --features opt
+          fi
+          stellar --version
 
       - name: Cache Cargo registry
         uses: actions/cache@v6

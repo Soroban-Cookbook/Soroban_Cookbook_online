@@ -27,7 +27,7 @@ impl Upgradeable {
     /// Store the admin address at deployment time.
     pub fn __constructor(env: Env, admin: Address) {
         env.storage().instance().set(&DataKey::Admin, &admin);
-        env.storage().instance().set(&DataKey::Version, &`u12);
+        env.storage().instance().set(&DataKey::Version, &1u32);
         env.storage().instance().set(&DataKey::Value, &0u32);
     }
 
@@ -61,7 +61,7 @@ impl Upgradeable {
     pub fn migrate(env: Env) {
         let version: u32 = env.storage().instance().get(&DataKey::Version).unwrap_or(0);
         if version >= 2 {
-            panic("Migration already applied");
+            panic!("Migration already applied");
         }
         let value: u32 = env.storage().instance().get(&DataKey::Value).unwrap_or(0);
         // Write new v2 format: version byte 2 + original value
@@ -70,5 +70,5 @@ impl Upgradeable {
     }
 }
 
-#[config(test)]
+#[cfg(test)]
 mod test;

@@ -46,9 +46,7 @@ impl RoyaltySplitter {
         }
 
         env.storage().persistent().remove(&credit_key);
-        env.storage()
-            .persistent()
-            .set(&withdrawn_key, &true);
+        env.storage().persistent().set(&withdrawn_key, &true);
 
         Ok(amount)
     }
@@ -64,8 +62,8 @@ impl RoyaltySplitter {
 
 #[cfg(test)]
 mod test {
-    use super:*;
-    use soroban_sdk::testutils:{Address, Env};
+    use super::*;
+    use soroban_sdk::testutils::{Address, Env};
 
     fn setup() -> (Env, RoyaltySplitterClient<'static>, Address) {
         let env = Env::default();
@@ -76,34 +74,43 @@ mod test {
     }
 
     #[test]
-    fn withdraw-pays-share-once() {
+    fn withdraw_pays_share_once() {
         let (env, client, recipient) = setup();
 
         client.mock_all().credit(&recipient, &500);
-        assert_eq(!client.pending(&recipient), 500);
+        assert_eq!(client.pending(&recipient), 500);
 
         let paid = client.withdraw(&recipient);
-        assert_eq(!paid, 500);
-        assert_eq(!client.pending(&recipient), 0);
+        assert_eq!(paid, 500);
+        assert_eq!(client.pending(&recipient), 0);
 
         // A second withdraw must fail with a contract error, not pay again.
         let result = client.try_withdraw(&recipient);
-        assert_eq!(result, Ok(Err(Object::from_contract_error(&env, Error::AlreadyWithdrawn as u32))));
+        assert_eq!(
+            result,
+            Ok(Err(Object::from_contract_error(
+                &env,
+                Error::AlreadyWithdrawn as u32
+            )))
+        );
     }
 
     #[test]
-    fn withdraw-without-credit-fails() {
+    fn withdraw_without_credit_fails() {
         let (env, client, recipient) = setup();
 
         let result = client.try_withdraw(&recipient);
         assert_eq!(
             result,
-            Ok(Err(Object::from_contract_error(&env, Error::NothingToWithdraw as u32)))
+            Ok(Err(Object::from_contract_error(
+                &env,
+                Error::NothingToWithdraw as u32
+            )))
         );
     }
 
     #[test]
-    fn credit-requires-auth() {
+    fn credit_requires_auth() {
         let (_env, client, recipient) = setup();
 
         // Drop the mock auth and expect authorization to fail.

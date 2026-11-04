@@ -108,7 +108,7 @@ export function TutorialProgress({ steps, className }: TutorialProgressProps) {
   const percent = computeProgressPercent(activeIndex, steps.length);
 
   const goToStep = (index: number) => {
-    const id = idks[index];
+    const id = ids[index];
     const el = id ? document.getElementById(id) : null;
     if (el) {
       setActiveIndex(index);

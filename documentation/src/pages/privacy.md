@@ -46,19 +46,19 @@ documentation site.
 
 ### Information stored in your browser
 
-| Storage                                          | Type             | Purpose                             | Essential?       |
-| ------------------------------------------------ | ---------------- | ----------------------------------- | ---------------- |
-| Theme preference (`theme` / color mode keys)     | `localStorage`   | Remember light/dark mode            | Yes (functional) |
-| Cookie consent choice (`soroban-cookie-consent`) | `localStorage`   | Remember analytics preference       | Yes (functional) |
-| CSRF token (`soroban-csrf-token`)                | `sessionStorage` | Protect newsletter form submissions | Yes (security)   |
-| Separate analytics helper (`sc-analytics-consent`) | `localStorage` | Gate Web Vitals, search/funnel reporting, and experiment exposure | Optional analytics |
-| Search history (`soroban_search_history`) | `localStorage` | Remember recent searches | Functional |
-| Recommendations (`soroban_recommendations_history`) | `localStorage` | Keep up to 20 recent docs and topic/difficulty preference counts for local recommendations | Functional |
-| Bookmarks (`bookmarks`, `bookmarkedPatterns`) | `localStorage` | Save documentation and patterns | Functional |
-| Tutorial progress (`sc-tutorial-progress`) | `localStorage` | Remember completed pages | Functional |
-| Prerequisites (`soroban_prerequisites_checked_v1`) | `localStorage` | Remember checked setup items | Functional |
-| Feedback (`sc-doc-feedback:` followed by the page path) | `localStorage` | Remember a page's helpfulness vote | Functional |
-| Experiment visitor ID (`sc-visitor-id`) | `localStorage` | Keep variant assignment stable when an experiment is enabled | Optional experiment |
+| Storage                                                 | Type             | Purpose                                                                                    | Essential?          |
+| ------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------ | ------------------- |
+| Theme preference (`theme` / color mode keys)            | `localStorage`   | Remember light/dark mode                                                                   | Yes (functional)    |
+| Cookie consent choice (`soroban-cookie-consent`)        | `localStorage`   | Remember analytics preference                                                              | Yes (functional)    |
+| CSRF token (`soroban-csrf-token`)                       | `sessionStorage` | Protect newsletter form submissions                                                        | Yes (security)      |
+| Separate analytics helper (`sc-analytics-consent`)      | `localStorage`   | Gate Web Vitals, search/funnel reporting, and experiment exposure                          | Optional analytics  |
+| Search history (`soroban_search_history`)               | `localStorage`   | Remember recent searches                                                                   | Functional          |
+| Recommendations (`soroban_recommendations_history`)     | `localStorage`   | Keep up to 20 recent docs and topic/difficulty preference counts for local recommendations | Functional          |
+| Bookmarks (`bookmarks`, `bookmarkedPatterns`)           | `localStorage`   | Save documentation and patterns                                                            | Functional          |
+| Tutorial progress (`sc-tutorial-progress`)              | `localStorage`   | Remember completed pages                                                                   | Functional          |
+| Prerequisites (`soroban_prerequisites_checked_v1`)      | `localStorage`   | Remember checked setup items                                                               | Functional          |
+| Feedback (`sc-doc-feedback:` followed by the page path) | `localStorage`   | Remember a page's helpfulness vote                                                         | Functional          |
+| Experiment visitor ID (`sc-visitor-id`)                 | `localStorage`   | Keep variant assignment stable when an experiment is enabled                               | Optional experiment |
 
 Functional preferences and local reading history can be stored without accepting
 analytics. Experiments are currently disabled; if enabled, assignment can create
@@ -152,16 +152,16 @@ by the project owner.
 
 Depending on configuration and your actions, data may be processed by:
 
-| Service                                    | Role                              | Data involved                      |
-| ------------------------------------------ | --------------------------------- | ---------------------------------- |
-| GitHub Pages / hosting provider            | Hosts static site files           | Standard HTTP logs per host policy |
-| Vercel (if used for previews/deploy)       | Hosting                           | Standard HTTP logs per host policy |
-| Google Analytics 4                         | Optional analytics                | Usage metrics; banner loader waits for consent, separate built-in integration does not |
-| Microsoft Clarity (`CLARITY_PROJECT_ID`)    | Optional heatmaps and session replay | Page interactions/content after consent |
-| Custom analytics endpoint (`ANALYTICS_ENDPOINT`) | Optional performance reporting | Web Vitals and pathname when the separate helper grants consent |
-| Sentry (`SENTRY_DSN`)                      | Configured error monitoring and tracing | Error diagnostics and performance data |
-| Newsletter backend (`NEWSLETTER_ENDPOINT`) | Email subscription                | Email address you submit           |
-| Discord / Stack Overflow / Stellar docs    | External links you choose to open | Per those sites’ policies          |
+| Service                                          | Role                                    | Data involved                                                                          |
+| ------------------------------------------------ | --------------------------------------- | -------------------------------------------------------------------------------------- |
+| GitHub Pages / hosting provider                  | Hosts static site files                 | Standard HTTP logs per host policy                                                     |
+| Vercel (if used for previews/deploy)             | Hosting                                 | Standard HTTP logs per host policy                                                     |
+| Google Analytics 4                               | Optional analytics                      | Usage metrics; banner loader waits for consent, separate built-in integration does not |
+| Microsoft Clarity (`CLARITY_PROJECT_ID`)         | Optional heatmaps and session replay    | Page interactions/content after consent                                                |
+| Custom analytics endpoint (`ANALYTICS_ENDPOINT`) | Optional performance reporting          | Web Vitals and pathname when the separate helper grants consent                        |
+| Sentry (`SENTRY_DSN`)                            | Configured error monitoring and tracing | Error diagnostics and performance data                                                 |
+| Newsletter backend (`NEWSLETTER_ENDPOINT`)       | Email subscription                      | Email address you submit                                                               |
+| Discord / Stack Overflow / Stellar docs          | External links you choose to open       | Per those sites’ policies                                                              |
 
 We do not sell personal data.
 
@@ -176,13 +176,13 @@ for their processing and transfer terms.
 
 ## Data retention
 
-| Data                            | Retention                                                                                             |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Functional preferences, history, consent records, and experiment ID | Until cleared or overwritten by the relevant feature; no application expiry is set |
-| CSRF token                      | Browser session, cleared after a successful newsletter request; may be rotated by the backend |
-| Newsletter email                | Controlled by the newsletter backend operator <!-- PLACEHOLDER: state retention period when known --> |
-| GA4 / Clarity analytics         | Per the operator's provider settings and provider policies; `analytics.ts` sets no retention period |
-| Custom analytics / Sentry       | Per the configured backend or provider's retention settings |
+| Data                                                                | Retention                                                                                             |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Functional preferences, history, consent records, and experiment ID | Until cleared or overwritten by the relevant feature; no application expiry is set                    |
+| CSRF token                                                          | Browser session, cleared after a successful newsletter request; may be rotated by the backend         |
+| Newsletter email                                                    | Controlled by the newsletter backend operator <!-- PLACEHOLDER: state retention period when known --> |
+| GA4 / Clarity analytics                                             | Per the operator's provider settings and provider policies; `analytics.ts` sets no retention period   |
+| Custom analytics / Sentry                                           | Per the configured backend or provider's retention settings                                           |
 
 Rejecting analytics does not delete existing provider cookies, stored data, or
 previously collected reports. Browser storage and provider-side retention are

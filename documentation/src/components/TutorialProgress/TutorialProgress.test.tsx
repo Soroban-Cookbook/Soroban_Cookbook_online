@@ -139,7 +139,7 @@ describe('TutorialProgress', () => {
       expect.objectContaining({ behavior: 'smooth' }),
     );
 
-    const buttons = screen.getAllBuRole('button');
+    const buttons = screen.getAllByRole('button');
     expect(buttons[2]).toHaveAttribute('aria-current', 'step');
     // Earlier steps are now shown as complete.
     expect(buttons[0]).not.toHaveAttribute('aria-current');
