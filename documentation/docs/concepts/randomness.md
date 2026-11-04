@@ -8,7 +8,7 @@ description: Understand on-chain randomness limitations, secure entropy sources,
 
 Generating unpredictable randomness on a deterministic blockchain is inherently difficult. Every validator must independently agree on the same result, which means no validator can observe "true" randomness from an external source without a trusted bridge. This page covers the sources of randomness available to Soroban contracts, their security properties, and recommended patterns for building safe randomized logic.
 
-> **Network and key risk warning:** The examples on this page involve contracts that hold funds, call external oracles, and sign transactions with your keys. Develop and test on Stellar Testnet first. Mainnet transactions use real funds and are irreversible. Never commit secret keys or seed phrases to source control, logs, or chat, and never sign a mainnet transaction you did not inspect. Public RPC endpoints are convenient for reading chain state but are not a substitute for careful operational security — do not rely on a single public endpoint for production writes. See [Security Fundamentals](/docs/security/fundamentals) and the [deploy-mainnet guide](/docs/guides/deploy-mainnet) for canonical key-handling and network-safety practices.
+> **Network and key risk warning:** The examples on this page involve contracts that hold funds, call external oracles, and sign transactions with your keys. Develop and test on Stellar Testnet first. Mainnet transactions use real funds and are irreversible. Never commit secret keys or seed phrases to source control, logs, or chat, and never sign a mainnet transaction you did not inspect. Public RPC endpoints are convenient for reading chain state but are not a substitute for careful operational security — do not rely on a single public endpoint for production writes. See [Security Fundamentals](/docs/security/fundamentals) and the [deploy-mainnet guide](../getting-started/deploy-mainnet) for canonical key-handling and network-safety practices.
 
 ## On-Chain Randomness Challenges
 
@@ -185,6 +185,6 @@ impl CoinFlip {
 ## Learn more
 
 - [Security Fundamentals](/docs/security/fundamentals) — general security practices for Soroban contracts
-- [Deploy to Mainnet](/docs/guides/deploy-mainnet) — key handling, network safety, and production deployment checklists
+- [Deploy to Mainnet](../getting-started/deploy-mainnet) — key handling, network safety, and production deployment checklists
 - [Cross-Contract Invocation](/docs/concepts/cross-contract-invocation) — safe patterns for calling external contracts (including oracles)
 - [Authorization](/docs/concepts/authorization) — access control patterns for sensitive operations

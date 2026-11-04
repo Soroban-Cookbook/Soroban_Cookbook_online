@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Default values
-SOURCE="documentation/static/img/logo.svg"
+SOURCE="documentation/static/img/soroban-logo.png"
 OUT="documentation/static"
 
 # Parse flags
@@ -16,8 +16,8 @@ done
 
 # Check source exists
 if [[ ! -f "$SOURCE" ]]; then
-  echo "ERROR: Source SVG not found at '$SOURCE'" >&2
-  echo "Usage: $0 [--source path/to/logo.svg] [--out path/to/static]" >&2
+  echo "ERROR: Source logo not found at '$SOURCE'" >&2
+  echo "Usage: $0 [--source path/to/soroban-logo.png] [--out path/to/static]" >&2
   exit 1
 fi
 
@@ -60,7 +60,14 @@ for SIZE in "${SIZES[@]}"; do
     512) OUT_FILE="$ICONS_DIR/android-chrome-512x512.png" ;;
   esac
   echo "  Generating ${SIZE}x${SIZE}: $OUT_FILE"
-  npx sharp-cli --input "$SOURCE" --output "$OUT_FILE" resize "$SIZE" "$SIZE"
+  npx sharp-cli --input "$SOURCE" --output "$OUT_FILE" resize "$SIZE" "$SIZE" -- fit contain -- background "{ \"r\": 0, \"g\": 0, \"b\": 0, \"alpha\": 0 }"
+done
+
+# PWA install icons (root static/img)
+for SIZE in 192 512; do
+  OUT_FILE="$OUT/img/pwa-icon-${SIZE}x${SIZE}.png"
+  echo "  Generating PWA ${SIZE}x${SIZE}: $OUT_FILE"
+  npx sharp-cli --input "$SOURCE" --output "$OUT_FILE" resize "$SIZE" "$SIZE" -- fit contain -- background "{ \"r\": 0, \"g\": 0, \"b\": 0, \"alpha\": 0 }"
 done
 
 # ICO assembly (16, 32, 48)
@@ -71,14 +78,18 @@ convert \
   "$ICONS_DIR/favicon-48x48.png" \
   "$OUT/img/favicon.ico"
 
-# SVG clean copy
-echo "  Cleaning and copying favicon.svg..."
-sed \
-  -e 's/<!--[^>]*-->//g' \
-  -e 's/xmlns:inkscape="[^"]*"//g' \
-  -e 's/xmlns:sodipodi="[^"]*"//g' \
-  -e 's/<metadata[^>]*>.*<\/metadata>//g' \
-  "$SOURCE" > "$OUT/img/favicon.svg"
+# favicon.svg — PNG sources use the Node script (embedded 32×32 raster)
+if [[ "$SOURCE" == *.svg ]]; then
+  echo "  Cleaning and copying favicon.svg..."
+  sed \
+    -e 's/<!--[^>]*-->//g' \
+    -e 's/xmlns:inkscape="[^"]*"//g' \
+    -e 's/xmlns:sodipodi="[^"]*"//g' \
+    -e 's/<metadata[^>]*>.*<\/metadata>//g' \
+    "$SOURCE" > "$OUT/img/favicon.svg"
+else
+  echo "  Skipping favicon.svg (run node scripts/generate-icons.js for PNG sources)."
+fi
 
 # Size check
 echo ""

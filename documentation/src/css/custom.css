@@ -911,3 +911,9 @@ html {
     white-space: pre-wrap;
   }
 }
+
+/* Wide Soroban Cookbook wordmark — preserve aspect ratio in navbar */
+.navbar__logo img {
+  height: var(--ifm-navbar-logo-height, 36px);
+  width: auto;
+}

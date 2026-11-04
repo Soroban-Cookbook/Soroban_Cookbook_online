@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Icon generation script using sharp (Node.js fallback for environments without ImageMagick).
- * Generates all required favicon and app icon assets from the source SVG.
+ * Generates all required favicon and app icon assets from the source logo (SVG or PNG).
  */
 
 const path = require('path');
 const fs = require('fs');
 
-const SOURCE = path.resolve('documentation/static/img/logo.svg');
+const SOURCE = path.resolve('documentation/static/img/soroban-logo.png');
 const OUT_IMG = path.resolve('documentation/static/img');
 const ICONS_DIR = path.resolve('documentation/static/img/icons');
 
@@ -23,17 +23,39 @@ const SIZES = [
   { size: 512, name: 'android-chrome-512x512.png' },
 ];
 
+const PWA_SIZES = [
+  { size: 192, name: 'pwa-icon-192x192.png' },
+  { size: 512, name: 'pwa-icon-512x512.png' },
+];
+
+const PNG_OPTS = { compressionLevel: 9, effort: 10 };
+
+function resizeLogo(sharp, sourceBuffer, size) {
+  return sharp(sourceBuffer)
+    .resize(size, size, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png(PNG_OPTS);
+}
+
 async function generatePNGs(sharp) {
   fs.mkdirSync(ICONS_DIR, { recursive: true });
-  const svgBuffer = fs.readFileSync(SOURCE);
+  const sourceBuffer = fs.readFileSync(SOURCE);
 
   for (const { size, name } of SIZES) {
     const outFile = path.join(ICONS_DIR, name);
-    await sharp(svgBuffer)
-      .resize(size, size)
-      .png()
-      .toFile(outFile);
+    await resizeLogo(sharp, sourceBuffer, size).toFile(outFile);
     console.log(`  Generated ${size}x${size}: ${outFile}`);
+  }
+}
+
+async function generatePwaIcons(sharp) {
+  const sourceBuffer = fs.readFileSync(SOURCE);
+  for (const { size, name } of PWA_SIZES) {
+    const outFile = path.join(OUT_IMG, name);
+    await resizeLogo(sharp, sourceBuffer, size).toFile(outFile);
+    console.log(`  Generated PWA ${size}x${size}: ${outFile}`);
   }
 }
 
@@ -43,8 +65,6 @@ async function generatePNGs(sharp) {
  */
 function buildIco(pngBuffers) {
   const count = pngBuffers.length;
-  // ICONDIR: 6 bytes
-  // ICONDIRENTRY: 16 bytes each
   const headerSize = 6 + 16 * count;
   let dataOffset = headerSize;
 
@@ -57,29 +77,25 @@ function buildIco(pngBuffers) {
   const totalSize = dataOffset;
   const ico = Buffer.alloc(totalSize);
 
-  // ICONDIR header
-  ico.writeUInt16LE(0, 0);      // reserved
-  ico.writeUInt16LE(1, 2);      // type: 1 = ICO
-  ico.writeUInt16LE(count, 4);  // image count
+  ico.writeUInt16LE(0, 0);
+  ico.writeUInt16LE(1, 2);
+  ico.writeUInt16LE(count, 4);
 
-  // ICONDIRENTRY for each image
   for (let i = 0; i < count; i++) {
     const { buf, offset } = entries[i];
     const base = 6 + i * 16;
-    // Read dimensions from PNG IHDR (bytes 16-23)
     const w = buf.readUInt32BE(16);
     const h = buf.readUInt32BE(20);
-    ico.writeUInt8(w >= 256 ? 0 : w, base);      // width (0 = 256)
-    ico.writeUInt8(h >= 256 ? 0 : h, base + 1);  // height (0 = 256)
-    ico.writeUInt8(0, base + 2);   // color count (0 = no palette)
-    ico.writeUInt8(0, base + 3);   // reserved
-    ico.writeUInt16LE(1, base + 4); // color planes
-    ico.writeUInt16LE(32, base + 6); // bits per pixel
-    ico.writeUInt32LE(buf.length, base + 8);  // image data size
-    ico.writeUInt32LE(offset, base + 12);     // image data offset
+    ico.writeUInt8(w >= 256 ? 0 : w, base);
+    ico.writeUInt8(h >= 256 ? 0 : h, base + 1);
+    ico.writeUInt8(0, base + 2);
+    ico.writeUInt8(0, base + 3);
+    ico.writeUInt16LE(1, base + 4);
+    ico.writeUInt16LE(32, base + 6);
+    ico.writeUInt32LE(buf.length, base + 8);
+    ico.writeUInt32LE(offset, base + 12);
   }
 
-  // Write image data
   for (const { buf, offset } of entries) {
     buf.copy(ico, offset);
   }
@@ -89,14 +105,11 @@ function buildIco(pngBuffers) {
 
 async function generateIco(sharp) {
   const icoSizes = [16, 32, 48];
-  const svgBuffer = fs.readFileSync(SOURCE);
+  const sourceBuffer = fs.readFileSync(SOURCE);
   const pngBuffers = [];
 
   for (const size of icoSizes) {
-    const buf = await sharp(svgBuffer)
-      .resize(size, size)
-      .png()
-      .toBuffer();
+    const buf = await resizeLogo(sharp, sourceBuffer, size).toBuffer();
     pngBuffers.push(buf);
   }
 
@@ -106,31 +119,33 @@ async function generateIco(sharp) {
   console.log(`  Generated favicon.ico: ${outFile}`);
 }
 
-function generateFaviconSvg() {
-  const svgContent = fs.readFileSync(SOURCE, 'utf8');
-  // Strip comments and editor-specific namespaces
-  const cleaned = svgContent
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/\s*xmlns:inkscape="[^"]*"/g, '')
-    .replace(/\s*xmlns:sodipodi="[^"]*"/g, '')
-    .replace(/<metadata[\s\S]*?<\/metadata>/g, '')
-    .trim();
-
+async function generateFaviconSvg(sharp) {
   const outFile = path.join(OUT_IMG, 'favicon.svg');
-  fs.writeFileSync(outFile, cleaned, 'utf8');
+
+  if (SOURCE.endsWith('.svg')) {
+    const svgContent = fs.readFileSync(SOURCE, 'utf8');
+    const cleaned = svgContent
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\s*xmlns:inkscape="[^"]*"/g, '')
+      .replace(/\s*xmlns:sodipodi="[^"]*"/g, '')
+      .replace(/<metadata[\s\S]*?<\/metadata>/g, '')
+      .trim();
+    fs.writeFileSync(outFile, cleaned, 'utf8');
+  } else {
+    const size = 32;
+    const pngBuf = await resizeLogo(sharp, fs.readFileSync(SOURCE), size).toBuffer();
+    const b64 = pngBuf.toString('base64');
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${size} ${size}"><image width="${size}" height="${size}" xlink:href="data:image/png;base64,${b64}"/></svg>`;
+    fs.writeFileSync(outFile, svg, 'utf8');
+  }
+
   console.log(`  Generated favicon.svg: ${outFile}`);
 }
 
-function checkSizes() {
-  const allFiles = [
-    path.join(OUT_IMG, 'favicon.ico'),
-    path.join(OUT_IMG, 'favicon.svg'),
-    ...SIZES.map(({ name }) => path.join(ICONS_DIR, name)),
-  ];
-
-  console.log('\nIcon file sizes:');
+function logFileSizes(label, files) {
+  console.log(`\n${label}:`);
   let total = 0;
-  for (const f of allFiles) {
+  for (const f of files) {
     if (fs.existsSync(f)) {
       const bytes = fs.statSync(f).size;
       total += bytes;
@@ -139,23 +154,44 @@ function checkSizes() {
       console.warn(`  MISSING: ${f}`);
     }
   }
-  console.log(`  --------`);
+  console.log(`  ${'--------'}`);
   console.log(`  ${String(total).padStart(8)} bytes  total`);
+  return total;
+}
 
-  if (total >= 102400) {
-    console.error(`\nWARNING: Total icon asset size (${total} bytes) exceeds 100KB limit (102400 bytes).`);
+function checkSizes() {
+  const faviconBundle = [
+    path.join(OUT_IMG, 'favicon.ico'),
+    path.join(ICONS_DIR, 'favicon-16x16.png'),
+    path.join(ICONS_DIR, 'favicon-32x32.png'),
+    path.join(ICONS_DIR, 'favicon-48x48.png'),
+  ];
+  if (fs.existsSync(path.join(OUT_IMG, 'favicon.svg'))) {
+    faviconBundle.push(path.join(OUT_IMG, 'favicon.svg'));
+  }
+
+  const touchAndPwa = [
+    ...SIZES.filter(({ size }) => size > 48).map(({ name }) => path.join(ICONS_DIR, name)),
+    ...PWA_SIZES.map(({ name }) => path.join(OUT_IMG, name)),
+  ];
+
+  const faviconTotal = logFileSizes('Favicon bundle (100KB budget)', faviconBundle);
+  logFileSizes('Touch / PWA icons (excluded from favicon budget)', touchAndPwa);
+
+  if (faviconTotal >= 102400) {
+    console.error(
+      `\nWARNING: Favicon bundle size (${faviconTotal} bytes) exceeds 100KB limit (102400 bytes).`,
+    );
     process.exit(1);
   }
 }
 
 async function main() {
-  // Resolve sharp from documentation/node_modules
   const sharpPath = path.resolve('documentation/node_modules/sharp');
   let sharp;
   try {
     sharp = require(sharpPath);
   } catch {
-    // Try global/npx sharp
     try {
       sharp = require('sharp');
     } catch {
@@ -165,14 +201,15 @@ async function main() {
   }
 
   if (!fs.existsSync(SOURCE)) {
-    console.error(`ERROR: Source SVG not found at '${SOURCE}'`);
+    console.error(`ERROR: Source logo not found at '${SOURCE}'`);
     process.exit(1);
   }
 
   console.log(`Generating icons from ${SOURCE}...`);
   await generatePNGs(sharp);
+  await generatePwaIcons(sharp);
   await generateIco(sharp);
-  generateFaviconSvg();
+  await generateFaviconSvg(sharp);
   checkSizes();
   console.log('\nDone. All icons generated successfully.');
 }

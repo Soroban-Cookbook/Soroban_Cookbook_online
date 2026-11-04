@@ -46,7 +46,7 @@ export default function NotFound() {
           <h1 className={styles.title}>Page Not Found</h1>
 
           <img
-            src="/img/404.png"
+            src="/img/404.webp"
             alt="A confused person flipping through a cookbook unable to find the page"
             className={styles.illustration}
           />

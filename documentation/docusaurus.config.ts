@@ -7,12 +7,25 @@ import accessibleGithubPrismTheme from './src/theme/prismAccessibleGithub';
 /** Optional GA4 measurement ID — enables page views + custom events when set. */
 const gtagMeasurementId = process.env.GTAG_MEASUREMENT_ID || process.env.GOOGLE_ANALYTICS_ID || '';
 
+/**
+ * Webpack's dev server compiles with `eval`. Production CSP stays strict;
+ * local `docusaurus start` needs `'unsafe-eval'` or the client bundle never runs.
+ */
+const isDevServer = process.env.NODE_ENV !== 'production';
+const devScriptSrc = isDevServer ? " 'unsafe-eval'" : '';
+
 const config: Config = {
   title: 'Soroban Cookbook',
   tagline: 'A comprehensive guide to building smart contracts on Stellar with Soroban',
-  favicon: 'img/logo.svg',
+  favicon: 'img/favicon.ico',
 
-  url: process.env.SITE_URL || 'https://soroban-cookbook.dev',
+  url:
+    process.env.SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'https://soroban-cookbook.dev'),
   baseUrl: process.env.BASE_URL || '/',
 
   organizationName: 'Soroban-Cookbook',
@@ -84,7 +97,7 @@ const config: Config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+          `script-src 'self' 'unsafe-inline'${devScriptSrc} https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms`,
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https:",
           "font-src 'self' data:",
@@ -115,7 +128,7 @@ const config: Config = {
       attributes: {
         'http-equiv': 'Content-Security-Policy',
         content:
-          "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com; font-src 'self' data:; connect-src 'self' https:; form-action 'self' https:; object-src 'none'; base-uri 'self'; worker-src 'self'",
+          `default-src 'self'; script-src 'self' 'unsafe-inline'${devScriptSrc} https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com; font-src 'self' data:; connect-src 'self' https:; form-action 'self' https:; object-src 'none'; base-uri 'self'; worker-src 'self'`,
       },
     },
     // Preload the Inter variable font (latin woff2) — critical for above-the-fold text.
@@ -262,7 +275,7 @@ const config: Config = {
           {
             tagName: 'link',
             rel: 'mask-icon',
-            href: '/img/logo.svg',
+            href: '/img/soroban-logo.png',
             color: '#3ECC5F',
           },
           {
@@ -478,10 +491,11 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Soroban Cookbook',
+      title: '',
       logo: {
-        alt: 'Soroban Logo',
-        src: 'img/logo.svg',
+        alt: 'Soroban Cookbook',
+        src: 'img/soroban-logo.png',
+        height: 36,
       },
       items: [
         {

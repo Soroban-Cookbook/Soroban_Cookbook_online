@@ -51,7 +51,7 @@ Start with:
 3. [Storage Patterns](/docs/concepts/storage) — Learn data persistence
 4. [Authorization](/docs/concepts/authorization) — Secure your contracts
 5. [Events](/docs/concepts/events) — Monitor contract activity
-6. [Simulation and Footprints](/simulation-and-footprints) — Preflight lifecycle and footprints
+6. [Simulation and Footprints](./simulation-and-footprints) — Preflight lifecycle and footprints
 
 ## Security: Keys, Wallets, RPC, and Networks
 

@@ -83,3 +83,6 @@ pnpm-lock.yaml
 .agents/
 issue.md
 skills-lock.json
+
+# Local Cursor merge-gate rule (not committed)
+.cursor/rules/merge-gate.mdc
