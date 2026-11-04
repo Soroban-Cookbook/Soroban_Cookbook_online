@@ -10,7 +10,14 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['node_modules/', 'build/', '.docusaurus/', '*.config.js'],
+    ignores: [
+      'node_modules/',
+      'build/',
+      '.docusaurus/',
+      '*.config.js',
+      // ESLint 10 + eslint-plugin-react crash on mock Link (getFilename).
+      'src/__mocks__/**',
+    ],
   },
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -69,7 +76,7 @@ export default [
     },
     settings: {
       react: {
-        version: 'detect',
+        version: '19.0',
       },
     },
   },

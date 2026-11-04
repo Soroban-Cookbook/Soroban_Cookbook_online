@@ -244,7 +244,7 @@ mod tests {
     fn set_ledger(env: &Env, seq: u32, timestamp: u64) {
         env.ledger().set(LedgerInfo {
             timestamp,
-            protocol_version: 27,
+            protocol_version: 28,
             sequence_number: seq,
             network_id: Default::default(),
             base_reserve: 10,
@@ -485,7 +485,7 @@ mod tests {
         let id = client.take_snapshot(&vec![&env, alice.clone(), bob.clone()]);
         assert_eq!(id, 0);
 
-        // `.all()` exposes only the most recent invocation's events.
+        // SDK 28: ContractEvents no longer exposes len/last; ensure an event fired.
         assert!(!env.events().all().events().is_empty());
     }
 
