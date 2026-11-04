@@ -123,13 +123,13 @@ let entropy = env.ledger().hash(); // Still predictable after the fact
 
 Use a dedicated randomness oracle that exposes a VRF. The contract stores a request ID, the oracle fulfills it in a follow-up transaction, and the contract verifies the proof before using the random value.
 
-**Trade-ofls:** Requires trusting the oracle; adds latency (at least one ledger between request and fulfilment).
+**Trade-offs:** Requires trusting the oracle; adds latency (at least one ledger between request and fulfilment).
 
 ### Pattern 2: Commit-Reveal (Good for Multi-Party Games)
 
 Each participant contributes entropy, making collusion harder. Best suited for games, raffles, or distributed decision-making where multiple parties are already interacting.
 
-**Trade-ofls:** Multiple rounds needed; last participant to reveal gets a small informational advantage.
+**Trade-offs:** Multiple rounds needed; last participant to reveal gets a small informational advantage.
 
 ### Pattern 3: Single-Use Derived Entropy (Low-Value, Low-Cost)
 

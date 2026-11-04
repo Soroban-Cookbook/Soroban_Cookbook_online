@@ -197,7 +197,14 @@ mod test {
         Address, Bytes, Env, IntoVal, Symbol,
     };
 
-    fn setup() -> (Env, MarketplaceClient<'static>, Address, Address, Address, Address) {
+    fn setup() -> (
+        Env,
+        MarketplaceClient<'static>,
+        Address,
+        Address,
+        Address,
+        Address,
+    ) {
         let env = Env::default();
         env.mock_all_auths();
 

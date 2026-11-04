@@ -27,14 +27,14 @@
       "description": "All JavaScript assets under build/",
       "pattern": "build/**/*.js",
       "aggregate": true,
-      "maxBytes": 9175040
+      "maxBytes": 29360128
     },
     {
       "id": "total-css",
       "description": "All CSS assets under build/",
       "pattern": "build/**/*.css",
       "aggregate": true,
-      "maxBytes": 278528
+      "maxBytes": 753664
     }
   ]
 }

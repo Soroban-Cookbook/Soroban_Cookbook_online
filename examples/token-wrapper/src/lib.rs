@@ -36,7 +36,7 @@ impl TokenWrapper {
         }
         env.storage().instance().set(&DataKey::Treasury, &treasury);
         env.storage().instance().set(&DataKey::FeeBps, &fee_bps);
-        Ok(()
+        Ok(())
     }
 
     /// Mint wrapped balance for tests/demo.
@@ -47,7 +47,7 @@ impl TokenWrapper {
         let key = DataKey::Balance(to);
         let current = Self::get_balance(&env, &key);
         env.storage().persistent().set(&key, &(current + amount));
-        Ok(()
+        Ok(())
     }
 
     /// Wrapped token balance for address.
@@ -85,7 +85,7 @@ impl TokenWrapper {
         env.storage()
             .persistent()
             .set(&treasury_key, &(treasury_balance + fee));
-        Ok(()
+        Ok(())
     }
 
     pub fn fee_bps(env: Env) -> u32 {
@@ -104,7 +104,7 @@ impl TokenWrapper {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk:{testutils::Address as _, Address, Env};
+    use soroban_sdk::{testutils::Address as _, Address, Env};
 
     fn setup() -> (Env, TokenWrapperClient<'static>, Address, Address, Address) {
         let env = Env::default();

@@ -8,7 +8,6 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-
 describe('SearchLoading', () => {
   it('announces search start and clears the same status when results settle', async () => {
     vi.useFakeTimers();
