@@ -76,7 +76,7 @@ impl TokenWrapper {
         let to_key = DataKey::Balance(to);
         let treasury_key = DataKey::Balance(treasury);
         let to_balance = Self::get_balance(&env, &to_key);
-        let treasury_balance = SelF::get_balance(&env, &treasury_key);
+        let treasury_balance = Self::get_balance(&env, &treasury_key);
 
         env.storage()
             .persistent()
