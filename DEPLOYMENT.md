@@ -224,10 +224,10 @@ Deployment does not require any environment variables to succeed — the build f
 |---|---|---|
 | `NEWSLETTER_ENDPOINT` | `documentation/docusaurus.config.ts` → `customFields.newsletterEndpoint` | POST endpoint the newsletter signup form submits `{ "email": string }` to. |
 | `DISCORD_INVITE_URL` | `documentation/docusaurus.config.ts` → `customFields.discordInviteUrl` | Discord invite link surfaced in the UI once the server exists. |
-| `GA_MEASUREMENT_ID` | `documentation/docusaurus.config.ts` → `customFields.gaMeasurementId` | GA4 measurement ID (`G-XXXXXXX`) for conversion funnel tracking. See [Analytics](#analytics). |
+| `GA_MEASUREMENT_ID` | `documentation/docusaurus.config.ts` → `customFields.gaMeasurementId` | **Public client-side configuration**: GA4 measurement ID (`G-XXXXXXX`) for conversion funnel tracking. It is not a secret. See [Analytics](#analytics). |
 | `CLARITY_PROJECT_ID` | `documentation/docusaurus.config.ts` → `customFields.clarityProjectId` | Microsoft Clarity project ID for heatmaps. See [Analytics](#analytics). |
 
-**These values are never hardcoded in source.** They are read from `process.env` at build time (see the `customFields` block in `docusaurus.config.ts`) and are wired into the production build via `.github/workflows/deploy.yml`, which sources them from **GitHub Repository Secrets**:
+**These values are never hardcoded in source.** They are read from `process.env` at build time (see the `customFields` block in `docusaurus.config.ts`) and are wired into the production build via `.github/workflows/deploy.yml`. `GA_MEASUREMENT_ID` is intentionally public because it must be present in the client bundle; protect only genuinely sensitive values such as Sentry credentials and deployment tokens:
 
 ```yaml
 - name: Build website
@@ -291,8 +291,10 @@ banner and footer.
 1. Create a GA4 property (**Admin → Data Streams → Web**) and copy its
    measurement ID (`G-XXXXXXX`), and/or create a Clarity project and copy its
    project ID.
-2. Add them as **repository secrets** named `GA_MEASUREMENT_ID` and
-   `CLARITY_PROJECT_ID` (**Settings → Secrets and variables → Actions**).
+2. Add the public IDs as repository **variables** (or build configuration)
+   named `GA_MEASUREMENT_ID` and `CLARITY_PROJECT_ID` (**Settings → Secrets
+   and variables → Actions**). Do not treat the GA4 measurement ID as a
+   credential.
 3. Add them to the `env:` block of the "Build website" step in
    `.github/workflows/deploy.yml` — as with the other build-time values, these
    end up readable in the client bundle, so treat them as configuration, not
