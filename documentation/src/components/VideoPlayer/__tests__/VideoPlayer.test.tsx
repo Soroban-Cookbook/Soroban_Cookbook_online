@@ -6,13 +6,12 @@ import styles from '../VideoPlayer.module.css';
 // Mock the utils module to control parseVideoUrl behavior
 vi.mock('../utils', () => ({
   parseVideoUrl: vi.fn((url: string) => {
-    let parsed: URL | null = null;
+    let parsed: URL;
     try {
       parsed = new URL(url);
     } catch {
       return null;
     }
-    if (!parsed) return null;
 
     if (['youtube.com', 'www.youtube.com', 'youtu.be'].includes(parsed.hostname)) {
       return {
