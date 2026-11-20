@@ -90,6 +90,7 @@ const config: Config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
+          // Known limitation (security review): Docusaurus emits inline theme/init scripts and dynamic inline styles; nonce/hash hardening is not yet implemented in this config.
           "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https:",
@@ -121,6 +122,7 @@ const config: Config = {
       attributes: {
         'http-equiv': 'Content-Security-Policy',
         content:
+          // Known limitation (security review): 'unsafe-inline' is required for Docusaurus inline scripts/styles until nonce/hash support is added.
           "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com; font-src 'self' data:; connect-src 'self' https:; form-action 'self' https:; object-src 'none'; base-uri 'self'; worker-src 'self'",
       },
     },

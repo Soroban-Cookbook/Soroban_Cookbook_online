@@ -145,6 +145,10 @@ function openLightbox(svg: SVGSVGElement): void {
 
 // ─── Diagram discovery ──────────────────────────────────────────────────────
 
+function hasPotentialMermaidContent(): boolean {
+  return document.querySelector('svg[id^="mermaid"], [class*="mermaid" i]') !== null;
+}
+
 function findDiagrams(): SVGSVGElement[] {
   const found = new Set<SVGSVGElement>();
   DIAGRAM_SELECTORS.forEach((selector) => {
@@ -172,6 +176,7 @@ function enhanceDiagram(svg: SVGSVGElement): void {
 }
 
 function enhanceAllDiagrams(): void {
+  if (!hasPotentialMermaidContent()) return;
   findDiagrams().forEach(enhanceDiagram);
 }
 
