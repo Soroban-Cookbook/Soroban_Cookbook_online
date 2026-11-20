@@ -16,6 +16,7 @@
  */
 
 import type { Metric } from 'web-vitals';
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 import { hasConsent } from './analyticsConsent';
 
 /** POST target for beacon payloads. Falls through to console-only when blank. */
@@ -70,10 +71,8 @@ function sendToAnalytics(metric: Metric): void {
  * clientModule). Safe to call multiple times — subsequent calls are no-ops
  * because the `web-vitals` library deduplicates observers internally.
  */
-export async function reportWebVitals(): Promise<void> {
-  if (typeof window === 'undefined') return; // SSR guard
-
-  const { onCLS, onFCP, onINP, onLCP, onTTFB } = await import('web-vitals');
+export function reportWebVitals(): void {
+  if (typeof window === 'undefined') return;
 
   onCLS(sendToAnalytics);
   onFCP(sendToAnalytics);

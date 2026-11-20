@@ -1,30 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './Stats.module.css';
 
-interface StatItemProps {
+interface StatItem {
   end: number;
   label: string;
   suffix?: string;
-  duration?: number;
 }
 
-const StatItem: React.FC<StatItemProps> = ({ end, label, suffix = '', duration = 2000 }) => {
-  const [count, setCount] = useState(0);
+const STATS: StatItem[] = [
+  { end: 50, label: 'Smart Contract Patterns', suffix: '+' },
+  { end: 120, label: 'Contributors', suffix: '+' },
+  { end: 2400, label: 'GitHub Stars', suffix: '+' },
+  { end: 5000, label: 'Community Members', suffix: '+' },
+];
+
+export default function Stats() {
+  const [counts, setCounts] = useState<number[]>(() => STATS.map(() => 0));
   const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          observer.disconnect();
         }
       },
       { threshold: 0.3 },
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (gridRef.current) {
+      observer.observe(gridRef.current);
     }
 
     return () => observer.disconnect();
@@ -33,15 +40,16 @@ const StatItem: React.FC<StatItemProps> = ({ end, label, suffix = '', duration =
   useEffect(() => {
     if (!isVisible) return;
 
-    let startTime: number;
+    const duration = 2000;
+    let startTime: number | undefined;
     let animationFrame: number;
 
     const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
+      if (startTime === undefined) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
-
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setCount(Math.floor(easeOutQuart * end));
+
+      setCounts(STATS.map(({ end }) => Math.floor(easeOutQuart * end)));
 
       if (progress < 1) {
         animationFrame = requestAnimationFrame(animate);
@@ -51,29 +59,22 @@ const StatItem: React.FC<StatItemProps> = ({ end, label, suffix = '', duration =
     animationFrame = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animationFrame);
-  }, [isVisible, end, duration]);
+  }, [isVisible]);
 
-  return (
-    <div ref={ref} className={styles.statItem}>
-      <div className={styles.statNumber}>
-        {count.toLocaleString()}
-        {suffix}
-      </div>
-      <div className={styles.statLabel}>{label}</div>
-    </div>
-  );
-};
-
-export default function Stats() {
   return (
     <section className={styles.statsSection}>
       <div className={styles.container}>
         <h2 className={styles.heading}>Trusted by the Community</h2>
-        <div className={styles.statsGrid}>
-          <StatItem end={50} label="Smart Contract Patterns" suffix="+" />
-          <StatItem end={120} label="Contributors" suffix="+" />
-          <StatItem end={2400} label="GitHub Stars" suffix="+" />
-          <StatItem end={5000} label="Community Members" suffix="+" />
+        <div ref={gridRef} className={styles.statsGrid}>
+          {STATS.map(({ label, suffix = '' }, index) => (
+            <div key={label} className={styles.statItem}>
+              <div className={styles.statNumber}>
+                {counts[index].toLocaleString()}
+                {suffix}
+              </div>
+              <div className={styles.statLabel}>{label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

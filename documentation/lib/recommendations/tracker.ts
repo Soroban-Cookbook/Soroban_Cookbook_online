@@ -21,6 +21,9 @@ const DEFAULT_HISTORY: UserHistory = {
   },
 };
 
+let cachedRawHistory: string | null = null;
+let cachedHistory: UserHistory | null = null;
+
 /**
  * Fresh empty history. Never return `DEFAULT_HISTORY` itself: callers may
  * mutate the result, and sharing the constant would leak state between
@@ -37,15 +40,43 @@ function freshEmptyHistory(): UserHistory {
   };
 }
 
+function copyHistory(history: UserHistory): UserHistory {
+  return {
+    visitedDocs: [...history.visitedDocs],
+    preferences: {
+      categoryPreferences: { ...history.preferences.categoryPreferences },
+      tagPreferences: { ...history.preferences.tagPreferences },
+      difficultyPreferences: { ...history.preferences.difficultyPreferences },
+    },
+  };
+}
+
 export function getHistory(): UserHistory {
   if (typeof window === 'undefined') {
     return DEFAULT_HISTORY;
   }
+
+  let raw: string | null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return freshEmptyHistory();
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch (e) {
+    console.error('Failed to parse recommendation history from localStorage', e);
+    return freshEmptyHistory();
+  }
+
+  if (cachedHistory && raw === cachedRawHistory) {
+    return copyHistory(cachedHistory);
+  }
+
+  if (!raw) {
+    cachedRawHistory = raw;
+    cachedHistory = freshEmptyHistory();
+    return copyHistory(cachedHistory);
+  }
+
+  try {
     const parsed = JSON.parse(raw);
-    return {
+    cachedHistory = {
       visitedDocs: Array.isArray(parsed.visitedDocs) ? parsed.visitedDocs : [],
       preferences: {
         categoryPreferences: parsed.preferences?.categoryPreferences || {},
@@ -53,16 +84,23 @@ export function getHistory(): UserHistory {
         difficultyPreferences: parsed.preferences?.difficultyPreferences || {},
       },
     };
+    cachedRawHistory = raw;
+    return copyHistory(cachedHistory);
   } catch (e) {
     console.error('Failed to parse recommendation history from localStorage', e);
-    return freshEmptyHistory();
+    cachedRawHistory = raw;
+    cachedHistory = freshEmptyHistory();
+    return copyHistory(cachedHistory);
   }
 }
 
 export function saveHistory(history: UserHistory): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    const raw = JSON.stringify(history);
+    localStorage.setItem(STORAGE_KEY, raw);
+    cachedRawHistory = raw;
+    cachedHistory = copyHistory(history);
   } catch (e) {
     console.error('Failed to save recommendation history to localStorage', e);
   }
@@ -110,6 +148,8 @@ export function clearHistory(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem(STORAGE_KEY);
+    cachedRawHistory = null;
+    cachedHistory = freshEmptyHistory();
   } catch (e) {
     console.error('Failed to clear recommendation history from localStorage', e);
   }

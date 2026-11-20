@@ -46,6 +46,28 @@ describe('recommendation tracker', () => {
     expect(getHistory()).toEqual(history);
   });
 
+  it('parses saved history once and invalidates the cache after tracking a visit', () => {
+    const history: UserHistory = {
+      visitedDocs: ['patterns/basic-token'],
+      preferences: {
+        categoryPreferences: { patterns: 1 },
+        tagPreferences: { tokens: 1 },
+        difficultyPreferences: { beginner: 1 },
+      },
+    };
+    localStorage.setItem('soroban_recommendations_history', JSON.stringify(history));
+    const parseSpy = vi.spyOn(JSON, 'parse');
+
+    expect(getHistory()).toEqual(history);
+    expect(getHistory()).toEqual(history);
+    expect(parseSpy).toHaveBeenCalledTimes(1);
+
+    trackDocVisit('concepts/storage', 'concepts', ['storage'], 'intermediate');
+
+    expect(getHistory().visitedDocs).toEqual(['concepts/storage', 'patterns/basic-token']);
+    expect(parseSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('tracks visits, moves duplicates to the front, and updates preferences', () => {
     saveHistory({
       visitedDocs: ['concepts/storage', 'patterns/authorization'],
@@ -115,9 +137,11 @@ describe('recommendation tracker', () => {
     localStorage.setItem('soroban_recommendations_history', '{not-json');
 
     expect(getHistory()).toEqual(emptyHistory);
+    expect(getHistory()).toEqual(emptyHistory);
     expect(errorSpy).toHaveBeenCalledWith(
       'Failed to parse recommendation history from localStorage',
       expect.any(SyntaxError),
     );
+    expect(errorSpy).toHaveBeenCalledTimes(1);
   });
 });

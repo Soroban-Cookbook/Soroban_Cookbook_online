@@ -45,7 +45,7 @@ import OfflineNotice from '@site/src/components/OfflineNotice';
 import SearchAnalytics from '@site/src/components/SearchAnalytics';
 import SearchLoading from '@site/src/components/SearchLoading';
 import { ProgressProvider } from '@site/src/contexts/ProgressContext';
-import { hasConsent } from '@site/src/utils/analyticsConsent';
+import { reportWebVitals } from '@site/src/utils/webVitals';
 import useRecommendationTracker from '../hooks/useRecommendationTracker';
 
 // Build-time constants injected by Docusaurus / webpack DefinePlugin.
@@ -59,6 +59,10 @@ const SENTRY_RELEASE: string =
   (typeof process !== 'undefined' &&
     (process.env.SENTRY_RELEASE || process.env.npm_package_version)) ||
   'unknown';
+
+if (typeof window !== 'undefined') {
+  reportWebVitals();
+}
 
 interface RootProps {
   children: ReactNode;
@@ -130,18 +134,6 @@ export default function Root({ children }: RootProps): React.JSX.Element {
           // Silently swallow — error monitoring must never break the page.
         });
     }
-
-    // ── Web Vitals reporting ───────────────────────────────────────────────
-    import('../utils/webVitals').then(({ reportWebVitals }) => {
-      // Remote vitals beacons are non-essential; only start collectors when
-      // analytics consent is present. Console-only logging still helps locally
-      // when consent was accepted or during development without a remote sink.
-      if (hasConsent() || process.env.NODE_ENV !== 'production') {
-        reportWebVitals().catch(() => {
-          // Vitals reporting must never break the page.
-        });
-      }
-    });
   }, []);
 
   return (
