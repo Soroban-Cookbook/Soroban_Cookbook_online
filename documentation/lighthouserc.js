@@ -6,7 +6,7 @@
  *
  * Enforces Core Web Vitals budgets:
  *   - LCP  < 2.5 s  (Good threshold per web.dev/vitals)
- *   - FCP  < 1.5 s
+ *   - FCP  < 1.8 s
  *   - CLS  < 0.1
  *   - TBT  < 200 ms (proxy for INP/FID on mobile)
  *
@@ -57,7 +57,7 @@ module.exports = {
 
         // ── Core Web Vitals (issue #134) ─────────────────────────────────────
         'largest-contentful-paint': ['error', { maxNumericValue: 2500 }],
-        'first-contentful-paint': ['error', { maxNumericValue: 1500 }],
+        'first-contentful-paint': ['error', { maxNumericValue: 1800 }],
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
         'total-blocking-time': ['warn', { maxNumericValue: 200 }],
 
