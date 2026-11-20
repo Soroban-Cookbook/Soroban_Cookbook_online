@@ -6,16 +6,11 @@ description: Essential do's and don'ts for Soroban smart contract development â€
 
 # Soroban Best Practices
 
-title: Soroban Best Practices
-description: Practical do/don't rules and checklists for production-ready Soroban contracts.
-sidebar_position: 3
----
-
 A concise, beginner-friendly guide for new Soroban developers. Use this page to learn practical do/don't rules, common anti-patterns, and a reusable checklist for your first production-ready contract.
 
 ## Do: Start with a safe contract structure
 
-- Use `soroban contract init` to create a standard project layout.
+- Use `stellar contract init` to create a standard project layout.
 - Pin the `soroban-sdk` version in `Cargo.toml` so your contract stays stable across builds.
 - Keep your contract code `#![no_std]` and avoid platform-specific Rust APIs.
 
@@ -147,14 +142,16 @@ impl BankContract {
 ## Do: Build and test locally before deploying
 
 - Run `cargo test` for unit tests.
-- Run `soroban contract build` to verify compilation to Wasm.
+- Run `stellar contract build` to verify compilation to Wasm.
 - Use testnet deployment for integration checks before mainnet.
 
 ```bash
 cargo test
-soroban contract build
-soroban network connect testnet
-soroban contract deploy --wasm target/wasm32-unknown-unknown/release/my_contract.wasm
+stellar contract build
+stellar contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/my_contract.wasm \
+  --source default \
+  --network testnet
 ```
 
 ## Don't: Skip the contract checklist
@@ -164,7 +161,7 @@ A production-ready Soroban contract should pass more than just compilation. Use 
 ## Production-Ready Contract Checklist
 
 - [ ] `soroban-sdk` version is pinned in `Cargo.toml`
-- [ ] Contract compiles successfully with `soroban contract build`
+- [ ] Contract compiles successfully with `stellar contract build`
 - [ ] Core entry points are small, deterministic, and gas-friendly
 - [ ] Authorization checks use `env.invoker()` or explicit signer validation
 - [ ] Storage uses typed keys and avoids unbounded collections

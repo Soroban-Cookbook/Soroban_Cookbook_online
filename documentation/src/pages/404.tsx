@@ -34,11 +34,9 @@ export default function NotFound() {
         <div className={styles.container}>
           <h1 className={styles.title}>Page Not Found</h1>
           <img
-            src="/img/undraw_docusaurus_mountain.svg"
-            alt="Illustration of a mountain landscape displayed on the 404 page not found error screen"
+            src="/img/404.webp"
+            alt="A confused person flipping through a cookbook unable to find the page"
             className={styles.illustration}
-            width={300}
-            height={250}
             loading="lazy"
             decoding="async"
           />

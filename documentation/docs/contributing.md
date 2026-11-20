@@ -13,9 +13,8 @@ This guide will help you get started with the contribution process, from setting
 ## 🚀 Getting Started
 
 ### Project Overview
+
 Soroban Cookbook is a comprehensive documentation platform for Stellar smart contract development. We aim to provide interactive guides, patterns, and tutorials that are easy to follow and production-ready.
-
-
 
 Soroban Cookbook is a comprehensive documentation platform for Stellar smart contract development. We aim to provides interactive guides, patterns, and tutorials that are easy to follow and production-ready.
 
@@ -106,6 +105,14 @@ Docs are written in **MDX** and located in `documentation/docs/`.
 - **Formatting:** Follow the existing structure and use standard Markdown.
 - **Metadata:** Ensure every page has proper frontmatter (title, description).
 
+#### Recommendation Registry
+
+The recommendation registry at `documentation/src/components/recommendations/contentRegistry.json` is a committed build artifact generated from the MD/MDX files under `documentation/docs/`.
+
+- Regenerate it whenever you add, remove, or rename docs pages that should appear in recommendations.
+- Run `bun run check:content-registry` to verify the committed JSON matches the generator output.
+- Run `node scripts/generate-content-registry.mjs` when you intentionally need to refresh the file, then commit the updated JSON.
+
 ### B. Example / Code Contributions
 
 Contract examples should be minimal, focused, and well-documented.
@@ -113,11 +120,64 @@ Contract examples should be minimal, focused, and well-documented.
 - **Storage:** Use `examples/` for standalone Rust projects (if applicable).
 - **Inline Docs:** Explain complex logic within the Rust code snippets using comments.
 - **Best Practices:** Follow [Soroban Best Practices](https://developers.stellar.org/docs/build/smart-contracts/example-contracts).
+- **Origin and licensing:** For every new or updated example, complete the
+  [example origin checklist](./contributing/add-tested-example.md#example-origin-checklist)
+  before merge. Record original/adapted status and source citations in the crate
+  README, declare its Cargo license, and include accurate SPDX source headers.
 
 ### C. Fixes & Improvements
 
 - **Scope:** Keep PRs small. Avoid unrelated refactors in the same PR.
 - **Validation:** Ensure your fix doesn't break existing functionality.
+
+---
+
+## 🧪 Testing & Coverage
+
+### Running Tests
+
+```bash
+cd documentation
+
+# Run unit tests (watch mode for development)
+bun run test:ui
+
+# Run all unit tests once
+bun run test
+
+# Run with coverage report
+bun run test:coverage
+```
+
+### Coverage Thresholds
+
+The CI enforces a minimum coverage floor to prevent regressions. These values are set in `documentation/vitest.config.ts` under `coverage.thresholds`:
+
+| Metric     | Minimum |
+| ---------- | ------- |
+| Lines      | 26%     |
+| Statements | 26%     |
+| Functions  | 27%     |
+| Branches   | 30%     |
+
+**These thresholds represent the current baseline** (measured 2026-08-31). They are a floor — PRs must not drop below them.
+
+**How to update thresholds:** If you've added tests and want to raise the bar:
+
+1. Run `bun run test:coverage` locally and note the new totals.
+2. Update the global values in `vitest.config.ts` → `coverage.thresholds` (round down to the nearest integer).
+3. Add a brief comment with the date you updated them.
+
+> **Note:** The project currently has many untested components. Adding tests to any of them directly improves these numbers and raises the floor for everyone.
+
+### Coverage in CI
+
+Every PR runs the coverage job automatically. On completion you will find:
+
+- A **Coverage Summary** table in the job's step summary (accessible from the Actions tab on the PR).
+- A **`coverage-report` artifact** containing the full HTML report and the raw `coverage-summary.json`.
+
+If the job fails because thresholds are not met, check the step summary for which metric fell below its floor.
 
 ---
 
@@ -130,6 +190,7 @@ Before submitting a PR, you **must** run the following checks in the `documentat
 bun run typecheck
 bun run lint
 bun run format:check
+bun run check:content-registry
 bun run build
 
 # Using npm (fallback)
@@ -139,12 +200,13 @@ npm run format:check
 npm run build
 ```
 
-For Rust code examples, ensure they compile and pass tests:
+For Rust code examples, ensure they are formatted consistently, compile, and pass tests. All example crates live in the `examples/` workspace, which is checked by CI with the `rustfmt` job:
 
 ```bash
-cargo check
-cargo test
-cargo fmt --all -- --check
+cd examples
+cargo fmt --all -- --check  # verify formatting (run `cargo fmt --all` to auto-fix)
+cargo build                 # compile all examples
+cargo test                  # run example tests
 ```
 
 ---
@@ -165,6 +227,7 @@ Before you hit "Submit", make sure you've checked these off:
 All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for any component, page, or styling changes:
 
 #### Keyboard Navigation
+
 - [ ] All interactive elements (buttons, links, inputs) are reachable via Tab key.
 - [ ] Focus order is logical and follows visual left-to-right, top-to-bottom flow.
 - [ ] Focus indicators are visible (2px outline with clear contrast).
@@ -172,6 +235,7 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] **If adding modals/dropdowns:** Verify focus is trapped inside when open, returns to trigger on close.
 
 #### ARIA Attributes
+
 - [ ] Semantic HTML is used where possible (e.g., `<button>`, `<nav>`, `<main>`, not `<div onclick>`).
 - [ ] Interactive components have appropriate `role`, `aria-label`, or `aria-labelledby`.
 - [ ] Live regions use `role="alert"` with `aria-live="assertive"` for errors; `aria-live="polite"` for notices.
@@ -180,34 +244,40 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] Disabled elements have `aria-disabled="true"` in addition to `disabled` attribute.
 
 #### Color & Contrast
+
 - [ ] Text meets **4.5:1 contrast ratio** (WCAG AA) for normal text, **3:1 for large text** (18pt+).
 - [ ] **Do not rely on color alone** to convey information (e.g., error messages must have icon + text, not just red color).
 - [ ] Test with high contrast mode and in browser DevTools' contrast checker.
 - [ ] Dark mode variants have the same contrast ratios as light mode.
 
 #### Images & Icons
+
 - [ ] Every `<img>` has descriptive `alt` text (e.g., `alt="Stellar logo"`, not `alt="image"`).
 - [ ] Decorative icons have `aria-hidden="true"` and `focusable="false"`.
 - [ ] Icon buttons use `<Icon aria-label="..." />` with a descriptive label.
 - [ ] SVGs with semantic meaning have `role="img"` and `aria-label`.
 
 #### Motion & Animations
+
 - [ ] Animations respect `prefers-reduced-motion: reduce` media query.
 - [ ] Avoid auto-playing videos or animations; provide a pause/play control.
 - [ ] No parallax effects or rapidly flashing content (>3 Hz).
 
 #### Forms & Inputs
+
 - [ ] All form inputs have associated `<label>` elements (via `htmlFor` or wrapping).
 - [ ] Error messages are linked to inputs via `aria-describedby`.
 - [ ] Required fields are marked with `aria-required="true"` or use semantic `required` attribute.
 - [ ] Form submission provides clear error summary and focus management.
 
 #### Skip Links & Navigation
+
 - [ ] Skip-to-content link is present and functional (jumps to main content).
 - [ ] Main navigation is keyboard accessible and properly labeled (e.g., `<nav aria-label="Main navigation">`).
 - [ ] Search component is keyboard accessible and screen-reader friendly.
 
 #### Screen Reader Testing
+
 - [ ] Test with at least one screen reader:
   - **Windows:** NVDA (free, recommended) or JAWS
   - **macOS:** VoiceOver (built-in)
@@ -217,6 +287,7 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] Interactive states (e.g., selected tabs, expanded dropdowns) are announced.
 
 #### Manual Testing Checklist
+
 - [ ] Tab through the page end-to-end with keyboard only (no mouse).
 - [ ] Verify focus indicators are clear at each step.
 - [ ] Test skip-link functionality by pressing Tab immediately after page load.
@@ -225,6 +296,7 @@ All UI changes must meet **WCAG 2.1 Level AA** standards. Use this checklist for
 - [ ] Reduce zoom to 200% and verify no horizontal overflow or text cutoff.
 
 #### Automated Testing
+
 - [ ] Run `bun run lint` (includes ESLint checks for JSX a11y patterns).
 - [ ] Use browser extensions to scan:
   - **axe DevTools** (free): https://www.deque.com/axe/devtools/
@@ -268,4 +340,7 @@ If you're stuck, feel free to:
 
 - [Internal Linking Strategy](/docs/contributing/internal-linking) — how we structure cross-links for SEO and navigation
 - [Adding a Tested Code Example](/docs/contributing/add-tested-example) — contribute verified examples
+- [Unaudited Example Notice Policy](./contributing/unaudited-example-notice) — required learner-safety notice for pattern pages
+- [Reviewing Soroban Test Snapshots](./contributing/soroban-test-snapshots) — regenerate and review SDK-generated test fixtures
 - [Pattern Library](/docs/patterns/overview) — where new patterns are catalogued
+- [Reviewing Test Snapshots](./contributing/soroban-test-snapshots) — how to review and manage snapshot updates

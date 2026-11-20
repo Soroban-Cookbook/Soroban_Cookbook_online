@@ -47,6 +47,12 @@ Use this pattern to bootstrap a simple token system, understand state management
 
 </PatternCallout>
 
+<PatternCallout variant="note" title="Teaching Token">
+  The `examples/token-transfer` example demonstrates a teaching token implementation. It is **not**
+  the Stellar Asset Contract (SAC) used for production assets. For production, refer to the [Stellar
+  Asset Contract (SAC)](../concepts/stellar-asset-contract) documentation.
+</PatternCallout>
+
 <PatternSection id="prerequisites" title="Prerequisites">
 
 - Rust stable and `cargo`
@@ -59,6 +65,29 @@ Use this pattern to bootstrap a simple token system, understand state management
 <PatternSection id="implementation" title="Implementation">
 
 The contract manages a ledger mapping addresses to token balances using persistent storage. Three public functions allow minting tokens, querying balances, and transferring between accounts.
+
+<PatternCallout variant="warning" title="Unaudited teaching example">
+
+The contract below is an **unaudited educational example**. It has **not** been
+through a security review and it is **not fit for production or for holding real
+value** — most obviously because `mint` is completely unrestricted, so anyone can
+inflate the supply at will.
+
+Read the two limits that matter most before you copy anything:
+
+- **Reentrancy** — none of `mint`, `balance`, or `transfer` makes a cross-contract
+  call, so there is no re-entrant call to defend against _as written_. The moment
+  you add one (a transfer-fee hook, a mint callback, a cross-chain message), that
+  protection is gone. See [Reentrancy limits](#reentrancy-limits).
+- **Storage TTL / data expiry** — balances live in `persistent` storage, which
+  expires. This example never extends a TTL, so a balance can be **archived and
+  then permanently deleted**, silently turning into a zero balance. See
+  [Reentrancy and storage TTL limits](#reentrancy-limits).
+
+For a real token, use the [Stellar Asset Contract (SAC)](../concepts/stellar-asset-contract)
+or the [SEP-41 standard](../concepts/token-standards) instead of deploying this.
+
+</PatternCallout>
 
 <Tabs>
   <TabItem value="contract" label="Contract" default>
@@ -254,6 +283,7 @@ The `transfer` function calls `from.require_auth()` to ensure the transaction is
 ### Error Handling
 
 Three error codes cover the main failure modes:
+
 - **InsufficientBalance**: Sender doesn't have enough tokens
 - **InvalidAmount**: Zero or negative amounts are rejected
 - **SelfTransfer**: Transferring to yourself is a no-op and disallowed
@@ -264,7 +294,70 @@ The `mint` function bypasses authorization checks. In production, restrict minti
 
 </PatternSection>
 
+<PatternSection id="reentrancy-and-storage-ttl-limits" title="Reentrancy and storage TTL limits">
+
+These two limits are the difference between a teaching contract and a token that
+can safely hold value. Neither is enforced by this example.
+
+### Reentrancy limits
+
+**Reentrancy does not apply as written, and that is the only reason.** `mint`,
+`balance`, and `transfer` call `env.storage()` and nothing else — there is no
+cross-contract call, no token `transfer`, and no callback, so no external code
+ever regains control partway through a state update. Soroban runs an invocation
+to completion unless a contract deliberately calls into another contract.
+
+The guarantees you can rely on today, and what breaks them:
+
+- **`transfer` is checks-then-effects.** It reads the sender balance, verifies
+  `from_balance >= amount`, and only then writes both sides. That ordering is
+  safe _only_ because no untrusted code runs between the read and the write.
+- **Adding any external call breaks it.** Insert a transfer-fee hook, a mint
+  callback, a cross-chain `invoke_contract`, or a SAC payment between the read
+  and the write and the pattern is exploitable: re-read both balances after the
+  call, because the callee can move funds or change state in the meantime.
+- **`to_balance` is read before the write.** That value can be stale if anything
+  external ran in between. Re-read it after any external call.
+- **`transfer` does call `from.require_auth()`** — that is an authorization
+  check, not a reentrancy guard. It stops unauthorized senders; it does not stop
+  a callee re-entering.
+- **Use the repo's guard shape.** The
+  Reentrancy Guard pattern sets a storage flag before any
+  external work and clears it afterwards, so a re-entrant call panics rather than
+  double-spending. Adopt it whenever you extend this contract.
+
+### Storage TTL and data-expiry limits
+
+Balances are stored with `env.storage().persistent()`, and **persistent entries
+expire.** This is the single most dangerous omission in the example:
+
+- **Nothing here extends a TTL.** There is no `extend_ttl` call anywhere in the
+  contract, so each balance entry gets the network's default minimum lifetime and
+  then starts counting down.
+- **Expiry is two-phase.** When a persistent entry's TTL lapses, the ledger
+  **archives** it: reads still succeed but return the archived (stale) value
+  while restoration is pending. If it is not restored before the next ledger
+  closes the retention window, the entry is **deleted permanently**.
+- **A deleted balance reads back as `0`.** Because `balance` uses
+  `.unwrap_or(0)`, permanent deletion is indistinguishable from "never had a
+  balance". A holder's funds can vanish with no error and no event.
+- **Instance storage would not help.** Instance entries expire with the contract
+  instance, so a long-idle token loses everything at once.
+- **A production token must** extend the TTL on every balance it touches, extend
+  it for a minimum window ahead of expiry, restore archived entries on read, and
+  bump the TTL thresholds via `extend_contract_instance_ttl` / the appropriate
+  storage bumps. See the [Storage TTL / Rent
+  pattern](../concepts/storage) and the `storage-ttl` example for the
+  threshold-bump pattern to copy.
+- **The same clock governs fees.** A TTL bump has to be paid for; budgeting for
+  rent is part of running a real token, not an afterthought.
+
+</PatternSection>
+
 <PatternSection id="security" title="Security Considerations">
+
+This is an **unaudited example**. The items below are the gaps it deliberately
+leaves open, not an exhaustive audit.
 
 1. **Unrestricted Minting**: The current implementation allows anyone to mint tokens. Add access control using an admin address or authorized minters list before production use.
 
@@ -274,18 +367,22 @@ The `mint` function bypasses authorization checks. In production, restrict minti
 
 4. **Allowance/Approval**: For more advanced use cases, implement an approve/transferFrom pattern allowing third parties to move tokens on behalf of the owner.
 
+5. **Reentrancy Limits**: Safe only while the contract makes no cross-contract calls. `transfer` relies on a checks-then-effects ordering that assumes no untrusted code runs between reading the sender balance and writing it. Add a guard from the Reentrancy Guard pattern before adding any external call.
+
+6. **Storage TTL / Data Expiry**: Balances are in `persistent` storage and no TTL is ever extended, so a balance can be archived and then permanently deleted — reading back as `0` via `.unwrap_or(0)`. Extend TTLs on every balance touched, restore archived entries on read, and budget for rent. See [Reentrancy and storage TTL limits](#reentrancy-limits).
+
 </PatternSection>
 
 <PatternSection id="comparison" title="Comparison: Basic Token vs. SAC">
 
-| Feature | Basic Token | SAC (Stellar Asset Contract) |
-|---------|-------------|-----|
-| **Standards** | Custom | Soroban standard |
-| **Decimals** | Built-in only | Full decimal support |
-| **Approvals** | Not included | Built-in allowances |
-| **Admin** | None | Admin actions (freeze, clawback) |
-| **Production Ready** | No | Yes |
-| **Learning Value** | High | N/A |
+| Feature              | Basic Token   | SAC (Stellar Asset Contract)     |
+| -------------------- | ------------- | -------------------------------- |
+| **Standards**        | Custom        | Soroban standard                 |
+| **Decimals**         | Built-in only | Full decimal support             |
+| **Approvals**        | Not included  | Built-in allowances              |
+| **Admin**            | None          | Admin actions (freeze, clawback) |
+| **Production Ready** | No            | Yes                              |
+| **Learning Value**   | High          | N/A                              |
 
 For production systems, use SAC. This pattern is ideal for learning and prototyping.
 
@@ -296,6 +393,8 @@ For production systems, use SAC. This pattern is ideal for learning and prototyp
 - [Error Handling](/docs/patterns/error-handling) — Taxonomy and propagation strategies
 - [Authorization](/docs/patterns/authorization) — Fine-grained access control patterns
 - [Custom Types](/docs/patterns/custom-types) — Extending data structures
+- [Token Pattern Security Audit](/docs/security/token-audit) — Checklist to run before deploying any token contract, including the unrestricted-minting and supply-cap gaps called out above
+- [Token Vesting](./token-vesting) — Linear release schedules with a cliff, built on the token interface
 
 </PatternSection>
 
@@ -313,15 +412,16 @@ The compiled WASM binary is located at `target/wasm32-unknown-unknown/release/to
 ### Deploy to Testnet
 
 1. **Generate or use an existing account**:
+
    ```bash
-   soroban keys generate token-admin
+   stellar keys generate --global token-admin
+   stellar keys fund token-admin --network testnet
    ```
 
-2. **Fund your account** via the [Stellar Testnet Faucet](https://laboratory.stellar.org/?network=testnet#account-creator).
+2. **Deploy the contract**:
 
-3. **Deploy the contract**:
    ```bash
-   soroban contract deploy \
+   stellar contract deploy \
      --wasm target/wasm32-unknown-unknown/release/token_transfer.wasm \
      --network testnet \
      --source token-admin
@@ -329,37 +429,37 @@ The compiled WASM binary is located at `target/wasm32-unknown-unknown/release/to
 
    This returns a contract ID (e.g., `CABC...`).
 
-4. **Interact with the contract**:
+3. **Interact with the contract**:
    ```bash
-   soroban contract invoke \
+   stellar contract invoke \
      --id CABC... \
      --network testnet \
      --source token-admin \
      -- mint \
-     --to $(soroban keys address token-admin) \
+     --to $(stellar keys address token-admin) \
      --amount 1000
    ```
 
 ### Query Balance
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id CABC... \
   --network testnet \
   --source token-admin \
   -- balance \
-  --of $(soroban keys address token-admin)
+  --of $(stellar keys address token-admin)
 ```
 
 ### Transfer Tokens
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id CABC... \
   --network testnet \
   --source token-admin \
   -- transfer \
-  --from $(soroban keys address token-admin) \
+  --from $(stellar keys address token-admin) \
   --to GBBD...your-recipient \
   --amount 100
 ```

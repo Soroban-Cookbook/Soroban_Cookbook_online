@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
-import { Spinner } from '@site/src/components/Loading';
 import styles from './SearchLoading.module.css';
 
 const SEARCH_ROUTE = '/search';
@@ -63,12 +62,22 @@ export default function SearchLoading(): React.JSX.Element | null {
     };
   }, [pathname, search]);
 
-  if (!loading) return null;
-
   return (
-    <div className={styles.banner} role="status" aria-live="polite" aria-busy="true">
-      <Spinner size={20} />
-      <span className={styles.label}>Searching…</span>
+    <div
+      className={loading ? styles.banner : undefined}
+      role="status"
+      aria-live="polite"
+      aria-busy={loading}>
+      {loading && (
+        <>
+          <div
+            className="spinner-loader"
+            style={{ width: 20, height: 20, display: 'inline-block' }}
+            aria-hidden="true"
+          />
+          <span className={styles.label}>Searching…</span>
+        </>
+      )}
     </div>
   );
 }

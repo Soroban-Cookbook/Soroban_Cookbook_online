@@ -27,9 +27,12 @@ Before submitting, please ensure you've checked these off:
 - [ ] I have performed a self-review of my code.
 - [ ] I have commented my code where necessary.
 - [ ] I have updated the documentation accordingly.
+- [ ] For new or updated examples, I completed the [example origin checklist](../documentation/docs/contributing/add-tested-example.md#example-origin-checklist) and linked each crate README's Origin section in this PR (license, SPDX headers, original/adapted status, and source citations).
 - [ ] My changes generate no new warnings.
 - [ ] New and existing tests pass locally.
 - [ ] I have checked my code runs on the latest Soroban SDK.
+- [ ] I have reviewed any `test_snapshots/` changes for unintended authorization or logic updates.
+- [ ] [If new example] The crate's `Cargo.toml` `license` field follows the [example license policy](../CONTRIBUTING.md#license-policy-for-example-crates).
 
 ## Accessibility (a11y) Checklist
 If your changes include new or modified UI components, please verify the following:

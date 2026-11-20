@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #![no_std]
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
 
@@ -146,6 +148,27 @@ mod tests {
         assert!(!client.is_paused());
 
         assert_eq!(client.do_work(), 1);
+    }
+
+    #[test]
+    fn test_do_work_fails_while_paused_and_succeeds_after_unpause() {
+        let (_, _, client) = setup();
+
+        // Baseline: do_work succeeds while unpaused.
+        assert_eq!(client.do_work(), 1);
+
+        // Pause: do_work must return a contract error, not panic.
+        client.pause();
+        assert!(client.is_paused());
+        assert_eq!(client.try_do_work(), Err(Ok(Error::ContractPaused)));
+        // Rejected call must not mutate state.
+        assert_eq!(client.get_op_count(), 1);
+
+        // Unpause: do_work succeeds again and continues counting.
+        client.unpause();
+        assert!(!client.is_paused());
+        assert_eq!(client.do_work(), 2);
+        assert_eq!(client.get_op_count(), 2);
     }
 
     #[test]

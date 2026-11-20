@@ -10,6 +10,12 @@ This document audits every state-changing entrypoint in the Cookbook examples
 for missing `require_auth`, so a missing authorization check is never copied
 to mainnet. It is the tracking artifact for **Phase 8 issue #638**.
 
+:::warning Unaudited Example Code
+
+The example contracts, snippets, and audit recommendations referenced in this document are for educational and review purposes only. They have not undergone an independent security audit and are not production-ready. Always conduct a thorough security audit before deploying any smart contracts or authorization patterns to mainnet.
+
+:::
+
 ## Objective
 
 > Review each `pub fn` that writes storage or transfers value for missing

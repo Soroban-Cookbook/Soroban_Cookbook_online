@@ -6,9 +6,9 @@ sidebar_label: Video Content Review
 
 # Video Content Review Checklist
 
-**Issue:** #347  
-**Phase:** 6  
-**Review Date:** August 28, 2026  
+**Issue:** #347
+**Phase:** 6
+**Review Date:** August 28, 2026
 **Reviewer:** Content Accuracy Team
 
 ## Overview

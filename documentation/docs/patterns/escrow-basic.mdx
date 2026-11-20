@@ -7,10 +7,11 @@ tags: [escrow, defi, intermediate]
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
 
 # Escrow — Basic
 
-A production-ready two-party escrow contract with an arbiter for dispute resolution.
+An educational two-party escrow contract with an arbiter for dispute resolution.
 
 ## Overview
 
@@ -27,13 +28,23 @@ to the seller or refund the buyer.
 
 ### Roles
 
-| Role | Can | Cannot |
-|------|-----|--------|
-| **Buyer** | Deposit funds, release to seller | Refund themselves |
-| **Seller** | Receive released funds | Trigger any state change |
-| **Arbiter** | Release to seller, refund buyer | Nothing else |
+| Role        | Can                              | Cannot                   |
+| ----------- | -------------------------------- | ------------------------ |
+| **Buyer**   | Deposit funds, release to seller | Refund themselves        |
+| **Seller**  | Receive released funds           | Trigger any state change |
+| **Arbiter** | Release to seller, refund buyer  | Nothing else             |
 
 ## Contract
+
+<Callout variant="warning" title="Unaudited Educational Example — Not for Production">
+  This contract pattern is an educational example and has not undergone an independent security audit. Do not deploy this snippet to production or mainnet with real funds without substantial hardening, complete test coverage, and formal verification.
+
+**Security & Architectural Limitations:**
+
+- **Authentication & Authorization:** Every state-modifying action requires explicit caller verification (`buyer.require_auth()` in `deposit()`, `caller.require_auth()` checked against `buyer` or `arbiter` in `release()`, and `caller.require_auth()` restricted strictly to `arbiter` in `refund()`). Note that `initialize()` in this educational snippet does not enforce caller authorization, allowing anyone to initialize an uninitialized contract instance.
+- **Reentrancy:** State updates (`EscrowState::Funded`, `Released`, `Refunded`) should be written following checks-effects-interactions principles before external token contract calls. In Soroban's synchronous cross-contract execution model, token transfers resolve atomically; however, if external untrusted callbacks or token contracts are involved, effects must be finalized prior to external interactions.
+- **Storage TTL & Data Expiry:** All contract entries (`Buyer`, `Seller`, `Arbiter`, `Token`, `Amount`, `State`) are stored in `persistent` storage. While `persistent` storage entries survive contract archiving and can be restored, they possess a finite time-to-live (TTL) on the ledger. Production deployments must routinely monitor and extend entry TTLs using `env.storage().persistent().extend_ttl(...)` to prevent escrow data from becoming archived and temporarily unusable.
+</Callout>
 
 <Tabs>
 <TabItem value="contract" label="escrow_basic/src/lib.rs">
@@ -66,12 +77,12 @@ pub enum EscrowState {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum Error {
-    AlreadyInitialised = 1,
-    NotInitialised     = 2,
+    AlreadyInitialized = 1,
+    NotInitialized     = 2,
     InvalidAmount      = 3,
     NotFunded          = 4,
-    UnauthorisedRelease = 5,
-    UnauthorisedRefund  = 6,
+    UnauthorizedRelease = 5,
+    UnauthorizedRefund  = 6,
     AlreadySettled     = 7,
 }
 
@@ -81,7 +92,7 @@ pub struct EscrowBasic;
 #[contractimpl]
 impl EscrowBasic {
     /// Set up the escrow — no funds move yet.
-    pub fn initialise(
+    pub fn initialize(
         env: Env,
         buyer: Address,
         seller: Address,
@@ -90,7 +101,7 @@ impl EscrowBasic {
         amount: i128,
     ) -> Result<(), Error> {
         if env.storage().persistent().has(&DataKey::State) {
-            return Err(Error::AlreadyInitialised);
+            return Err(Error::AlreadyInitialized);
         }
         if amount <= 0 {
             return Err(Error::InvalidAmount);
@@ -107,17 +118,17 @@ impl EscrowBasic {
     /// Buyer deposits funds. Moves state to Funded.
     pub fn deposit(env: Env) -> Result<(), Error> {
         let state: EscrowState = env.storage().persistent()
-            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::State).ok_or(Error::NotInitialized)?;
         if state != EscrowState::Created {
             return Err(Error::AlreadySettled);
         }
         let buyer: Address = env.storage().persistent()
-            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialized)?;
         buyer.require_auth();
         let token: Address = env.storage().persistent()
-            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let amount: i128 = env.storage().persistent()
-            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Amount).ok_or(Error::NotInitialized)?;
         token::Client::new(&env, &token)
             .transfer(&buyer, &env.current_contract_address(), &amount);
         env.storage().persistent().set(&DataKey::State, &EscrowState::Funded);
@@ -128,23 +139,23 @@ impl EscrowBasic {
     pub fn release(env: Env, caller: Address) -> Result<(), Error> {
         caller.require_auth();
         let state: EscrowState = env.storage().persistent()
-            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::State).ok_or(Error::NotInitialized)?;
         if state != EscrowState::Funded {
             return Err(Error::NotFunded);
         }
         let buyer: Address = env.storage().persistent()
-            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialized)?;
         let arbiter: Address = env.storage().persistent()
-            .get(&DataKey::Arbiter).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Arbiter).ok_or(Error::NotInitialized)?;
         if caller != buyer && caller != arbiter {
-            return Err(Error::UnauthorisedRelease);
+            return Err(Error::UnauthorizedRelease);
         }
         let seller: Address = env.storage().persistent()
-            .get(&DataKey::Seller).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Seller).ok_or(Error::NotInitialized)?;
         let token: Address = env.storage().persistent()
-            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let amount: i128 = env.storage().persistent()
-            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Amount).ok_or(Error::NotInitialized)?;
         token::Client::new(&env, &token)
             .transfer(&env.current_contract_address(), &seller, &amount);
         env.storage().persistent().set(&DataKey::State, &EscrowState::Released);
@@ -155,21 +166,21 @@ impl EscrowBasic {
     pub fn refund(env: Env, caller: Address) -> Result<(), Error> {
         caller.require_auth();
         let state: EscrowState = env.storage().persistent()
-            .get(&DataKey::State).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::State).ok_or(Error::NotInitialized)?;
         if state != EscrowState::Funded {
             return Err(Error::NotFunded);
         }
         let arbiter: Address = env.storage().persistent()
-            .get(&DataKey::Arbiter).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Arbiter).ok_or(Error::NotInitialized)?;
         if caller != arbiter {
-            return Err(Error::UnauthorisedRefund);
+            return Err(Error::UnauthorizedRefund);
         }
         let buyer: Address = env.storage().persistent()
-            .get(&DataKey::Buyer).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Buyer).ok_or(Error::NotInitialized)?;
         let token: Address = env.storage().persistent()
-            .get(&DataKey::Token).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Token).ok_or(Error::NotInitialized)?;
         let amount: i128 = env.storage().persistent()
-            .get(&DataKey::Amount).ok_or(Error::NotInitialised)?;
+            .get(&DataKey::Amount).ok_or(Error::NotInitialized)?;
         token::Client::new(&env, &token)
             .transfer(&env.current_contract_address(), &buyer, &amount);
         env.storage().persistent().set(&DataKey::State, &EscrowState::Refunded);
@@ -223,7 +234,7 @@ lto = true
 ### Why does `deposit` take no arguments?
 
 All parameters (buyer, seller, arbiter, token, amount) are stored during
-`initialise`. This keeps `deposit` simple and prevents parameters being
+`initialize`. This keeps `deposit` simple and prevents parameters being
 swapped at deposit time.
 
 ### Why can't the buyer refund themselves?
@@ -250,4 +261,4 @@ that may sit idle for weeks.
 ## Related patterns
 
 - [Timelock Vault](./timelock-vault) — time-locked release without an arbiter
-- [Token Transfer](./token-standards) — SEP-41 token interaction basics
+- [Token Transfer](../concepts/token-standards) — SEP-41 token interaction basics

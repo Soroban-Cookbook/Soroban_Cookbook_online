@@ -1,0 +1,124 @@
+---
+title: Emergency Stop (Pause / Unpause)
+description: A copy-ready Soroban circuit breaker with admin authorization, instance storage, operation guards, tests, and token composition guidance.
+---
+
+# Emergency Stop: Pause and Unpause
+
+A circuit breaker gives incident responders a way to stop risky state changes while they investigate or mitigate an incident. It does not repair the underlying bug, reverse completed transactions, or freeze the network. Use it as one part of an incident-response plan, and document who is responsible for deciding when to pause and resume.
+
+The tested implementation is in [`src/lib.rs`](src/lib.rs). This page extracts its core pattern so it can be adapted to another contract.
+
+## Authorization model
+
+In the minimal [`emergency-stop` crate](Cargo.toml), the constructor stores one `Admin` address. Only that address can pause or unpause, and both functions call `require_auth()` on the stored admin. The caller does not pass an arbitrary address that could select a different authority.
+
+For production, use a multisig or governance-controlled admin where appropriate. If pausing must be faster than administrative actions, give a narrowly scoped incident-response key a dedicated `Pauser` role. Define who can grant and revoke that role, protect those actions, and test that operational roles cannot pause or unpause.
+
+## Store and read the pause flag
+
+The example stores `Paused` in instance storage. It initializes the flag to `false`, and reads a missing value as `false`:
+
+```rust
+#[contracttype]
+#[derive(Clone)]
+pub enum DataKey {
+    Admin,
+    Paused,
+}
+
+// In the constructor, after storing the admin:
+env.storage().instance().set(&DataKey::Paused, &false);
+
+fn is_paused(env: &Env) -> bool {
+    env.storage()
+        .instance()
+        .get(&DataKey::Paused)
+        .unwrap_or(false)
+}
+```
+
+Choose storage based on the pause state’s required lifetime and the contract’s storage lifecycle. Do not let an absent or expired flag silently reopen operations unless that is an explicit, reviewed policy. The example’s default is appropriate for its constructor-initialized instance state; production contracts should account for Soroban instance TTL and renewal.
+
+## Guard every state-changing entry point
+
+Use a typed error and a shared guard. Call it before any state mutation or external contract call in every operation that must stop during an incident:
+
+```rust
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    ContractPaused = 1,
+}
+
+pub fn fail_if_paused(env: &Env) -> Result<(), Error> {
+    if is_paused(env) {
+        Err(Error::ContractPaused)
+    } else {
+        Ok(())
+    }
+}
+
+pub fn do_work(env: Env) -> Result<u32, Error> {
+    fail_if_paused(&env)?;
+
+    // Perform authorization, state changes, and external calls only after
+    // the pause guard has allowed this operation to proceed.
+    Ok(1)
+}
+```
+
+Apply the guard consistently to all relevant mutations: transfers, withdrawals, deposits, minting, burning, approvals, claims, and cross-contract operations. Decide explicitly which actions remain available for recovery. Read-only queries such as balances and `is_paused` generally remain callable so users and operators can inspect state.
+
+## Authorize pause and unpause
+
+Read the configured admin from storage, require its authorization, and only then change the flag:
+
+```rust
+pub fn pause(env: Env) {
+    let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+    admin.require_auth();
+    env.storage().instance().set(&DataKey::Paused, &true);
+}
+
+pub fn unpause(env: Env) {
+    let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
+    admin.require_auth();
+    env.storage().instance().set(&DataKey::Paused, &false);
+}
+```
+
+The two functions are deliberately not guarded by `fail_if_paused`; otherwise an active pause could prevent its own recovery. Consider emitting pause/unpause events in a production contract so operators and indexers can observe transitions. The minimal example omits events.
+
+## Compose with a token
+
+The [`pausable-token` example](../pausable-token/README.md) composes the circuit breaker with role-based access control:
+
+| Role | Pause / unpause | Mint | Purpose |
+| --- | --- | --- | --- |
+| `Admin` | Yes | Yes | Manages roles and configuration |
+| `Pauser` | Yes | No | Responds to incidents without mint authority |
+| `Manager` | No | Yes | Performs routine token operations |
+| `User` | No | No | Uses token operations while unpaused |
+
+That separation limits hot-key authority: an incident responder can stop guarded token operations without gaining minting or role-management powers. The token guards `transfer`, `transfer_from`, `mint`, `burn`, and `approve`, while leaving read-only queries available. When composing patterns, check every mutation—including less obvious paths such as allowance changes and administrative functions—and test role combinations, not just each role in isolation.
+
+## Tests and verification
+
+From the repository root, run:
+
+```bash
+./scripts/test-examples.sh emergency-stop
+```
+
+The crate tests cover:
+
+- `test_unpaused_by_default`: the constructor initializes the circuit as open.
+- `test_pause_blocks_operations`: a paused operation returns `ContractPaused` without incrementing state.
+- `test_unpause_restores_operations`: unpausing allows work again.
+- `test_pause_requires_admin_auth` and `test_unpause_requires_admin_auth`: the authorization trace includes the stored admin for each operation.
+
+Those authorization-trace tests verify that the admin authorization is requested; they do not exercise a non-admin rejection. Add a negative authorization test for your own contract and role setup. For composed token behavior, run `./scripts/test-examples.sh pausable-token` as well.
+
+Before relying on a pause mechanism, verify that every safety-critical mutation is guarded, that the intended responders can pause promptly, that unauthorized accounts cannot pause or unpause, and that the recovery process is documented and tested.

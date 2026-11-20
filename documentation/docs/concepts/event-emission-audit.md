@@ -90,3 +90,37 @@ Follow the conventions already used in the emitting examples:
   `escrow-basic` tests).
 
 See [Events](../concepts/events.md) for the full concept guide.
+
+## Verifying events on a live network
+
+When you move beyond unit tests and query events from a real network (testnet or
+mainnet), the same RPC calls and CLI commands that make event verification
+convenient also introduce key-handling and network risk.
+
+### Key-handling guidance
+
+- **Never commit or paste secret keys or seed phrases** in source code,
+  shell scripts, `.env` files tracked by git, logs, or chat messages. If a key
+  is ever exposed, treat it as compromised immediately: transfer assets and
+  revoke any authority it held.
+- In **browser dapps**, delegate signing to a wallet extension (e.g.,
+  Freighter). The page builds the transaction; the wallet signs it; the page
+  submits the signed XDR. The raw secret never touches your code.
+  See [API Security](/docs/getting-started/api-security) for the full pattern.
+- In **CLI or server-side scripts**, use a named identity
+  (`stellar keys add <name>`) or load the key from a secrets manager rather than
+  passing a raw `S…` secret as a CLI argument (which appears in shell history).
+
+### Network risk
+
+- **Testnet ≠ Mainnet.** The RPC endpoint URL and `networkPassphrase` are the
+  only visible differences between the two — but submitting to a mainnet
+  endpoint uses **real funds and is irreversible**. Always confirm
+  `Networks.TESTNET` vs. `Networks.PUBLIC` before every submission.
+- Public RPC endpoints (e.g., `https://soroban-testnet.stellar.org`) are shared
+  infrastructure. They are rate-limited and should not be used as sole
+  production infrastructure.
+- Do not reuse testnet keys on mainnet, and never fund a testnet address from a
+  mainnet wallet.
+- Before deploying or invoking contracts on mainnet, work through the
+  [Deploy to Mainnet checklist](/docs/getting-started/deploy-mainnet).

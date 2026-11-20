@@ -12,6 +12,8 @@ export type MockDocusaurusContext = {
 
 let current: MockDocusaurusContext = {
   siteConfig: {
+    url: 'https://soroban-cookbook.dev',
+    baseUrl: '/',
     customFields: {},
   },
 };
@@ -21,7 +23,13 @@ export function __setMockDocusaurusContext(next: MockDocusaurusContext): void {
 }
 
 export function __resetMockDocusaurusContext(): void {
-  current = { siteConfig: { customFields: {} } };
+  current = {
+    siteConfig: {
+      url: 'https://soroban-cookbook.dev',
+      baseUrl: '/',
+      customFields: {},
+    },
+  };
 }
 
 export default function useDocusaurusContext(): MockDocusaurusContext {

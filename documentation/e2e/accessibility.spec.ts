@@ -21,7 +21,13 @@ test.describe('Automated Accessibility Audit (@axe-core)', () => {
     test(`${name} (${path}) should have no critical or serious accessibility violations`, async ({
       page,
     }) => {
+      // Avoid mid-animation opacity on homepage pattern cards (axe contrast flakes).
+      await page.emulateMedia({ reducedMotion: 'reduce' });
       await page.goto(path);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle');
+      // Allow CSS transitions / lazy sections to settle after reduced-motion.
+      await page.waitForTimeout(300);
       await page.waitForLoadState('networkidle');
 
       // Cards on these pages fade in. Scanning mid-transition samples
@@ -43,12 +49,12 @@ test.describe('Automated Accessibility Audit (@axe-core)', () => {
         .analyze();
 
       const criticalAndSeriousViolations = accessibilityScanResults.violations.filter(
-        (violation) => violation.impact === 'critical' || violation.impact === 'serious'
+        (violation) => violation.impact === 'critical' || violation.impact === 'serious',
       );
 
       if (criticalAndSeriousViolations.length > 0) {
         console.error(
-          `[a11y regression] ${name} (${path}) has ${criticalAndSeriousViolations.length} severe accessibility violations:`
+          `[a11y regression] ${name} (${path}) has ${criticalAndSeriousViolations.length} severe accessibility violations:`,
         );
         for (const v of criticalAndSeriousViolations) {
           console.error(`- ${v.id} (${v.impact}): ${v.description} -> ${v.helpUrl}`);

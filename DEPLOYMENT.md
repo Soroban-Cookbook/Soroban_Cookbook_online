@@ -274,10 +274,10 @@ consent banner. Specifically:
 - Consent is checked again on every page load — nothing is injected on the
   strength of a build-time flag alone.
 
-Implementation: [`src/utils/analyticsConsent.ts`](./documentation/src/utils/analyticsConsent.ts)
+Implementation: [`src/utils/cookieConsent.ts`](./documentation/src/utils/cookieConsent.ts)
 (consent state), [`src/utils/analytics.ts`](./documentation/src/utils/analytics.ts)
 (script loaders and event helpers),
-[`src/components/ConsentBanner/`](./documentation/src/components/ConsentBanner/) (UI),
+[`src/components/CookieConsent/`](./documentation/src/components/CookieConsent/) (UI),
 [`src/components/FunnelTracker/`](./documentation/src/components/FunnelTracker/)
 (route and outbound-click steps), all mounted from
 [`src/theme/Root.tsx`](./documentation/src/theme/Root.tsx).

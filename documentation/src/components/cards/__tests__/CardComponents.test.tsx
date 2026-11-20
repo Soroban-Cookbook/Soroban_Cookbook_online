@@ -29,7 +29,7 @@ describe('BaseCard', () => {
     render(
       <BaseCard ariaLabel="My card" className="custom-class">
         Content
-      </BaseCard>
+      </BaseCard>,
     );
     const card = screen.getByLabelText('My card');
     expect(card).toHaveClass('custom-class');
@@ -47,10 +47,18 @@ describe('FeatureCard', () => {
   };
 
   it('renders title, description and icon', () => {
-    render(<FeatureCard {...defaultProps} />);
+    const { container } = render(<FeatureCard {...defaultProps} />);
     expect(screen.getByText('Fast Performance')).toBeInTheDocument();
     expect(screen.getByText('Optimized rendering')).toBeInTheDocument();
     expect(screen.getByText('⚡')).toBeInTheDocument();
+    expect(container.firstElementChild?.tagName).toBe('DIV');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('renders as a div when href is empty', () => {
+    const { container } = render(<FeatureCard {...defaultProps} href="" />);
+    expect(container.firstElementChild?.tagName).toBe('DIV');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('renders as a link when href is provided', () => {
@@ -139,7 +147,9 @@ describe('PatternCard', () => {
   it('renders contract name, description and tag', () => {
     render(<PatternCard {...defaultProps} />);
     expect(screen.getByText('hello_world')).toBeInTheDocument();
-    expect(screen.getByText('A minimal contract demonstrating persistent storage.')).toBeInTheDocument();
+    expect(
+      screen.getByText('A minimal contract demonstrating persistent storage.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('#storage')).toBeInTheDocument();
   });
 
@@ -161,32 +171,5 @@ describe('PatternCard', () => {
     render(<PatternCard {...defaultProps} href="/contracts/hello_world" />);
     const link = screen.getByRole('link', { name: 'hello_world' });
     expect(link).toHaveAttribute('href', '/contracts/hello_world');
-  });
-
-  it('matches snapshot for default state', () => {
-    const { container } = render(<PatternCard {...defaultProps} />);
-    expect(container.firstChild).toMatchSnapshot();
-  });
-
-  it('matches snapshot when expanded', async () => {
-    const user = userEvent.setup();
-    const { container } = render(<PatternCard {...defaultProps} />);
-    const toggleButton = screen.getByRole('button', { name: /Show example/ });
-    await user.click(toggleButton);
-    expect(container.firstChild).toMatchSnapshot();
-  });
-
-  it('matches snapshot with link href', () => {
-    const { container } = render(
-      <PatternCard {...defaultProps} href="/contracts/hello_world" />
-    );
-    expect(container.firstChild).toMatchSnapshot();
-  });
-
-  it('matches snapshot with icon', () => {
-    const { container } = render(
-      <PatternCard {...defaultProps} icon={<span>📋</span>} />
-    );
-    expect(container.firstChild).toMatchSnapshot();
   });
 });

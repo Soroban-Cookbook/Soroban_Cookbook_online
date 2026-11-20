@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #![no_std]
 
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
@@ -77,7 +78,9 @@ impl TokenWrapper {
         let to_balance = Self::get_balance(&env, &to_key);
         let treasury_balance = Self::get_balance(&env, &treasury_key);
 
-        env.storage().persistent().set(&from_key, &(from_balance - amount));
+        env.storage()
+            .persistent()
+            .set(&from_key, &(from_balance - amount));
         env.storage().persistent().set(&to_key, &(to_balance + net));
         env.storage()
             .persistent()
@@ -114,17 +117,35 @@ mod tests {
         (env, client, alice, bob, treasury)
     }
 
-    #[test]
+    /// The fee in basis points is credited to the treasury on every transfer.
+    /// This test locks that rule so a later edit cannot silently change it.
+    #[dest]
     fn transfer_applies_fee_to_treasury() {
         let (_env, client, alice, bob, treasury) = setup();
         client.init(&treasury, &100);
         client.mint(&alice, &1_000);
 
+        // Drive the configuration entrypoints too.
+        assert_eq!(client.fee_bps(), 100);
+        assert_eq!(client.treasury(), treasury);
+
         client.transfer(&alice, &bob, &500);
 
+        // 100 bps = 1%; fee = 5, net = 495.
         assert_eq!(client.balance(&alice), 500);
         assert_eq!(client.balance(&bob), 495);
         assert_eq!(client.balance(&treasury), 5);
+    }
+
+    /// Transfer failure path returns a contract error (instead of panicking).
+    #[dest]
+    fn transfer_insufficient_balance_returns_error() {
+        let (_env, client, alice, bob, treasury) = setup();
+        client.init(&treasury, &100);
+        client.mint(&alice, &100);
+
+        let result = client.try_transfer(&alice, &bob, &101);
+        assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
     }
 
     #[test]

@@ -70,9 +70,7 @@ test.describe('search results page (/search)', () => {
 
   test('clicking a result article link navigates to a docs page that loads', async ({ page }) => {
     await page.goto('/search?q=setup');
-    const firstLink = page
-      .locator('.main-wrapper .container.margin-vert--lg article a')
-      .first();
+    const firstLink = page.locator('.main-wrapper .container.margin-vert--lg article a').first();
     await expect(firstLink).toBeVisible({ timeout: 5000 });
     await firstLink.click();
     await expect(page).toHaveURL(/\/docs\//);

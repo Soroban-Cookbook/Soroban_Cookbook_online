@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Linear token vesting with a cliff.
 //!
 //! A funder deposits the complete allocation when the contract is
@@ -448,10 +450,7 @@ mod tests {
             released_amount: 0,
         };
 
-        assert_eq!(
-            TokenVesting::vested_at(&schedule, 100),
-            Ok(i128::MAX)
-        );
+        assert_eq!(TokenVesting::vested_at(&schedule, 100), Ok(i128::MAX));
     }
 
     /// releasable_amount propagates ArithmeticOverflow when vested_at overflows.

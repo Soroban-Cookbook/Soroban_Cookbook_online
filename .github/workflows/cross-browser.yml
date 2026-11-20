@@ -1,9 +1,8 @@
 name: Cross-Browser E2E Tests
 
 on:
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron: '0 0 * * *'
   push:
     branches:
       - main
@@ -59,11 +58,19 @@ jobs:
 
       - name: Serve built site in background
         run: |
-          bun run serve --port 3000 &
+          # Bind explicitly to IPv4 — Playwright baseURL uses 127.0.0.1.
+          # Do NOT set BASE_URL here: Docusaurus treats BASE_URL as site baseUrl path.
+          bun run serve -- --port 3000 --host 127.0.0.1 &
           # Wait until the server responds before running tests
-          npx wait-on http://localhost:3000 --timeout 60000
+          bunx wait-on http://127.0.0.1:3000 --timeout 60000
 
       - name: Run smoke tests (${{ matrix.browser }})
+        run: bunx playwright test --project=${{ matrix.browser }}
+        env:
+          # Playwright base URL only (must not collide with Docusaurus BASE_URL).
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+          BASE_URL: http://127.0.0.1:3000
+      - name: Run E2E tests (${{ matrix.browser }})
         run: npx playwright test --project=${{ matrix.browser }}
         env:
           E2E_BASE_URL: http://localhost:3000
@@ -89,4 +96,4 @@ jobs:
             echo "❌ Cross-browser E2E tests failed"
             exit 1
           fi
-          echo "✅ All browsers (chromium, firefox, webkit) passed smoke tests"
+          echo "✅ All browsers (chromium, firefox, webkit) passed E2E tests"

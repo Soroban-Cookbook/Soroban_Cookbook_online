@@ -28,19 +28,19 @@ UAT should involve at least one participant from each profile:
 
 ### S-02 — Getting Started (Linux)
 **Goal:** A newcomer can complete the Linux setup guide without external help.  
-**Steps:** Follow `docs/getting-started` on a fresh Linux environment.  
-**Pass criteria:** `soroban --version` returns a version string with no errors.
+**Steps:** Follow `docs/getting-started/setup-linux` on a fresh Linux environment.  
+**Pass criteria:** `stellar --version` returns a version string with no errors.
 
 ---
 
 ### S-03 — Getting Started (Windows)
 **Goal:** Same as S-02 on a Windows machine.  
-**Pass criteria:** `soroban --version` returns a version string with no errors.
+**Pass criteria:** `stellar --version` returns a version string with no errors.
 
 ---
 
 ### S-04 — CLI install
-**Goal:** User installs Soroban CLI following the guide.  
+**Goal:** User installs Stellar CLI following the guide.  
 **Pass criteria:** CLI installs and responds to `--help` and `--version` flags.
 
 ---

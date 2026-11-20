@@ -9,8 +9,17 @@ tags: []
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
 
 # Streaming Payments
+
+<Callout variant="warning" title="Unaudited example — not for production">
+This pattern is an educational example. The copy-paste contract logic and supporting snippets are not audited, are not a production-governance model, and should not be deployed with real funds or user assets.
+
+This page demonstrates the mechanics of continuous accrual and withdrawable balances, not a full production security review. The core flow here is not reentrancy-sensitive by itself because it computes available amounts from stored state and does not invoke another contract during the withdrawal path. If you adapt this pattern to call external contracts or custom tokens during settlement, treat that variation as reentrancy-sensitive and apply the same protections as the dedicated reentrancy-guard pattern.
+
+Storage lifetime is also finite in Soroban. Persistent entries age out unless their TTL is extended, while temporary entries are deleted when expired. For long-lived stream state, make sure your contract explicitly manages TTL and archival behavior; network minimums are roughly `min_persistent_entry_ttl` ≈ 4,096 ledgers and `min_temp_entry_ttl` ≈ 16 ledgers, with a practical upper extension cap around `max_entry_ttl` ≈ 6,312,000 ledgers.
+</Callout>
 
 A **streaming payment** contract allows tokens to accrue linearly over time, with the recipient able to withdraw the currently available portion at any time. This pattern is useful for payroll, subscriptions, vesting without cliffs, and other scenarios where value transfers continuously.
 

@@ -92,6 +92,10 @@ Run tests with:
 cargo test --package token-transfer
 ```
 
+## Origin
+
+This example is original to the Soroban Cookbook repository.
+
 ## Security Considerations
 
 - **Allowance Race Condition**: This implementation uses the simple allowance pattern. In production, consider implementing the increase/decrease allowance pattern to avoid potential race conditions.

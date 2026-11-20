@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './styles.module.css';
 
 type SnippetTab = {
@@ -34,11 +34,23 @@ export default function TabbedCodeSnippet({
   const [activeTab, setActiveTab] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<number | undefined>(undefined);
+  const copyGeneration = useRef(0);
 
   const resolved =
     hasTabs && tabs
       ? tabs[Math.max(0, Math.min(activeTab, tabs.length - 1))]
       : { code, language, fileName, highlightLines };
+
+  useEffect(() => {
+    setCopied(false);
+    return () => {
+      window.clearTimeout(copyTimer.current);
+      copyTimer.current = undefined;
+      // Ignore clipboard writes that finish after a code change or unmount.
+      copyGeneration.current += 1;
+    };
+  }, [resolved.code]);
 
   const rawLines = useMemo(() => resolved.code.replace(/\n$/, '').split('\n'), [resolved.code]);
   const shouldCollapse = rawLines.length > collapseAt;
@@ -46,9 +58,15 @@ export default function TabbedCodeSnippet({
   const highlighted = normalizeHighlight(resolved.highlightLines);
 
   const handleCopy = async () => {
+    const generation = copyGeneration.current;
     await navigator.clipboard.writeText(resolved.code);
+    if (generation !== copyGeneration.current) return;
+    window.clearTimeout(copyTimer.current);
     setCopied(true);
-    window.setTimeout(() => setCopied(false), 1200);
+    copyTimer.current = window.setTimeout(() => {
+      copyTimer.current = undefined;
+      setCopied(false);
+    }, 1200);
   };
 
   return (

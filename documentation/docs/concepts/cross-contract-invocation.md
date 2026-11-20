@@ -70,6 +70,16 @@ sequenceDiagram
     Vault-->>User: ok
 ```
 
+:::caution Key handling and network risk
+Cross-contract flows like this one are signed by a real account when you run them on a network. Before you invoke or deploy anything:
+
+- **Never commit, paste, or share secret keys or seed phrases.** Keep them out of source files, test fixtures, `.env` files, shell history, chat, screenshots, and issue reports. Prefer a named identity (for example `stellar keys generate --global <alias>` and `--source-account <alias>`) or a wallet extension (for example Freighter) so the secret never leaves the signer.
+- **Treat testnet and mainnet differently.** Testnet is for experimentation; mainnet moves real funds and is effectively irreversible. Contract IDs differ per network, so confirm the network passphrase and verify every callee address before signing. A wrong callee address on mainnet can send funds to the wrong contract. Prefer an explicit `--network testnet` over relying on a default.
+- **RPC and public endpoints are not a substitute for careful ops.** A public endpoint can be rate-limited, lag, or be run by an untrusted operator, and it does not validate your intent. Use your own or a trusted RPC provider for anything touching real value, and never send secrets or API tokens through an endpoint you do not control.
+
+See [API Security](../getting-started/api-security.md) and [Deploy to Mainnet](../getting-started/deploy-mainnet.md) for the canonical checklists. The rules above stand on their own.
+:::
+
 ## Invocation patterns
 
 ### Direct invocation (typed client)
@@ -241,7 +251,7 @@ pub fn update_token(env: Env, new_token: Address) {
 
 ### Limit the callee's authorisation scope
 
-Use `sub_invocations` in `require_auth_for_args` to bound what operations a callee can authorise on behalf of a user. This prevents a compromised callee from draining all of a user's assets.
+Use `sub_invocations` in `require_auth_for_args` to bound what operations a callee can authorise on behalf of a user. This prevents a compromised callee from draining all of a user's assets. See [Authorization Trees and Sub-Invocations](./authorization-trees.md) for how nested `require_auth` calls are matched against the signed call tree, and how to debug `Error(Auth, InvalidAction)` failures.
 
 ## Security considerations
 
@@ -367,10 +377,19 @@ When a cross-contract call fails unexpectedly:
 4. **Verify arguments** — serialisation mismatches are silent. Add `println!` or event emissions in the callee during development.
 5. **Review authorisation** — a missing `require_auth` call or wrong signer is the most common cause of silent authorisation failures.
 
+## Example layout
+
+A runnable multi-contract example is available in the repository:
+
+- [Cross-Contract Vault Pattern](../patterns/cross-contract.mdx) — token + vault + test layout, auth flow, and how to run the suite
+- [examples/cross-contract](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/cross-contract) — the deployed code used by the pattern page
+
 ## Next steps
 
 - [Authorization](./authorization.md) — how `require_auth` works and how to propagate it across contracts
+- [Authorization Trees and Sub-Invocations](./authorization-trees.md) — how nested `require_auth` calls are verified against the signed call tree
 - [Error Handling](./error-handling.md) — custom error types and the `try_*` pattern
 - [Gas and Resource Management](./gas-and-resources.md) — budget impact of cross-contract calls
 - [Security Fundamentals](../security/fundamentals.md) — reentrancy, access control, and safe patterns
 - [Error Recovery Pattern](../patterns/error-recovery.mdx) — fallback logic and graceful degradation
+- [Cross-Contract Vault Pattern](../patterns/cross-contract.mdx) — end-to-end example using token + vault + tests

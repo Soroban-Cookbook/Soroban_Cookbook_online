@@ -27,7 +27,7 @@ Mark each scenario **PASS**, **FAIL**, or **BLOCKED**. Add notes for any failure
 | S-01 | New user lands on homepage and understands what the Cookbook is | | |
 | S-02 | User follows the Getting Started guide on Linux without external help | | |
 | S-03 | User follows the Getting Started guide on Windows without external help | | |
-| S-04 | User installs the Soroban CLI and runs `soroban --version` successfully | | |
+| S-04 | User installs the Stellar CLI and runs `stellar --version` successfully | | |
 
 ### Contract Examples
 

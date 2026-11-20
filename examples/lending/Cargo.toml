@@ -1,0 +1,25 @@
+[package]
+license = "MIT"
+name = "lending"
+version = "0.1.0"
+edition = "2021"
+description = "Educational example of a simplified collateralized lending pool with price oracle and liquidation"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { version = "28.0.0", features = ["testutils"] }
+
+[dev-dependencies]
+soroban-sdk = { version = "28.0.0", features = ["testutils"] }
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true

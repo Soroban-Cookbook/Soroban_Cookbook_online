@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MIT
 #![no_std]
 
 //! # Cross-Contract Invocation Example
-//! 
+//!
 //! This example demonstrates safe cross-contract invocation patterns including:
 //! - Using typed clients for external contract calls
 //! - Error handling with try_* methods

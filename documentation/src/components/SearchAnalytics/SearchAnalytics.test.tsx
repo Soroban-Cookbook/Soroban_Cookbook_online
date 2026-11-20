@@ -24,11 +24,24 @@ vi.mock('@site/src/utils/analyticsConsent', () => ({
 
 let setIntervalSpy: ReturnType<typeof vi.spyOn>;
 
+/**
+ * Interval delay used by SearchAnalytics' settle poll (SETTLE_INTERVAL_MS).
+ * Test-runner timers (waitFor's own polling) call setInterval with other
+ * delays, so we filter on this to pick the component's callback.
+ */
+const POLL_INTERVAL_MS = 250;
+
+function pollingCalls(): [() => void, number][] {
+  return setIntervalSpy.mock.calls.filter(
+    (call): call is [() => void, number] => call[1] === POLL_INTERVAL_MS,
+  ) as [() => void, number][];
+}
+
 /** Extract the polling callback captured by the setInterval spy. */
 function getPollingCallback(): () => void {
-  const calls = setIntervalSpy.mock.calls;
+  const calls = pollingCalls();
   if (calls.length === 0) throw new Error('setInterval was never called');
-  return calls[0][0] as () => void;
+  return calls[0][0];
 }
 
 /** Fire the polling callback N times inside act(). */
@@ -295,10 +308,10 @@ describe('SearchAnalytics', () => {
  * Fire the LATEST polling callback (for re-tracking after navigation).
  */
 function getLatestPollingCallback(): () => void {
-  const calls = setIntervalSpy.mock.calls;
+  const calls = pollingCalls();
   const latest = calls[calls.length - 1];
   if (!latest) throw new Error('setInterval was never called');
-  return latest[0] as () => void;
+  return latest[0];
 }
 
 async function tickPollingFromLatest(times: number) {

@@ -1,0 +1,46 @@
+{
+  "link.item.label.Documentation": {
+    "message": "Documentação",
+    "description": "Footer link label for Documentation"
+  },
+  "link.item.label.Soroban Cookbook Discord": {
+    "message": "Discord do Soroban Cookbook",
+    "description": "Footer link label for Soroban Cookbook Discord"
+  },
+  "link.item.label.Stellar Discord": {
+    "message": "Discord da Stellar",
+    "description": "Footer link label for Stellar Discord"
+  },
+  "link.item.label.Stack Overflow": {
+    "message": "Stack Overflow",
+    "description": "Footer link label for Stack Overflow"
+  },
+  "link.item.label.Code of Conduct": {
+    "message": "Código de Conduta",
+    "description": "Footer link label for Code of Conduct"
+  },
+  "link.item.label.Soroban Docs": {
+    "message": "Documentação do Soroban",
+    "description": "Footer link label for Soroban Docs"
+  },
+  "link.item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Footer link label for GitHub"
+  },
+  "link.item.label.Privacy Policy": {
+    "message": "Política de Privacidade",
+    "description": "Footer link label for Privacy Policy"
+  },
+  "link.title.Learn": {
+    "message": "Aprender",
+    "description": "Footer column title for Learn"
+  },
+  "link.title.Community": {
+    "message": "Comunidade",
+    "description": "Footer column title for Community"
+  },
+  "link.title.Resources": {
+    "message": "Recursos",
+    "description": "Footer column title for Resources"
+  }
+}

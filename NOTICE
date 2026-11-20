@@ -1,0 +1,39 @@
+Soroban Cookbook — Third-party and adapted-material notices
+
+This repository is distributed under the MIT License (see LICENSE,
+copyright 2026 Soroban Cookbook). The license policy for example crates is
+documented in CONTRIBUTING.md ("License Policy for Example Crates"): every
+crate under examples/ declares `license = "MIT"` unless a maintainer-approved
+exception is recorded there.
+
+How to record adapted or third-party material
+--------------------------------------------
+When an example crate (or documentation page) is adapted from a named public
+source, contributors must record it in all three places so redistributors can
+meet attribution requirements:
+
+1. `examples/<crate>/README.md` — add an "Origin" section naming the upstream
+   project, its URL, the revision or version used, the source license, and a
+   short summary of what was changed. Only record sources maintainers can
+   verify; do not guess at an upstream.
+2. `examples/ORIGIN.md` — update the crate's row from `unreviewed` to
+   `adapted` with the source link, or to `original` when the work was written
+   for this repository.
+3. This NOTICE file — add one row per adapted work in the table below,
+   preserving any copyright or attribution text the source license requires.
+
+For adapted material, verify the source license permits the contribution
+before opening a pull request, and retain any required upstream copyright or
+license notices in the crate. Flag uncertain compatibility for maintainers.
+
+Adapted works
+-------------
+No adapted third-party works have been verified by maintainers at the time of
+writing. Every crate listed in examples/ORIGIN.md is either `original` or
+`unreviewed`; no `adapted` rows exist yet.
+
+| Crate | Upstream source and revision/version | Source license | Changes made | Required attribution |
+| ----- | ------------------------------------ | -------------- | ------------ | -------------------- |
+| — | — | — | — | — |
+
+(Add one row per verified adapted work. Do not invent upstream sources.)

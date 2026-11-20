@@ -23,6 +23,7 @@ const STORAGE_PREFIX = 'sc-doc-feedback:';
 
 export default function DocFeedback(): React.JSX.Element | null {
   const { pathname } = useLocation();
+  const storageKey = `${STORAGE_PREFIX}${pathname}`;
   const [vote, setVote] = useState<'yes' | 'no' | null>(null);
   // Rendered only after mount: the stored vote lives in localStorage, so
   // deciding what to show during render would break hydration.
@@ -32,13 +33,13 @@ export default function DocFeedback(): React.JSX.Element | null {
     setReady(false);
     let stored: string | null = null;
     try {
-      stored = window.localStorage.getItem(`${STORAGE_PREFIX}${pathname}`);
+      stored = window.localStorage.getItem(storageKey);
     } catch {
       // Storage unavailable — just ask again.
     }
     setVote(stored === 'yes' || stored === 'no' ? stored : null);
     setReady(true);
-  }, [pathname]);
+  }, [storageKey]);
 
   if (!ready) return null;
 
@@ -46,7 +47,8 @@ export default function DocFeedback(): React.JSX.Element | null {
     const value = helpful ? 'yes' : 'no';
     setVote(value);
     try {
-      window.localStorage.setItem(`${STORAGE_PREFIX}${pathname}`, value);
+      // Overwrite this page's vote rather than appending a second response.
+      window.localStorage.setItem(storageKey, value);
     } catch {
       // A vote that cannot be persisted is still worth reporting.
     }

@@ -1,32 +1,80 @@
 [workspace]
 members = [
     "access-control",
+    "airdrop-bitmap",
     "authorization",
     "balance-snapshot",
+    "batch-ops",
     "constant-product-amm",
+    "constructor-init",
     "contract-factory",
     "counter",
+    "cross-contract",
+    "crowdfund",
+    "custom-account",
+    "custom-types",
+    "dutch-auction",
     "emergency-stop",
     "error-handling",
     "escrow-basic",
     "escrow-multiparty",
+    "events-catalog",
+    "faucet",
     "flash-loan",
+    "governor",
     "hello-world",
     "htlc-swap",
+    "lending",
+    "marketplace",
+    "merkle-proof",
+    "multi-token-vault",
+    "multisig-timelock-upgrade",
+    "multisig-wallet",
     "oracle-consumer",
+    "pagination",
+    "pausable-token",
+    "payment-splitter",
+    "price-oracle",
+    "rate-limit",
     "reentrancy-guard",
+    "refundable-deposit",
     "registry",
+    "sac-client",
     "simple-dao",
     "simple-voting",
+    "single-range-clmm",
+    "soulbound-token",
     "staking",
+    "storage-ttl",
     "stream-payment",
     "timelock-vault",
+    "tiny-contract",
     "token-snapshot",
     "token-transfer",
     "token-vesting",
     "token-wrapper",
+    "ttl-bumper",
+    "twap-helper",
     "upgradeable",
-    "multi-token-vault",
-    "multisig-wallet",
+    "royalty-splitter",
 ]
 resolver = "2"
+
+[workspace.dependencies]
+soroban-sdk = { version = "28.0.0", features = ["testutils"] }
+
+# The release profile is declared once at the workspace root so it applies to
+# every example contract. Per-package `[profile.release]` tables are silently
+# ignored by Cargo, which would otherwise fall back to the size-inefficient
+# default profile. These size-oriented settings produce small, stripped
+# binaries: `-OzZ` code, debug symbols removed, and `panic = "abort"` (panicking
+# contracts are rejected on-chain, so an aborting binary is smaller and safer).
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+debug-assertions = false
+panic = "abort"
+codegen-units = 1
+lto = true

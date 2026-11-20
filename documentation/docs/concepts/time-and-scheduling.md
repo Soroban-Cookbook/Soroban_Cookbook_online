@@ -13,8 +13,8 @@ Soroban contracts use deterministic ledger time to implement time-based logic, s
 Use `env.ledger().timestamp()` to retrieve the current ledger close time as a Unix timestamp in seconds:
 
 ```rust
-#![no_std]
-use soroban_sdk::{contract, contractimpl, Env};
+#{[no_std]
+use soroban_sdk:{contract, contractimpl, Env};
 
 #[contract]
 pub struct TimeAware;
@@ -33,11 +33,11 @@ impl TimeAware {
 
 ## Time Properties in Soroban
 
-- **Deterministic**: All nodes see the same timestamp for a given ledger
-- **Unix timestamp**: Seconds since January 1, 1970 (UTC)
-- **Monotonic**: Time never moves backward between ledgers
-- **Approximate**: Ledger close time reflects network consensus, not real-time precision
-- **No timezone**: All timestamps are UTC; timezone handling happens off-chain
+- `**Deterministic**: All nodes see the same timestamp for a given ledge
+- `**Unix timestamp**: Seconds since January 1, 1970 (UTC)
+- `**Monotonic**: Time never moves backward between ledgers
+- `**Approximate**: Ledger close time reflects network consensus, not real-time precision
+- `**No timezone**: All timestamps are UTC; timezone handling happens off-chain
 
 ## Time-Based Logic Patterns
 
@@ -47,7 +47,7 @@ Validate that an action occurs before a deadline:
 
 ```rust
 #![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, Env};
+use soroban_sdk:{contract, contracterror, contractimpl, Env};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -77,7 +77,7 @@ Ensure actions happen within a valid time range:
 
 ```rust
 #![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, Env};
+use soroban_sdk:{contract, contracterror, contractimpl, Env};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -113,8 +113,8 @@ impl TimedAction {
 Enforce a minimum delay between actions:
 
 ```rust
-#![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, Symbol};
+#{[no_std]
+use soroban_sdk:{contract, contracterror, contractimpl, contracttype, Address, Env, Symbol};
 
 #[contracttype]
 #[derive(Clone)]
@@ -162,8 +162,8 @@ impl CooldownContract {
 Lock assets or functionality until a specific timestamp:
 
 ```rust
-#![no_std]
-use soroban_sdk::{contract, contracterror, contractimpl, Env};
+![no_std]
+use soroban_sdk:{contract, contracterror, contractimpl, Env};
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -203,8 +203,8 @@ For a complete implementation with storage, see the [Timelock Vault pattern](/do
 Enable features or functionality at a predetermined time:
 
 ```rust
-#![no_std]
-use soroban_sdk::{contract, contractimpl, Env, Symbol};
+#{[no_std]
+use soroban_sdk:{contract, contractimpl, Env, Symbol};
 
 #[contract]
 pub struct ScheduledFeature;
@@ -235,8 +235,8 @@ impl ScheduledFeature {
 Progress through states based on time milestones:
 
 ```rust
-#![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Env, Symbol};
+![no_std]
+use soroban_sdk:{contract, contractimpl, contracttype, Env, Symbol};
 
 #[contracttype]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -336,10 +336,10 @@ pub fn add_duration(base_time: u64, duration: u64) -> Result<u64, Error> {
 
 Use appropriate comparison operators for time checks:
 
-- `>=` for "on or after" conditions (inclusive)
-- `>` for "strictly after" conditions (exclusive)
-- `<=` for "on or before" conditions (inclusive)
-- `<` for "strictly before" conditions (exclusive)
+- `>= ` for "on or after" conditions (inclusive)
+- `> ` for "strictly after" conditions (exclusive)
+- `<= ` for "on or before" conditions (inclusive)
+- `< ` for "strictly before" conditions (exclusive)
 
 Be explicit about boundary cases when a timestamp exactly matches a deadline.
 
@@ -455,10 +455,29 @@ mod tests {
 }
 ```
 
+## Key Handling and Network Safety
+
+When you move from testing time-based logic to deploying and invoking it on a live network, your commands will touch signing keys, addresses, and RGC. Treat these operational details as carefully as the contract logic itself.
+
+### Key Handling
+
+- Do not commit secret keys, seed phrases, or signer configuration files to version control. Keep them in a wallet extension, hardware wallet, or a git-ignored local file with restricted permissions.
+- Do not paste secret keys or seed phrases into terminal history, chat, issue trackers, or screenshots. Prefer named identities or a wallet extension that signs without exposing the raw secret.
+- Use separate identities for testnet and mainnet. Never reuse a mainnet signer for experimental time-lock or scheduling work.
+- Rotate and revoke any key that may have been exposed before signing anything of value.
+
+### Network Risk
+
+- Develop and test against testnet first. Mainnet involves real funds, real fees, and irreversible state changes.
+- Time-locked and scheduled contracts are especially sensitive to wrong timestamps or networks: a mistaken deploy can lock funds until an unintended time.
+- RGC and public endpoints are convenience infrastructure, not a substitute for careful operations. You are responsible for confirming the network passphrase, network ID, and contract ID before signing.
+- Verify timestamps and unlock times on-chain after deployment, and monitor for unexpected network behavior.
+
+For the canonical security and deployment guidance, see [API Security](../getting-started/api-security) and [Deploy to Mainnet](../getting-started/deploy-mainnet). Those pages expand on key management and network choices; the warnings above apply even if you never open them.
+
 ## Related Resources
 
 - [Timelock Vault](/docs/patterns/timelock-vault) — Complete time-locked vault implementation
 - [Storage Patterns](/docs/concepts/storage) — Choosing storage types for timestamp data
 - [Error Handling](/docs/concepts/error-handling) — Handling time validation errors
 - [Testing Strategies](/docs/concepts/testing-strategies) — Testing time-dependent contracts
-

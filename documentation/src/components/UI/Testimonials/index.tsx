@@ -24,9 +24,10 @@ export interface TestimonialsProps {
   className?: string;
 }
 
-function getInitials(name: string): string {
+export function getInitials(name: string): string {
   return name
     .split(' ')
+    .filter((part) => part.trim().length > 0)
     .map((part) => part.trim()[0])
     .filter(Boolean)
     .slice(0, 2)
@@ -176,7 +177,11 @@ export default function Testimonials({
             <header className={styles.cardHeader}>
               <div className={styles.avatarWrap}>
                 {showFallback ? (
-                  <span className={styles.avatarFallback} aria-hidden="true">
+                  <span
+                    className={styles.avatarFallback}
+                    aria-label={item.name}
+                    role="img"
+                    data-testid="testimonial-avatar-initials">
                     {initials}
                   </span>
                 ) : (
@@ -185,6 +190,7 @@ export default function Testimonials({
                     src={item.avatarUrl}
                     alt={item.name ? `${item.name} avatar` : 'Community contributor profile avatar'}
                     loading="lazy"
+                    data-testid="testimonial-avatar-image"
                     onError={() => setFailedAvatars((prev) => ({ ...prev, [index]: true }))}
                   />
                 )}

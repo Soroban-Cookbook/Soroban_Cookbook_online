@@ -9,6 +9,7 @@ tags: []
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
 
 # Contract Registry / Name Service
 
@@ -50,6 +51,14 @@ Names are `Bytes` objects between 1 and 32 bytes. This supports:
 - Binary keys (for programmatic use)
 
 ## Implementation
+
+<Callout variant="warning" title="Unaudited Educational Example — Not for Production">
+  This contract pattern is an educational example and has not undergone an independent security audit. Do not deploy this snippet to production or mainnet without substantial hardening, complete test coverage, and formal review.
+
+  **Security & Architectural Limitations:**
+  - **Reentrancy:** The current implementation performs simple instance storage reads and writes without external cross-contract invocations or token transfers, meaning external reentrancy vectors do not directly apply. However, if external calls or callbacks are added in future extensions, proper checks-effects-interactions order or a reentrancy guard must be implemented.
+  - **Storage TTL & Data Expiry:** All administrative configuration and registry entries reside in `instance` storage. Instance storage entries share the contract instance's time-to-live (TTL). If the instance TTL is not routinely monitored and extended via `env.storage().instance().extend_ttl(...)`, entries will expire and become inaccessible, rendering the name service unavailable until restored.
+</Callout>
 
 ### Core Logic
 

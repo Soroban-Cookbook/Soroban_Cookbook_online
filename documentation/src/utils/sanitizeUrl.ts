@@ -2,8 +2,8 @@
  * sanitizeUrl.ts
  *
  * Blocks URLs that could execute JavaScript (javascript:, data:, vbscript:).
- * Returns the original URL when it is safe, or '#' (a no-op anchor) when it
- * is not, so callers always receive a string and never crash.
+ * Returns the original URL when it is safe, an empty string for dangerous
+ * schemes, or '#' for missing inputs and unknown schemes.
  */
 
 const DANGEROUS_SCHEMES = ['javascript:', 'data:', 'vbscript:', 'livescript:'];
@@ -22,9 +22,11 @@ export function sanitizeUrl(url: string | null | undefined): string {
 
   if (DANGEROUS_SCHEMES.some((scheme) => normalised.startsWith(scheme))) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`[sanitizeUrl] Blocked potentially dangerous URL: "${url}". Replaced with '#'.`);
+      console.warn(
+        `[sanitizeUrl] Blocked potentially dangerous URL: "${url}". Replaced with an empty string.`,
+      );
     }
-    return '#';
+    return '';
   }
 
   if (SAFE_SCHEME_PREFIXES.some((prefix) => normalised.startsWith(prefix))) {

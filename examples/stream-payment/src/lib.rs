@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 //! Linear token streaming with withdrawable balance.
 //!
 //! A sender deposits tokens to create a stream. The recipient can withdraw
@@ -130,9 +132,7 @@ impl StreamPayment {
         }
 
         stream.withdrawn_amount += available;
-        env.storage()
-            .instance()
-            .set(&DataKey::Stream, &stream);
+        env.storage().instance().set(&DataKey::Stream, &stream);
 
         token::Client::new(&env, &stream.token).transfer(
             &env.current_contract_address(),
@@ -317,8 +317,12 @@ mod tests {
     #[test]
     fn nothing_withdrawable_before_stream_starts() {
         let fixture = setup();
-        set_time(&fixture.env, START_TIME - 1);
+        // `setup()` sets the clock to START_TIME, so initializing records that
+        // time as the stream start. Move the clock back after initialization
+        // so `withdraw` actually runs *before* the stream has started.
         initialize(&fixture);
+        assert_eq!(fixture.client.stream().start_time, START_TIME);
+        set_time(&fixture.env, START_TIME - 1);
 
         assert_eq!(fixture.client.available_amount(), 0);
         assert_eq!(
@@ -351,25 +355,46 @@ mod tests {
         let stream = fixture.client.stream();
 
         // Before start
-        assert_eq!(StreamPayment::withdrawable_at(&stream, START_TIME - 1).unwrap(), 0);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, START_TIME - 1).unwrap(),
+            0
+        );
 
         // At start
-        assert_eq!(StreamPayment::withdrawable_at(&stream, START_TIME).unwrap(), 0);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, START_TIME).unwrap(),
+            0
+        );
 
         // 25% through
-        assert_eq!(StreamPayment::withdrawable_at(&stream, START_TIME + 250).unwrap(), 2_500);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, START_TIME + 250).unwrap(),
+            2_500
+        );
 
         // 50% through
-        assert_eq!(StreamPayment::withdrawable_at(&stream, START_TIME + 500).unwrap(), 5_000);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, START_TIME + 500).unwrap(),
+            5_000
+        );
 
         // 75% through
-        assert_eq!(StreamPayment::withdrawable_at(&stream, START_TIME + 750).unwrap(), 7_500);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, START_TIME + 750).unwrap(),
+            7_500
+        );
 
         // At end
-        assert_eq!(StreamPayment::withdrawable_at(&stream, END_TIME).unwrap(), TOTAL_AMOUNT);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, END_TIME).unwrap(),
+            TOTAL_AMOUNT
+        );
 
         // After end
-        assert_eq!(StreamPayment::withdrawable_at(&stream, END_TIME + 100).unwrap(), TOTAL_AMOUNT);
+        assert_eq!(
+            StreamPayment::withdrawable_at(&stream, END_TIME + 100).unwrap(),
+            TOTAL_AMOUNT
+        );
     }
 
     #[test]
@@ -428,13 +453,16 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "HostError: Error(Auth, InvalidAction)")]
     fn unauthorized_withdrawal_fails() {
-        let fixture = setup();
+        let mut fixture = setup();
         initialize(&fixture);
 
-        // Without mock_all_auths, an unauthorized caller must fail.
-        // The require_auth() call in withdraw() will panic.
+        // `setup()` mocks all auths; clear them so `recipient.require_auth()`
+        // in `withdraw()` actually runs. The client is not the recipient, so
+        // it panics with an auth error.
+        fixture.env.set_auths(&[]);
+
         set_time(&fixture.env, START_TIME + 500);
         fixture.client.withdraw();
     }
@@ -462,17 +490,47 @@ mod tests {
 
         // Total withdrawn should equal total amount
         assert_eq!(fixture.client.stream().withdrawn_amount, TOTAL_AMOUNT);
-        assert_eq!(token_client(&fixture).balance(&fixture.recipient), TOTAL_AMOUNT);
+        assert_eq!(
+            token_client(&fixture).balance(&fixture.recipient),
+            TOTAL_AMOUNT
+        );
+    }
+
+    #[test]
+    fn withdraw_pays_only_vested_amount_and_second_call_in_same_ledger_pays_zero() {
+        let fixture = setup();
+        initialize(&fixture);
+
+        // Advance ledger to 50% through the stream duration
+        let mid_timestamp = START_TIME + 500;
+        set_time(&fixture.env, mid_timestamp);
+
+        // First check available amount at this timestamp: exactly 50% vested (5_000)
+        assert_eq!(fixture.client.available_amount(), 5_000);
+
+        // First withdraw call at mid_timestamp pays only the vested amount (5_000)
+        assert_eq!(fixture.client.withdraw(), 5_000);
+        assert_eq!(token_client(&fixture).balance(&fixture.recipient), 5_000);
+        assert_eq!(fixture.client.stream().withdrawn_amount, 5_000);
+
+        // Within the same ledger / timestamp, available_amount must now report 0
+        assert_eq!(fixture.client.available_amount(), 0);
+
+        // A second call in the same ledger pays zero / returns contract error NothingToWithdraw
+        assert_eq!(
+            fixture.client.try_withdraw(),
+            Err(Ok(Error::NothingToWithdraw))
+        );
+        // Recipient balance unchanged
+        assert_eq!(token_client(&fixture).balance(&fixture.recipient), 5_000);
+        assert_eq!(fixture.client.stream().withdrawn_amount, 5_000);
     }
 
     #[test]
     fn view_functions_require_initialization() {
         let fixture = setup();
 
-        assert_eq!(
-            fixture.client.try_stream(),
-            Err(Ok(Error::NotInitialized))
-        );
+        assert_eq!(fixture.client.try_stream(), Err(Ok(Error::NotInitialized)));
         assert_eq!(
             fixture.client.try_available_amount(),
             Err(Ok(Error::NotInitialized))

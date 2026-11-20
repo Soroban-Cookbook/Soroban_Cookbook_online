@@ -70,29 +70,15 @@ export function clearCSRFToken(): void {
  * Use this when making POST requests to protected endpoints
  */
 export function getCSRFProtectedRequestInit(
-  init?: Record<string, unknown> & { headers?: Record<string, string> | Headers },
+  init?: Record<string, unknown> & { headers?: HeadersInit },
 ): Record<string, unknown> {
   const token = getOrCreateCSRFToken();
-  const existingHeaders = init?.headers || {};
-
-  // Convert Headers object to Record if needed
-  const headersRecord: Record<string, string> =
-    existingHeaders instanceof Headers
-      ? (() => {
-          const record: Record<string, string> = {};
-          existingHeaders.forEach((value, key) => {
-            record[key] = value;
-          });
-          return record;
-        })()
-      : (existingHeaders as Record<string, string>);
+  const headers = new Headers(init?.headers);
+  headers.set(CSRF_TOKEN_HEADER, token);
 
   return {
     ...init,
-    headers: {
-      ...headersRecord,
-      [CSRF_TOKEN_HEADER]: token,
-    },
+    headers,
   };
 }
 

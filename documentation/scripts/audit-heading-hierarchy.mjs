@@ -8,10 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const docRoots = [
-  path.join(__dirname, '../docs'),
-  path.join(__dirname, '../src/pages'),
-];
+const docRoots = [path.join(__dirname, '../docs'), path.join(__dirname, '../src/pages')];
 
 function walk(dir, files = []) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {

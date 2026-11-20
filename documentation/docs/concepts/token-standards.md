@@ -10,6 +10,8 @@ keywords:
 image: /img/soroban-social-card.png
 ---
 
+> **Note:** This concept page covers the high-level differences between token models in Soroban. For concrete implementation templates and examples, see the Token Standards Pattern.
+
 # Soroban Token Standards Overview
 
 Soroban token implementations generally follow two tracks:
@@ -18,6 +20,20 @@ Soroban token implementations generally follow two tracks:
 - Custom token contracts: Application-specific logic and storage models.
 
 ## SAC vs custom token at a glance
+
+Before connecting a wallet or deploying either model, protect your signing keys:
+never commit or paste secret keys or seed phrases into source code, documentation,
+issues, chat, or RPC requests. Prefer a named CLI identity or a wallet extension
+that keeps signing material out of commands and shared files.
+
+Use **testnet** with test accounts and test assets while learning. **Mainnet**
+transactions spend real funds and can irreversibly transfer assets or change
+token authority. Before signing, verify the network/passphrase, RPC endpoint,
+contract or asset identifier, recipient, permissions, and fees. A public RPC
+endpoint does not validate your operational choices or make deployment safe;
+never send it secret keys. Follow the
+[mainnet deployment safeguards](../getting-started/deploy-mainnet.md) and
+[API security guidance](../getting-started/api-security.md) before using real funds.
 
 | Dimension                  | SAC                                | Custom token                       |
 | -------------------------- | ---------------------------------- | ---------------------------------- |
@@ -60,7 +76,14 @@ This pattern is effective when your business logic exceeds standard token semant
 2. Need protocol-specific transfer or policy logic: choose custom.
 3. Need both: start with SAC-compatible behavior, then isolate custom extensions in auxiliary contracts.
 
+## Deep dives
+
+- **[Stellar Asset Contract (SAC)](./stellar-asset-contract.md)** — wrapping, SAC IDs, admin authority, CLI references, and when **not** to write a custom token.
+- **[SEP-41 Token Standard](./sep-41-token-standard.md)** — interface method table, metadata, allowances, transfers/burns, and events.
+
 ## Related reading
 
+- [Stellar Asset Contract (SAC)](./stellar-asset-contract.md)
+- [SEP-41 Token Standard](./sep-41-token-standard.md)
 - [Pattern Library](../patterns/overview)
 - [Advanced Soroban Testing Strategies](./testing-strategies.md)

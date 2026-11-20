@@ -138,12 +138,13 @@ npm run format:check
 npm run build
 ```
 
-For Rust code examples, ensure they compile and pass tests:
+For Rust code examples, ensure they are formatted consistently, compile, and pass tests. All example crates live in the `examples/` workspace, which is checked by CI with the `rustfmt` job:
 
 ```bash
-cargo check
-cargo test
-cargo fmt --all -- --check
+cd examples
+cargo fmt --all -- --check  # verify formatting (run `cargo fmt --all` to auto-fix)
+cargo build                 # compile all examples
+cargo test                  # run example tests
 ```
 
 ---

@@ -1,8 +1,8 @@
 {
-  "buildCommand": "cd documentation && bun install --frozen-lockfile && bun run build",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "outputDirectory": "documentation/build",
-  "devCommand": "cd documentation && bun start",
-  "installCommand": "cd documentation && bun install --frozen-lockfile",
+  "devCommand": "bash scripts/vercel-dev.sh",
+  "installCommand": "bash scripts/vercel-install.sh",
   "headers": [
     {
       "source": "/(.*)",

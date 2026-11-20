@@ -196,6 +196,18 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .patternCardWrapper {
+    animation: none;
+    opacity: 1;
+  }
+
+  .patternsContainer.animating {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Metadata */
 .metadata {
   margin-top: 1rem;
@@ -221,6 +233,15 @@
    background; the brighter originals are restored under [data-theme='dark'],
    where they sit on a dark surface and already pass. */
 .difficulty[data-difficulty='beginner'] {
+  color: #065f46;
+}
+
+.difficulty[data-difficulty='intermediate'] {
+  color: #78350f;
+}
+
+.difficulty[data-difficulty='advanced'] {
+  color: #7f1d1d;
   color: #047857;
 }
 

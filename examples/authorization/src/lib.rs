@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #![no_std]
 use soroban_sdk::{contract, contractimpl, Address, Env};
 
@@ -29,7 +31,10 @@ impl AccessControl {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk::{
+        testutils::{Address as _, MockAuth, MockAuthInvoke},
+        Env, IntoVal,
+    };
 
     #[test]
     fn test_initialize_and_set_admin() {
@@ -52,11 +57,53 @@ mod tests {
         let client = AccessControlClient::new(&env, &contract_id);
 
         let owner = Address::generate(&env);
-        let alice = Address::generate(&env);
-        env.mock_all_auths();
+        let admin = Address::generate(&env);
+        let stranger = Address::generate(&env);
 
         client.initialize(&owner);
-        client.set_admin(&alice);
+
+        env.mock_auths(&[MockAuth {
+            address: &owner,
+            invoke: &MockAuthInvoke {
+                contract: &contract_id,
+                fn_name: "set_admin",
+                args: (admin.clone(),).into_val(&env),
+                sub_invokes: &[],
+            },
+        }]);
+        client.set_admin(&admin);
+
+        env.mock_auths(&[MockAuth {
+            address: &admin,
+            invoke: &MockAuthInvoke {
+                contract: &contract_id,
+                fn_name: "privileged_action",
+                args: ().into_val(&env),
+                sub_invokes: &[],
+            },
+        }]);
         client.privileged_action();
+
+        env.mock_auths(&[MockAuth {
+            address: &stranger,
+            invoke: &MockAuthInvoke {
+                contract: &contract_id,
+                fn_name: "privileged_action",
+                args: ().into_val(&env),
+                sub_invokes: &[],
+            },
+        }]);
+        assert!(client.try_privileged_action().is_err());
+
+        env.mock_auths(&[MockAuth {
+            address: &stranger,
+            invoke: &MockAuthInvoke {
+                contract: &contract_id,
+                fn_name: "set_admin",
+                args: (stranger.clone(),).into_val(&env),
+                sub_invokes: &[],
+            },
+        }]);
+        assert!(client.try_set_admin(&stranger).is_err());
     }
 }

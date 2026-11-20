@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #![no_std]
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, token, Address, Bytes, Env,
@@ -121,11 +122,7 @@ impl HtlcSwap {
         token_b_client.transfer(&caller, &env.current_contract_address(), &swap.amount_b);
 
         let token_a_client = token::Client::new(&env, &swap.token_a);
-        token_a_client.transfer(
-            &env.current_contract_address(),
-            &caller,
-            &swap.amount_a,
-        );
+        token_a_client.transfer(&env.current_contract_address(), &caller, &swap.amount_a);
 
         env.storage().persistent().remove(&key);
 
@@ -162,11 +159,7 @@ impl HtlcSwap {
         env.storage().persistent().set(&key, &swap);
 
         let token_a_client = token::Client::new(&env, &swap.token_a);
-        token_a_client.transfer(
-            &env.current_contract_address(),
-            &caller,
-            &swap.amount_a,
-        );
+        token_a_client.transfer(&env.current_contract_address(), &caller, &swap.amount_a);
 
         env.storage().persistent().remove(&key);
 
@@ -183,30 +176,20 @@ impl HtlcSwap {
 mod tests {
     use super::*;
     use soroban_sdk::{
-        testutils::{Address as _, Ledger, LedgerInfo},
+        testutils::{Address as _, Ledger},
         Bytes, Env,
     };
 
-    fn create_token(
-        env: &Env,
-        admin: &Address,
-    ) -> (Address, token::StellarAssetClient<'static>) {
+    fn create_token(env: &Env, admin: &Address) -> (Address, token::StellarAssetClient<'static>) {
         let asset = env.register_stellar_asset_contract(admin.clone());
         let sac = token::StellarAssetClient::new(env, &asset);
         (asset, sac)
     }
 
     fn advance_time(env: &Env, timestamp: u64) {
-        env.ledger().set(LedgerInfo {
-            timestamp,
-            protocol_version: 22,
-            sequence_number: env.ledger().sequence(),
-            network_id: Default::default(),
-            base_reserve: 10,
-            min_temp_entry_ttl: 1,
-            min_persistent_entry_ttl: 1,
-            max_entry_ttl: 6_312_000,
-        });
+        // Preserve the host protocol version; constructing LedgerInfo by hand
+        // breaks when the soroban-sdk host requires a newer protocol.
+        env.ledger().set_timestamp(timestamp);
     }
 
     fn setup() -> (
@@ -244,7 +227,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         client.claim(&bob, &swap_id, &secret);
 
@@ -264,7 +249,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         let result = client.try_refund(&alice, &swap_id);
         assert_eq!(result, Err(Ok(Error::TimelockNotExpired)));
@@ -284,7 +271,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         let wrong_secret = Bytes::from_array(&env, &[0x05, 0x06, 0x07, 0x08]);
         let result = client.try_claim(&bob, &swap_id, &wrong_secret);
@@ -298,7 +287,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         client.claim(&bob, &swap_id, &secret);
 
@@ -313,7 +304,9 @@ mod tests {
         let secret = Bytes::from_array(&env, &[0x01, 0x02, 0x03, 0x04]);
         let hashlock: Bytes = env.crypto().sha256(&secret).into();
 
-        let swap_id = client.create(&alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000);
+        let swap_id = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
 
         client.claim(&bob, &swap_id, &secret);
 
@@ -321,6 +314,47 @@ mod tests {
 
         let result = client.try_refund(&alice, &swap_id);
         assert_eq!(result, Err(Ok(Error::SwapNotFound)));
+    }
+
+    #[test]
+    fn test_claim_and_refund_respect_the_timeout_boundary() {
+        let (env, alice, bob, token_a, token_b, client) = setup();
+
+        // claim succeeds one second before the timeout
+        let secret = Bytes::from_array(&env, &[0x0a, 0x0b, 0x0c, 0x0d]);
+        let hashlock: Bytes = env.crypto().sha256(&secret).into();
+        let claimable = client.create(
+            &alice, &bob, &token_a, &token_b, &100, &50, &hashlock, &2000,
+        );
+
+        advance_time(&env, 1999);
+        client.claim(&bob, &claimable, &secret);
+
+        let token_a_client = token::Client::new(&env, &token_a);
+        assert_eq!(token_a_client.balance(&bob), 100);
+
+        // refund is rejected before the timeout and succeeds at the boundary
+        let refund_secret = Bytes::from_array(&env, &[0x1a, 0x1b, 0x1c, 0x1d]);
+        let refund_hashlock: Bytes = env.crypto().sha256(&refund_secret).into();
+        let refundable = client.create(
+            &alice,
+            &bob,
+            &token_a,
+            &token_b,
+            &100,
+            &50,
+            &refund_hashlock,
+            &2000,
+        );
+
+        let early = client.try_refund(&alice, &refundable);
+        assert_eq!(early, Err(Ok(Error::TimelockNotExpired)));
+
+        advance_time(&env, 2000);
+        client.refund(&alice, &refundable);
+
+        assert_eq!(token_a_client.balance(&alice), 900);
+        assert_eq!(client.get_swap(&refundable), None);
     }
 
     #[test]

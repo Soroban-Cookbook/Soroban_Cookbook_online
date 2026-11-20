@@ -10,9 +10,15 @@ const gtagMeasurementId = process.env.GTAG_MEASUREMENT_ID || process.env.GOOGLE_
 const config: Config = {
   title: 'Soroban Cookbook',
   tagline: 'A comprehensive guide to building smart contracts on Stellar with Soroban',
-  favicon: 'img/logo.svg',
+  favicon: 'img/favicon.ico',
 
-  url: process.env.SITE_URL || 'https://soroban-cookbook.dev',
+  url:
+    process.env.SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'https://soroban-cookbook.dev'),
   baseUrl: process.env.BASE_URL || '/',
 
   organizationName: 'Soroban-Cookbook',
@@ -24,7 +30,7 @@ const config: Config = {
     newsletterEndpoint: process.env.NEWSLETTER_ENDPOINT ?? '',
     /** Soroban Cookbook Discord invite link. Set DISCORD_INVITE_URL at build time once the server is created. */
     discordInviteUrl: process.env.DISCORD_INVITE_URL ?? '',
-/**
+    /**
      * Sentry DSN for error monitoring (issue #136).
      * Set SENTRY_DSN in your CI/CD environment or .env.local.
      * When absent, Sentry is not initialised (safe for local dev).
@@ -34,7 +40,11 @@ const config: Config = {
     // Unset by default, so no analytics script ever loads until an operator
     // opts in by setting the secret. See DEPLOYMENT.md → Analytics.
     /** GA4 measurement ID (e.g. "G-XXXXXXX") for conversion funnel tracking. */
-    gaMeasurementId: process.env.GA_MEASUREMENT_ID ?? process.env.GTAG_MEASUREMENT_ID ?? process.env.GOOGLE_ANALYTICS_ID ?? '',
+    gaMeasurementId:
+      process.env.GA_MEASUREMENT_ID ??
+      process.env.GTAG_MEASUREMENT_ID ??
+      process.env.GOOGLE_ANALYTICS_ID ??
+      '',
     /** Microsoft Clarity project ID for heatmaps/session replay. */
     clarityProjectId: process.env.CLARITY_PROJECT_ID ?? '',
   },
@@ -43,7 +53,24 @@ const config: Config = {
 
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'es', 'pt-BR'],
+    localeConfigs: {
+      en: {
+        label: 'English',
+        direction: 'ltr',
+        htmlLang: 'en',
+      },
+      es: {
+        label: 'Español',
+        direction: 'ltr',
+        htmlLang: 'es',
+      },
+      'pt-BR': {
+        label: 'Português (Brasil)',
+        direction: 'ltr',
+        htmlLang: 'pt-BR',
+      },
+    },
   },
 
   // Theme initialization script to prevent flash of incorrect theme
@@ -63,7 +90,7 @@ const config: Config = {
         'http-equiv': 'Content-Security-Policy',
         content: [
           "default-src 'self'",
-"script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https:",
           "font-src 'self' data:",
@@ -154,8 +181,16 @@ const config: Config = {
   // ─── Search Analytics Client Module (issue #329) ──────────────────────────
   // Loads on every page to observe the search input and fire onQuery /
   // onResult analytics events via src/utils/searchAnalytics.ts.
+  //
+  // ─── Mermaid Zoom Client Module (issue #316) ──────────────────────────────
+  // Makes rendered Mermaid diagrams clickable, opening a zoomable/pannable
+  // lightbox view via src/clientModules/mermaidZoomModule.ts.
+  //
+  // ─── Touch Gesture Client Module ───────────────────────────────────────────
+  // Enables touch-based interactions and gestures for mobile users.
   clientModules: [
     require.resolve('./src/clientModules/searchAnalyticsModule.ts'),
+    require.resolve('./src/clientModules/mermaidZoomModule.ts'),
     require.resolve('./src/clientModules/touchGestureModule.ts'),
   ],
   markdown: {
@@ -169,7 +204,7 @@ const config: Config = {
       require.resolve('@easyops-cn/docusaurus-search-local'),
       {
         hashed: true,
-        language: ['en'],
+        language: ['en', 'es', 'pt'],
         highlightSearchTermsOnTargetPage: true,
         explicitSearchResultPath: true,
         indexDocs: true,
@@ -198,11 +233,7 @@ const config: Config = {
       '@docusaurus/plugin-pwa',
       {
         debug: false,
-        offlineModeActivationStrategies: [
-          'appInstalled',
-          'standalone',
-          'queryString',
-        ],
+        offlineModeActivationStrategies: ['appInstalled', 'standalone', 'queryString'],
         pwaHead: [
           {
             tagName: 'link',
@@ -237,7 +268,7 @@ const config: Config = {
           {
             tagName: 'link',
             rel: 'mask-icon',
-            href: '/img/logo.svg',
+            href: '/img/soroban-logo.png',
             color: '#3ECC5F',
           },
           {
@@ -292,6 +323,10 @@ const config: Config = {
             to: '/docs/getting-started/deploy-testnet',
           },
           {
+            from: '/docs/getting-started/local-testing',
+            to: '/docs/getting-started/local-testing-and-simulation',
+          },
+          {
             from: '/docs/getting-started/interaction',
             to: '/docs/getting-started/contract-interaction',
           },
@@ -331,6 +366,47 @@ const config: Config = {
           },
           {
             from: '/docs/patterns/optimization',
+            to: '/docs/patterns/optimization-playbook',
+          },
+          // Overview-promised / historical pattern URLs (legacy paths without /docs)
+          {
+            from: '/patterns',
+            to: '/docs/patterns/overview',
+          },
+          {
+            from: '/patterns/overview',
+            to: '/docs/patterns/overview',
+          },
+          {
+            from: '/patterns/types',
+            to: '/docs/patterns/custom-types',
+          },
+          {
+            from: '/patterns/custom-types',
+            to: '/docs/patterns/custom-types',
+          },
+          {
+            from: '/patterns/auth',
+            to: '/docs/patterns/authorization',
+          },
+          {
+            from: '/patterns/authorization',
+            to: '/docs/patterns/authorization',
+          },
+          {
+            from: '/patterns/upgrades',
+            to: '/docs/patterns/lifecycle-upgrades',
+          },
+          {
+            from: '/patterns/lifecycle-upgrades',
+            to: '/docs/patterns/lifecycle-upgrades',
+          },
+          {
+            from: '/patterns/optimization',
+            to: '/docs/patterns/optimization-playbook',
+          },
+          {
+            from: '/patterns/optimization-playbook',
             to: '/docs/patterns/optimization-playbook',
           },
           // Contributing renames
@@ -388,16 +464,15 @@ const config: Config = {
             './src/css/badges-tags.css',
             './src/css/custom.css',
             './src/css/search-experience.css',
+            './src/css/mermaid-zoom.css',
           ],
         },
-        ...(gtagMeasurementId
+        gtag: gtagMeasurementId
           ? {
-              gtag: {
-                trackingID: gtagMeasurementId,
-                anonymizeIP: true,
-              },
+              trackingID: gtagMeasurementId,
+              anonymizeIP: true,
             }
-          : {}),
+          : undefined,
       } satisfies Preset.Options,
     ],
   ],
@@ -409,10 +484,11 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Soroban Cookbook',
+      title: '',
       logo: {
-        alt: 'Soroban Logo',
-        src: 'img/logo.svg',
+        alt: 'Soroban Cookbook',
+        src: 'img/soroban-logo.png',
+        height: 36,
       },
       items: [
         {
@@ -423,6 +499,10 @@ const config: Config = {
         },
         {
           type: 'docsVersionDropdown',
+          position: 'right',
+        },
+        {
+          type: 'localeDropdown',
           position: 'right',
         },
         {
@@ -446,6 +526,10 @@ const config: Config = {
             {
               label: 'Documentation',
               to: '/',
+            },
+            {
+              label: 'Internal Docs',
+              to: '/docs/design-system/buttons',
             },
           ],
         },
