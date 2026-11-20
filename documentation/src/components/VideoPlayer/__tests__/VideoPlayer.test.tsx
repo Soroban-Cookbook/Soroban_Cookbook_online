@@ -6,21 +6,29 @@ import styles from '../VideoPlayer.module.css';
 // Mock the utils module to control parseVideoUrl behavior
 vi.mock('../utils', () => ({
   parseVideoUrl: vi.fn((url: string) => {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let parsed: URL | null = null;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return null;
+    }
+    if (!parsed) return null;
+
+    if (['youtube.com', 'www.youtube.com', 'youtu.be'].includes(parsed.hostname)) {
       return {
         provider: 'youtube',
         videoId: 'abc123',
         embedUrl: 'https://www.youtube.com/embed/abc123',
       };
     }
-    if (url.includes('vimeo.com')) {
+    if (['vimeo.com', 'player.vimeo.com'].includes(parsed.hostname)) {
       return {
         provider: 'vimeo',
         videoId: '456def',
         embedUrl: 'https://player.vimeo.com/video/456def',
       };
     }
-    return null; // Invalid URL
+    return null;
   }),
 }));
 
@@ -50,6 +58,32 @@ describe('VideoPlayer', () => {
     render(<VideoPlayer url={invalidUrl} />);
     expect(screen.getByText('Invalid video URL')).toBeInTheDocument();
     expect(screen.getByText('Supported: YouTube, Vimeo')).toBeInTheDocument();
+    expect(screen.queryByTitle(/Video:/)).not.toBeInTheDocument();
+  });
+
+  it('rejects javascript scheme URLs without rendering an iframe', () => {
+    render(<VideoPlayer url="javascript:alert(1)" />);
+    expect(screen.getByText('Invalid video URL')).toBeInTheDocument();
+    expect(screen.queryByTitle(/Video:/)).not.toBeInTheDocument();
+  });
+
+  it('only embeds from the YouTube origin for valid YouTube URLs', () => {
+    render(<VideoPlayer url={validYouTubeUrl} />);
+    const src = screen.getByTitle('Video: abc123').getAttribute('src')!;
+    expect(src.startsWith('https://www.youtube.com/embed/')).toBe(true);
+    expect(new URL(src).origin).toBe('https://www.youtube.com');
+  });
+
+  it('only embeds from the Vimeo origin for valid Vimeo URLs', () => {
+    render(<VideoPlayer url={validVimeoUrl} />);
+    const src = screen.getByTitle('Video: 456def').getAttribute('src')!;
+    expect(src.startsWith('https://player.vimeo.com/video/')).toBe(true);
+    expect(new URL(src).origin).toBe('https://player.vimeo.com');
+  });
+
+  it('shows the error state for a URL that only claims to be YouTube', () => {
+    render(<VideoPlayer url="https://youtube.com.example.org/watch?v=abc123" />);
+    expect(screen.getByText('Invalid video URL')).toBeInTheDocument();
     expect(screen.queryByTitle(/Video:/)).not.toBeInTheDocument();
   });
 

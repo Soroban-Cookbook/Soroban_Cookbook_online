@@ -193,7 +193,7 @@ jobs:
         with:
           name: documentation-build
           path: documentation/build
-          retention-days: 5
+          retention-days: ${{ github.event_name == 'pull_request' && 1 || 5 }}
 
   validate-deployment:
     name: Validate Deployment Setup
@@ -574,10 +574,10 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Metric | Coverage | Threshold |" >> "$GITHUB_STEP_SUMMARY"
           echo "|--------|----------|-----------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Lines | $LINES | 26% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Statements | $STMTS | 26% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Functions | $FUNCS | 27% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Branches | $BRNCH | 30% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Lines | $LINES | 40% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Statements | $STMTS | 40% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Functions | $FUNCS | 40% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Branches | $BRNCH | 40% |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "_Full HTML report available in the \`coverage-report\` artifact._" >> "$GITHUB_STEP_SUMMARY"
 

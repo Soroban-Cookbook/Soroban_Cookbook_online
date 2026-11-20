@@ -50,6 +50,13 @@ function clearActiveClasses(sidebar: Element): void {
   });
 }
 
+function clearActiveState(sidebar: Element): void {
+  clearActiveClasses(sidebar);
+  sidebar
+    .querySelectorAll<HTMLElement>(`.${ACTIVE_CLASS}-parent`)
+    .forEach((el) => el.classList.remove(`${ACTIVE_CLASS}-parent`));
+}
+
 function activateSidebarLink(sidebar: Element, id: string): void {
   // Match href exactly as `#<id>` or a full URL ending with `#<id>`.
   const link = sidebar.querySelector<HTMLAnchorElement>(`a[href="#${CSS.escape(id)}"]`);
@@ -75,7 +82,12 @@ export function useScrollSpy(): void {
     const article = document.querySelector<HTMLElement>(ARTICLE_SELECTOR);
     const sidebar = document.querySelector<HTMLElement>(SIDEBAR_SELECTOR);
 
-    if (!article || !sidebar) return;
+    if (!sidebar) return;
+
+    clearActiveState(sidebar);
+    activeIdRef.current = null;
+
+    if (!article) return;
 
     const headings = Array.from(article.querySelectorAll<HTMLElement>(HEADING_SELECTOR));
     if (headings.length === 0) return;
@@ -120,10 +132,7 @@ export function useScrollSpy(): void {
     // Clean up parent classes on unmount / route change.
     return () => {
       observer.disconnect();
-      clearActiveClasses(sidebar);
-      sidebar
-        .querySelectorAll<HTMLElement>(`.${ACTIVE_CLASS}-parent`)
-        .forEach((el) => el.classList.remove(`${ACTIVE_CLASS}-parent`));
+      clearActiveState(sidebar);
       activeIdRef.current = null;
     };
   }, []); // Run once per mount (route navigations re-mount DocItem/Content).
