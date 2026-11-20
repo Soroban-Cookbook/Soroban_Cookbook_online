@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const K = 'bookmarks';
 
@@ -16,6 +16,8 @@ export function useBookmarks() {
   useEffect(() => {
     setBookmarks(read());
   }, []);
+
+  const bookmarkSet = useMemo(() => new Set(bookmarks), [bookmarks]);
 
   const toggleBookmark = (path: string) =>
     setBookmarks((prev) => {
@@ -39,7 +41,7 @@ export function useBookmarks() {
 
   return {
     bookmarks,
-    isBookmarked: (path: string) => bookmarks.includes(path),
+    isBookmarked: (path: string) => bookmarkSet.has(path),
     toggleBookmark,
     removeBookmark,
     clearBookmarks,
