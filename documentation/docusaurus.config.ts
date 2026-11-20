@@ -83,6 +83,28 @@ const config: Config = {
 
   // Meta tags for theme color + social previews (see CONTRIBUTING — SEO & social metadata)
   headTags: [
+    // Warm up connections used by consent-gated analytics scripts.
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://www.googletagmanager.com',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://www.clarity.ms',
+      },
+    },
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'preconnect',
+        href: 'https://www.google-analytics.com',
+      },
+    },
     // Content Security Policy
     {
       tagName: 'meta',
