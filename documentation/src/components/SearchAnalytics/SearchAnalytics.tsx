@@ -4,21 +4,21 @@ import { trackSearch } from '@site/src/utils/analytics';
 import { CONSENT_CHANGE_EVENT, hasConsent } from '@site/src/utils/analyticsConsent';
 
 /**
- * Reports site-search queries and their result counts to GA4 (issue #358).
+ * Reports site-search queries and their result counts to GA4 (issue #358, #1515).
  *
- * Renders nothing. Rather than hooking the search plugin's internals (whose
- * component names and CSS-module hashes change between releases), this watches
- * the `/search` route — where every submitted query lands, whether typed in the
- * navbar or arrived at from a link — and counts the rendered result articles.
+ * Renders nothing. Rather than polling the DOM with setInterval, this watches
+ * the `/search` route and uses a MutationObserver to observe DOM changes in the
+ * search results container, settling with a debounce before counting rendered
+ * result articles.
  */
 
 const SEARCH_ROUTE = '/search';
-/** Results render asynchronously; poll until the count stops changing. */
-const SETTLE_INTERVAL_MS = 250;
-const SETTLE_STABLE_TICKS = 2;
+/** Results render asynchronously; debounce observation until DOM mutations pause. */
+const SETTLE_DEBOUNCE_MS = 250;
 const SETTLE_MAX_MS = 6000;
 
 function countResults(): number {
+  if (typeof document === 'undefined') return 0;
   // The plugin renders one <article> per hit inside the search page container.
   return document.querySelectorAll('.container.margin-vert--lg article').length;
 }
@@ -50,41 +50,64 @@ export default function SearchAnalytics(): null {
     const key = `${term}`;
     if (reportedRef.current === key) return;
 
-    let cancelled = false;
-    let elapsed = 0;
-    let lastCount = -1;
-    let stableTicks = 0;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let maxTimer: ReturnType<typeof setTimeout> | null = null;
+    let observer: MutationObserver | null = null;
 
-    const timer = window.setInterval(() => {
-      if (cancelled) return;
-      const count = countResults();
-
-      if (count === lastCount) {
-        stableTicks += 1;
-      } else {
-        // First observation establishes the baseline and already counts as
-        // one "stable reading"; this matches the test contract (and the
-        // intuitive reading of SETTLE_STABLE_TICKS=2) so that two ticks of
-        // the same result count settle the loop ~250ms sooner.
-        lastCount = count;
-        stableTicks = 1;
+    const report = () => {
+      if (reportedRef.current !== key) {
+        reportedRef.current = key;
+        trackSearch(term, countResults());
       }
-
-      elapsed += SETTLE_INTERVAL_MS;
-      const settled = stableTicks >= SETTLE_STABLE_TICKS;
-
-      if (settled || elapsed >= SETTLE_MAX_MS) {
-        window.clearInterval(timer);
-        if (reportedRef.current !== key) {
-          reportedRef.current = key;
-          trackSearch(term, count);
-        }
+      if (observer) {
+        observer.disconnect();
+        observer = null;
       }
-    }, SETTLE_INTERVAL_MS);
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+      if (maxTimer) {
+        clearTimeout(maxTimer);
+        maxTimer = null;
+      }
+    };
+
+    const scheduleDebounce = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(report, SETTLE_DEBOUNCE_MS);
+    };
+
+    if (typeof MutationObserver === 'undefined') {
+      debounceTimer = setTimeout(report, SETTLE_DEBOUNCE_MS);
+      return () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+      };
+    }
+
+    observer = new MutationObserver(() => {
+      scheduleDebounce();
+    });
+
+    const target =
+      (typeof document !== 'undefined' &&
+        (document.querySelector('.container.margin-vert--lg') || document.body)) ||
+      null;
+
+    if (target) {
+      observer.observe(target, { childList: true, subtree: true });
+    }
+
+    // Schedule initial debounce settling (for pre-rendered results or zero-hit queries where no mutations occur)
+    scheduleDebounce();
+
+    // Fallback timer: report after max elapsed time even if mutations keep occurring continuously
+    maxTimer = setTimeout(report, SETTLE_MAX_MS);
 
     return () => {
-      cancelled = true;
-      window.clearInterval(timer);
+      if (observer) observer.disconnect();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (maxTimer) clearTimeout(maxTimer);
     };
   }, [consented, pathname, search]);
 
