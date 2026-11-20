@@ -12,6 +12,14 @@ Thank you for your interest in contributing! To ensure a smooth experience for b
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community standards and behavioral expectations.
 - **[Community Moderation Plan](COMMUNITY.md)** - Moderator guidelines, reporting, and escalation path.
 
+### ⚡ Automated Local Setup
+
+Run the idempotent setup script from the repository root to install Rust, add the `wasm32v1-none` target, install Bun, and install documentation dependencies (`bun install --frozen-lockfile` in `documentation/`):
+
+```bash
+./scripts/setup.sh
+```
+
 ---
 
 ### 📊 For Docs Maintainers
