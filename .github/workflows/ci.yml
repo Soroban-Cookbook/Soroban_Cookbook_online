@@ -488,9 +488,9 @@ jobs:
           npx wait-on http://localhost:3000 --timeout 60000
 
       - name: Run core tests (Chromium)
-        # Keep this job scoped to smoke.spec.ts, accessibility.spec.ts, and navigation.spec.ts
+        # Keep this job scoped to smoke.spec.ts, accessibility.spec.ts, navigation.spec.ts, and playground.spec.ts
         # Other suites are run nightly/on main to reduce PR CI times.
-        run: npx playwright test e2e/smoke.spec.ts e2e/accessibility.spec.ts e2e/navigation.spec.ts --project=chromium
+        run: npx playwright test e2e/smoke.spec.ts e2e/accessibility.spec.ts e2e/navigation.spec.ts e2e/playground.spec.ts --project=chromium
         env:
           E2E_BASE_URL: http://localhost:3000
           CI: "true"
