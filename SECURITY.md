@@ -88,4 +88,47 @@ Client cooldown alone is not a security boundary — always configure the gatewa
 
 ## Reporting a vulnerability
 
-Report security issues privately via GitHub Security Advisories rather than opening a public issue.
+**Please do not open a public issue for security vulnerabilities.**
+
+Report security issues privately through [GitHub Security Advisories](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/security/advisories/new). This keeps the details confidential until a fix is in place and prevents potential exploitation before affected users can update.
+
+### What to include
+
+Provide as much of the following as you can:
+
+- A clear description of the vulnerability and its potential impact.
+- The file(s), URL(s), or component(s) affected.
+- Steps to reproduce or a proof-of-concept (screenshots or a minimal script).
+- The version or commit SHA where the issue was observed.
+- Any suggested mitigations, if you have them.
+
+### Response timeline
+
+| Milestone | Target |
+|---|---|
+| Acknowledgement | Within **48 hours** of receipt |
+| Initial triage and severity assessment | Within **7 days** |
+| Fix or mitigation shipped | Within **90 days** (critical issues prioritised faster) |
+| Public disclosure | After the fix is released, coordinated with the reporter |
+
+If you have not received an acknowledgement within 48 hours, please follow up by opening a **[blank security advisory draft](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/security/advisories/new)** with a note that you are following up on an earlier report.
+
+### Coordinated disclosure
+
+We follow a **90-day coordinated disclosure policy**. We ask that you:
+
+1. Give us the full 90 days to investigate and ship a fix before publishing details publicly.
+2. Avoid accessing or modifying data that does not belong to you during research.
+3. Act in good faith — do not perform denial-of-service attacks, spam, or social engineering.
+
+We will credit reporters in the security advisory by default. If you prefer to remain anonymous, let us know in your report.
+
+### Scope
+
+This policy covers:
+
+- The documentation site at <https://soroban-cookbook.com> and any preview deployments.
+- Source code in this repository, including smart contract examples.
+- CI/CD pipelines and configuration files in `.github/workflows/`.
+
+It does **not** cover third-party services (Vercel, GitHub itself, Stellar network), which have their own disclosure channels.
