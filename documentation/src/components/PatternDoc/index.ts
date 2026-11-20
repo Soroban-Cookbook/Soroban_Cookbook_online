@@ -2,6 +2,7 @@ export {
   PatternMeta,
   PatternSection,
   PatternCallout,
+  UnauditedExampleNotice,
   EstimatedTime,
   parseEstimatedTime,
 } from './PatternDoc';

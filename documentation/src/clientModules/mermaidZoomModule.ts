@@ -1,243 +1,202 @@
 /**
- * Mermaid Zoom Module
+ * Mermaid Diagram Zoom/Pan Client Module — Issue #316
  *
- * Provides keyboard-navigable lightbox for diagram zoom functionality.
- * Supports:
- *   - Escape to close lightbox
- *   - +/- keys to adjust zoom scale
- *   - Tab focus cycling within lightbox
+ * `@docusaurus/theme-mermaid` renders each ```mermaid``` code block as an
+ * inline SVG on the client (asynchronously, after the page mounts). This
+ * module watches for those SVGs and makes them interactive: clicking (or
+ * pressing Enter/Space) opens the diagram in a full-screen lightbox that
+ * supports scroll-to-zoom and drag-to-pan.
  *
- * Usage:
- *   initMermaidZoom()
+ * Detecting rendered diagrams
+ * ────────────────────────────
+ * Mermaid.js assigns the rendered SVG root an `id` starting with "mermaid"
+ * (the id docusaurus-theme-mermaid passes to `mermaid.render()`), and the
+ * theme's wrapper `<div>` carries a CSS-module class containing the literal
+ * substring "mermaid" regardless of its hashed suffix. Both are used as
+ * fallback selectors, similar to the selector-list pattern in
+ * `searchAnalyticsModule.ts`.
  */
 
-export interface ZoomLightboxState {
-  isOpen: boolean;
-  scale: number;
-  minScale: number;
-  maxScale: number;
-}
-
-const ZOOM_STEP = 0.1;
+const DIAGRAM_SELECTORS = ['svg[id^="mermaid"]', '[class*="mermaid" i] svg'];
+const ENHANCED_ATTR = 'data-zoom-enhanced';
 const MIN_SCALE = 0.5;
-const MAX_SCALE = 3;
+const MAX_SCALE = 4;
+const SCALE_STEP = 0.2;
 
-let lightboxState: ZoomLightboxState = {
-  isOpen: false,
-  scale: 1,
-  minScale: MIN_SCALE,
-  maxScale: MAX_SCALE,
-};
+// ─── Lightbox state ─────────────────────────────────────────────────────────
 
-let lightboxElement: HTMLElement | null = null;
+let overlayEl: HTMLDivElement | null = null;
+let viewportEl: HTMLDivElement | null = null;
+let scale = 1;
+let translateX = 0;
+let translateY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
 
-/**
- * Create the lightbox DOM element with required attributes for accessibility
- */
-function createLightbox(): HTMLElement {
-  const lightbox = document.createElement('div');
-  lightbox.id = 'mermaid-zoom-lightbox';
-  lightbox.setAttribute('role', 'dialog');
-  lightbox.setAttribute('aria-modal', 'true');
-  lightbox.setAttribute('aria-label', 'Diagram zoom viewer');
-  lightbox.setAttribute('tabindex', '0');
-  lightbox.style.display = 'none';
-  lightbox.style.position = 'fixed';
-  lightbox.style.top = '0';
-  lightbox.style.left = '0';
-  lightbox.style.width = '100%';
-  lightbox.style.height = '100%';
-  lightbox.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-  lightbox.style.zIndex = '1000';
-  lightbox.style.display = 'flex';
-  lightbox.style.alignItems = 'center';
-  lightbox.style.justifyContent = 'center';
-
-  const content = document.createElement('div');
-  content.className = 'mermaid-zoom-content';
-  content.setAttribute('tabindex', '-1');
-  content.style.transform = `scale(${lightboxState.scale})`;
-  content.style.transformOrigin = 'center';
-  content.style.transition = 'transform 0.2s ease-in-out';
-
-  const closeButton = document.createElement('button');
-  closeButton.setAttribute('aria-label', 'Close diagram zoom');
-  closeButton.className = 'mermaid-zoom-close';
-  closeButton.textContent = '×';
-  closeButton.style.position = 'absolute';
-  closeButton.style.top = '20px';
-  closeButton.style.right = '20px';
-  closeButton.style.background = 'white';
-  closeButton.style.border = 'none';
-  closeButton.style.borderRadius = '50%';
-  closeButton.style.width = '40px';
-  closeButton.style.height = '40px';
-  closeButton.style.fontSize = '24px';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.zIndex = '1001';
-  closeButton.setAttribute('tabindex', '0');
-
-  lightbox.appendChild(content);
-  lightbox.appendChild(closeButton);
-
-  return lightbox;
+function applyTransform(): void {
+  if (!viewportEl) return;
+  viewportEl.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 }
 
-/**
- * Open the lightbox with a diagram
- */
-export function openLightbox(diagramElement: HTMLElement): void {
-  if (!lightboxElement) {
-    lightboxElement = createLightbox();
-    document.body.appendChild(lightboxElement);
-    attachKeyboardHandlers();
-  }
-
-  const content = lightboxElement.querySelector('.mermaid-zoom-content') as HTMLElement;
-  const clone = diagramElement.cloneNode(true) as HTMLElement;
-  content.innerHTML = '';
-  content.appendChild(clone);
-
-  lightboxState.isOpen = true;
-  lightboxElement.style.display = 'flex';
-  lightboxElement.focus();
+function resetTransform(): void {
+  scale = 1;
+  translateX = 0;
+  translateY = 0;
+  applyTransform();
 }
 
-/**
- * Close the lightbox
- */
-export function closeLightbox(): void {
-  if (!lightboxElement) return;
-
-  lightboxState.isOpen = false;
-  lightboxElement.style.display = 'none';
-  lightboxState.scale = 1;
-
-  const content = lightboxElement.querySelector('.mermaid-zoom-content') as HTMLElement;
-  if (content) {
-    content.style.transform = 'scale(1)';
-  }
+function zoomBy(delta: number): void {
+  scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + delta));
+  applyTransform();
 }
 
-/**
- * Update zoom scale and apply to content
- */
-export function updateZoom(delta: number): void {
-  if (!lightboxState.isOpen) return;
+function closeLightbox(): void {
+  overlayEl?.classList.remove('mermaid-zoom-open');
+}
 
-  const newScale = Math.max(
-    lightboxState.minScale,
-    Math.min(lightboxState.maxScale, lightboxState.scale + delta),
+function createButton(label: string, text: string, onClick: () => void): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'mermaid-zoom-button';
+  button.setAttribute('aria-label', label);
+  button.textContent = text;
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+function ensureOverlay(): { overlay: HTMLDivElement; viewport: HTMLDivElement } {
+  if (overlayEl && viewportEl) return { overlay: overlayEl, viewport: viewportEl };
+
+  const overlay = document.createElement('div');
+  overlay.className = 'mermaid-zoom-overlay';
+
+  const dialog = document.createElement('div');
+  dialog.className = 'mermaid-zoom-dialog';
+  dialog.setAttribute('role', 'dialog');
+  dialog.setAttribute('aria-modal', 'true');
+  dialog.setAttribute('aria-label', 'Diagram zoom view');
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'mermaid-zoom-toolbar';
+  toolbar.append(
+    createButton('Zoom out', '−', () => zoomBy(-SCALE_STEP)),
+    createButton('Reset zoom', 'Reset', resetTransform),
+    createButton('Zoom in', '+', () => zoomBy(SCALE_STEP)),
   );
 
-  lightboxState.scale = newScale;
+  const closeButton = createButton('Close diagram zoom view', '×', closeLightbox);
+  closeButton.classList.add('mermaid-zoom-close');
+  toolbar.append(closeButton);
 
-  const content = lightboxElement?.querySelector('.mermaid-zoom-content') as HTMLElement;
-  if (content) {
-    content.style.transform = `scale(${newScale})`;
-  }
+  const viewport = document.createElement('div');
+  viewport.className = 'mermaid-zoom-viewport';
+
+  dialog.append(toolbar, viewport);
+  overlay.append(dialog);
+  document.body.append(overlay);
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeLightbox();
+  });
+
+  viewport.addEventListener(
+    'wheel',
+    (event) => {
+      event.preventDefault();
+      zoomBy(event.deltaY < 0 ? SCALE_STEP : -SCALE_STEP);
+    },
+    { passive: false },
+  );
+
+  viewport.addEventListener('mousedown', (event) => {
+    isDragging = true;
+    dragStartX = event.clientX - translateX;
+    dragStartY = event.clientY - translateY;
+  });
+
+  window.addEventListener('mousemove', (event) => {
+    if (!isDragging) return;
+    translateX = event.clientX - dragStartX;
+    translateY = event.clientY - dragStartY;
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeLightbox();
+  });
+
+  overlayEl = overlay;
+  viewportEl = viewport;
+  return { overlay, viewport };
 }
 
-/**
- * Get current zoom state
- */
-export function getZoomState(): Readonly<ZoomLightboxState> {
-  return { ...lightboxState };
+function openLightbox(svg: SVGSVGElement): void {
+  const { overlay, viewport } = ensureOverlay();
+  viewport.innerHTML = '';
+  viewport.append(svg.cloneNode(true));
+  resetTransform();
+  overlay.classList.add('mermaid-zoom-open');
 }
 
-/**
- * Attach keyboard event handlers
- */
-function attachKeyboardHandlers(): void {
-  if (!lightboxElement) return;
+// ─── Diagram discovery ──────────────────────────────────────────────────────
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (!lightboxState.isOpen) return;
-
-    switch (e.key) {
-      case 'Escape':
-        e.preventDefault();
-        closeLightbox();
-        break;
-      case '+':
-      case '=':
-        e.preventDefault();
-        updateZoom(ZOOM_STEP);
-        break;
-      case '-':
-      case '_':
-        e.preventDefault();
-        updateZoom(-ZOOM_STEP);
-        break;
-      case 'Tab':
-        // Manage focus cycling within lightbox
-        handleTabFocus(e);
-        break;
-      default:
-        break;
-    }
-  };
-
-  lightboxElement.addEventListener('keydown', handleKeyDown);
+function findDiagrams(): SVGSVGElement[] {
+  const found = new Set<SVGSVGElement>();
+  DIAGRAM_SELECTORS.forEach((selector) => {
+    document.querySelectorAll<SVGSVGElement>(selector).forEach((svg) => found.add(svg));
+  });
+  return Array.from(found);
 }
 
-/**
- * Handle tab focus cycling within lightbox
- */
-function handleTabFocus(e: KeyboardEvent): void {
-  if (!lightboxElement) return;
+function enhanceDiagram(svg: SVGSVGElement): void {
+  if (svg.hasAttribute(ENHANCED_ATTR)) return;
+  svg.setAttribute(ENHANCED_ATTR, 'true');
+  svg.classList.add('mermaid-zoom-target');
+  svg.setAttribute('role', 'button');
+  svg.setAttribute('tabindex', '0');
+  svg.setAttribute('aria-label', 'Open diagram in zoomable view');
 
-  const focusableElements = lightboxElement.querySelectorAll(
-    'button, [tabindex="0"], a, input, textarea, select',
-  ) as NodeListOf<HTMLElement>;
-
-  if (focusableElements.length === 0) return;
-
-  const currentFocus = document.activeElement as HTMLElement;
-  const focusIndex = Array.from(focusableElements).indexOf(currentFocus);
-
-  if (e.shiftKey) {
-    // Shift+Tab: move focus backward
-    e.preventDefault();
-    const prevIndex = focusIndex <= 0 ? focusableElements.length - 1 : focusIndex - 1;
-    focusableElements[prevIndex].focus();
-  } else {
-    // Tab: move focus forward
-    e.preventDefault();
-    const nextIndex = focusIndex >= focusableElements.length - 1 ? 0 : focusIndex + 1;
-    focusableElements[nextIndex].focus();
-  }
-}
-
-/**
- * Initialize the module and attach event handlers to diagram containers
- */
-export function initMermaidZoom(): void {
-  const diagramContainers = document.querySelectorAll('[data-mermaid-diagram]');
-
-  diagramContainers.forEach((container) => {
-    const diagram = container.querySelector('.mermaid') as HTMLElement;
-    if (diagram) {
-      diagram.style.cursor = 'pointer';
-      diagram.addEventListener('click', () => {
-        openLightbox(diagram);
-      });
+  const activate = () => openLightbox(svg);
+  svg.addEventListener('click', activate);
+  svg.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      activate();
     }
   });
 }
 
-/**
- * Cleanup function for testing
- */
-export function cleanupMermaidZoom(): void {
-  if (lightboxElement && lightboxElement.parentNode) {
-    lightboxElement.parentNode.removeChild(lightboxElement);
+function enhanceAllDiagrams(): void {
+  findDiagrams().forEach(enhanceDiagram);
+}
+
+// ─── Module lifecycle ───────────────────────────────────────────────────────
+
+let mutationObserver: MutationObserver | null = null;
+
+function observeForDiagrams(): void {
+  enhanceAllDiagrams();
+
+  mutationObserver?.disconnect();
+  mutationObserver = new MutationObserver(() => enhanceAllDiagrams());
+  mutationObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+/** Called on every client-side navigation in case new diagrams mount. */
+export function onRouteDidUpdate(): void {
+  observeForDiagrams();
+}
+
+// Bootstrap on module load for the initial page
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', observeForDiagrams);
+  } else {
+    observeForDiagrams();
   }
-  lightboxElement = null;
-  lightboxState = {
-    isOpen: false,
-    scale: 1,
-    minScale: MIN_SCALE,
-    maxScale: MAX_SCALE,
-  };
 }

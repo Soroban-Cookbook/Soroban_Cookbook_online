@@ -150,7 +150,7 @@ jobs:
           fi
 
       - name: Alert on downtime
-        if: failure() && ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: failure() && secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v4.0.0
         with:
           payload: |

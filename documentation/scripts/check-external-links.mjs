@@ -18,8 +18,7 @@ const docRoot = path.join(__dirname, '..');
 const docsDir = path.join(docRoot, 'docs');
 const srcDir = path.join(docRoot, 'src');
 const ignorePath = path.join(__dirname, 'external-link-ignore.json');
-const reportRel =
-  process.env.EXTERNAL_LINK_REPORT ?? 'reports/external-links.md';
+const reportRel = process.env.EXTERNAL_LINK_REPORT ?? 'reports/external-links.md';
 const reportPath = path.join(docRoot, reportRel);
 const timeoutMs = Number(process.env.EXTERNAL_LINK_TIMEOUT_MS ?? 15000);
 const concurrency = Number(process.env.EXTERNAL_LINK_CONCURRENCY ?? 8);
@@ -128,8 +127,7 @@ async function checkUrlOnce(url) {
     const ok = response.ok || (response.status >= 300 && response.status < 400);
     return { ok, status: response.status, finalUrl: response.url };
   } catch (error) {
-    const message =
-      error.name === 'AbortError' ? `Timeout after ${timeoutMs}ms` : error.message;
+    const message = error.name === 'AbortError' ? `Timeout after ${timeoutMs}ms` : error.message;
     return { ok: false, status: 0, error: message };
   } finally {
     clearTimeout(timer);
@@ -229,7 +227,12 @@ const lines = [
 ];
 
 if (broken.length > 0) {
-  lines.push('## Broken links', '', '| URL | Status | Error | Referenced in |', '|-----|--------|-------|---------------|');
+  lines.push(
+    '## Broken links',
+    '',
+    '| URL | Status | Error | Referenced in |',
+    '|-----|--------|-------|---------------|',
+  );
   for (const row of broken.sort((a, b) => a.url.localeCompare(b.url))) {
     const status = row.status ? String(row.status) : '—';
     const err = row.error ? mdEscape(row.error) : '—';
@@ -249,7 +252,9 @@ if (skipped.length > 0) {
 
 lines.push('## How to fix', '');
 lines.push('- Update or remove broken URLs in the files listed above.');
-lines.push('- Add intentional placeholders to `scripts/external-link-ignore.json` only for localhost/demo URLs.');
+lines.push(
+  '- Add intentional placeholders to `scripts/external-link-ignore.json` only for localhost/demo URLs.',
+);
 lines.push('- Re-run: `bun run check:external-links` from the `documentation/` directory.');
 lines.push('');
 

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import SearchPage from '../index'; // Component is index.tsx
 
 vi.mock('@docusaurus/plugin-content-docs', () => ({
-  useSearch: () => ({
+  useSearch: vi.fn(() => ({
     search: vi.fn((query) => {
       if (query === 'auth') {
         return Promise.resolve({
@@ -14,11 +14,11 @@ vi.mock('@docusaurus/plugin-content-docs', () => ({
       }
       return Promise.resolve({ results: [] });
     }),
-  }),
+  })),
 }));
 
 vi.mock('@docusaurus/router', () => ({
-  useLocation: () => ({ pathname: '/search', search: '?q=auth' }),
+  useLocation: vi.fn(() => ({ pathname: '/search', search: '?q=auth' })),
 }));
 
 describe('SearchPage', () => {

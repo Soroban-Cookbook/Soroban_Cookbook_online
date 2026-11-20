@@ -5,7 +5,7 @@ import '@testing-library/jest-dom';
 import Home from '../index';
 
 describe('Homepage Integration Test', () => {
-  it('renders the complete homepage successfully within Docusaurus layout', () => {
+  it('renders the complete homepage successfully within Docusaurus layout', async () => {
     render(<Home />);
 
     // 1. Verify Layout is mounted with proper meta title & description
@@ -64,9 +64,14 @@ describe('Homepage Integration Test', () => {
     expect(screen.getAllByText(/HelloContract/)[0]).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Copy code/i })).toBeInTheDocument();
 
-    // 9. Verify NewsletterSignup section
+    // 9. Verify NewsletterSignup section (lazy-loaded once it scrolls into view,
+    // so wait for the suspended chunk to resolve)
     expect(
-      screen.getByRole('heading', { name: /Stay in the loop/i, level: 2 }),
+      await screen.findByRole(
+        'heading',
+        { name: /Stay in the loop/i, level: 2 },
+        { timeout: 8000 },
+      ),
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();

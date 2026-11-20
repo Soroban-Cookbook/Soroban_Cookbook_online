@@ -1,5 +1,7 @@
 # Cross-Contract Invocation Example
 
+**Origin**: Original to the Soroban Cookbook repository.
+
 This example demonstrates safe cross-contract invocation patterns in Soroban, including:
 
 - **Caller Contract** - A vault that manages user funds by calling an external token contract
@@ -7,6 +9,10 @@ This example demonstrates safe cross-contract invocation patterns in Soroban, in
 - **Error Handling** - Using `try_*` methods to gracefully handle callee failures
 - **Security Patterns** - Reentrancy protection, auth validation, and defensive coding
 - **Comprehensive Tests** - Coverage of both success and failure scenarios
+
+## Origin and License
+
+This is an original example created for Soroban Cookbook, introduced in commit `4349e3b` ("docs: add cross-contract pattern example"). No external source is identified. The crate is licensed under MIT, consistent with the repository's root license.
 
 ## Contracts
 

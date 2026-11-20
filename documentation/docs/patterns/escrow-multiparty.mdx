@@ -47,6 +47,14 @@ PENDING ──release()──► RELEASED
 
 ## Contract
 
+<Callout variant="warning" title="Unaudited Educational Example — Not for Production">
+  This contract pattern is an educational example and has not undergone an independent security audit. Do not deploy this snippet to production or mainnet without substantial hardening, complete test coverage, and formal review.
+
+  **Security & Architectural Limitations:**
+  - **Reentrancy:** The contract uses a checks-effects pattern, updating state flags in instance storage before returning amounts. Because it operates on an abstract numerical amount (`i128`) without performing external token transfers or callee callbacks, external reentrancy vectors do not directly apply. If extended to invoke external token contracts (such as Stellar Asset Contracts or custom tokens), token transfers must occur strictly after all state modifications, or a reentrancy guard should be utilized.
+  - **Storage TTL & Data Expiry:** All escrow state and party addresses are saved in `instance` storage. In Soroban, instance storage entries share the contract instance's time-to-live (TTL). If the instance TTL is not monitored and extended via `env.storage().instance().extend_ttl(...)` before expiration, the escrow data will become archived/inaccessible, locking state transitions until restored.
+</Callout>
+
 ```rust
 #![no_std]
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env};
@@ -243,23 +251,23 @@ fn require_state(env: &Env, expected: State) -> Result<(), Error> {
 
 ## Testing dispute paths
 
-The tests cover every state transition, including the full dispute resolution path:
+The crate's test module covers every state transition. The dispute resolution tests are:
 
 ```rust
 #[test]
 fn test_resolve_in_favour_of_recipient() {
     let (_, actors, client) = funded(1_000);
-    client.dispute(&actors.recipient);       // recipient opens dispute
-    assert_eq!(client.resolve(&true), 1_000); // arbitrator rules for recipient
-    assert_eq!(client.state(), State::Released);
+    client.dispute(&actors.recipient).unwrap(); // recipient opens dispute
+    assert_eq!(client.resolve(&true), Ok(1_000)); // arbitrator rules for recipient
+    assert_eq!(client.state(), Ok(State::Released));
 }
 
 #[test]
 fn test_resolve_in_favour_of_depositor() {
     let (_, actors, client) = funded(1_000);
-    client.dispute(&actors.depositor);        // depositor opens dispute
-    assert_eq!(client.resolve(&false), 1_000); // arbitrator refunds depositor
-    assert_eq!(client.state(), State::Cancelled);
+    client.dispute(&actors.depositor).unwrap(); // depositor opens dispute
+    assert_eq!(client.resolve(&false), Ok(1_000)); // arbitrator refunds depositor
+    assert_eq!(client.state(), Ok(State::Cancelled));
 }
 ```
 

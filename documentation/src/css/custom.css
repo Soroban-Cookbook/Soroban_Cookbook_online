@@ -47,7 +47,7 @@
   --ifm-color-emphasis-200: #e5e7eb;
   --ifm-color-emphasis-300: #d1d5db;
   --ifm-color-emphasis-400: #9ca3af;
-  --ifm-color-emphasis-500: #6b7280;
+  --ifm-color-emphasis-500: #4b5563;
   --ifm-color-emphasis-600: #4b5563;
   --ifm-color-emphasis-700: #374151;
   --ifm-color-emphasis-800: #1f2937;
@@ -69,6 +69,8 @@
 
   /* Sidebar */
   --ifm-menu-color: #374151;
+  /* Darker than primary so active links pass 4.5:1 on Infima's #f2f2f2 active bg */
+  --ifm-menu-color-active: #1b5e3a;
   /* Primary (#2e8555) on the active menu background (#f2f2f2) is 4.1:1;
      primary-darker reaches 5.3:1 and still reads as brand green. */
   --ifm-menu-color-active: #277148;
@@ -838,4 +840,80 @@ html {
   .theme-doc-sidebar-container a.scroll-spy-active {
     transition: none;
   }
+}
+
+/* ── In-text link distinguishability (WCAG 1.4.1 / axe link-in-text-block) ── */
+.markdown a,
+.theme-doc-markdown a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.markdown a:hover,
+.theme-doc-markdown a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ── Mobile Code Block Scroll (issue #186) ─────────────────────────────────── */
+
+/**
+ * Improves horizontal scrolling for code blocks on mobile devices.
+ * Adds padding, visual scroll indicators, and touch-friendly scrolling.
+ */
+
+@media (max-width: 768px) {
+  /* Add padding to code blocks for better mobile readability */
+  .theme-code-block {
+    padding-inline: 0.75rem;
+    padding-block: 0.5rem;
+  }
+
+  /* Ensure code blocks have smooth scrolling on touch devices */
+  pre code {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+  }
+
+  /* Add subtle fade indicator on right side to hint at horizontal scroll */
+  .theme-code-block::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(to right, transparent 0%, var(--ifm-background-surface-color) 100%);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  /* Hide fade indicator when scrolled to the end */
+  .theme-code-block.scrolled-to-end::after {
+    opacity: 0;
+  }
+
+  /* Increase tap target size for copy button */
+  .theme-code-block .clean-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Ensure code is readable at 320px viewport (smallest mobile size) */
+@media (max-width: 320px) {
+  .theme-code-block {
+    font-size: 0.75rem;
+    padding-inline: 0.5rem;
+  }
+
+  pre code {
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+}
+
+/* Wide Soroban Cookbook wordmark — preserve aspect ratio in navbar */
+.navbar__logo img {
+  height: var(--ifm-navbar-logo-height, 36px);
+  width: auto;
 }

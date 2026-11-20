@@ -26,8 +26,16 @@ describe('slugify', () => {
 });
 
 describe('computeProgressPercent', () => {
-  it('returns 0 for an empty step list', () => {
+  it('returns 0 for a 0 of 0 tutorial', () => {
     expect(computeProgressPercent(0, 0)).toBe(0);
+  });
+
+  it('returns 0 for a negative total', () => {
+    expect(computeProgressPercent(0, -1)).toBe(0);
+  });
+
+  it('computes 1 of 4 as 25 percent', () => {
+    expect(computeProgressPercent(0, 4)).toBe(25);
   });
 
   it('computes the fraction complete, 1-indexed', () => {
@@ -61,8 +69,8 @@ describe('TutorialProgress', () => {
   const steps = ['Creating a New Project', 'Understanding the Code', 'Testing Your Contract'];
 
   let observedElements: HTMLElement[] = [];
-  let observeMock: ReturnType<typeof vi.fn>;
-  let disconnectMock: ReturnType<typeof vi.fn>;
+  let observeMock: ReturnType<typeof vi>;
+  let disconnectMock: ReturnType<typeof vi>;
 
   beforeEach(() => {
     observedElements = [];

@@ -36,6 +36,7 @@ export default function PatternCard({
   icon,
 }: PatternCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const id = encodeURIComponent(contractName);
 
   return (
     <BaseCard className={clsx(styles.patternCard)} ariaLabel={contractName}>
@@ -60,13 +61,13 @@ export default function PatternCard({
         className={styles.patternToggle}
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        aria-controls={`code-${contractName}`}>
-        {expanded ? '▲ Hide' : '▼ Show'} example
+        aria-controls={`https://example.com/code-${id}`}>
+        {expanded ? '▲ Hide' : '▼ Show example'}
       </button>
 
       {expanded && (
         <pre
-          id={`code-${contractName}`}
+          id={`https://example.com/code-${id}`}
           className={styles.patternCode}
           aria-label={`Code example for ${contractName}`}>
           <code>{code}</code>

@@ -43,3 +43,7 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 - [Oracle Consumer Pattern](https://soroban-cookbook.dev/docs/patterns/oracle-consumer) — the pattern page this example supports
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+
+## Origin
+
+This example is original to the Soroban Cookbook repository.

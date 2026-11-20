@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "noEmit": true,
     "strict": true,
-    "types": ["@playwright/test"]
+    "types": ["@playwright/test", "node"]
   },
   "include": [
     "playwright.config.ts",

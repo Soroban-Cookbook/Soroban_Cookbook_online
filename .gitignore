@@ -3,6 +3,8 @@ node_modules/
 .pnp
 .pnp.js
 target/
+examples/target/
+examples/**/target/
 
 # Testing
 coverage/
@@ -77,3 +79,10 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 !documentation/package-lock.json
+
+.agents/
+issue.md
+skills-lock.json
+
+# Local Cursor merge-gate rule (not committed)
+.cursor/rules/merge-gate.mdc

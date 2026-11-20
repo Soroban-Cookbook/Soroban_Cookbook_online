@@ -122,7 +122,7 @@ Each pattern includes:
 
 ## Contributing
 
-Have a pattern to share? See our [Contributing Guide](https://github.com/Soroban-Cookbook/Soroban-Cookbook-/blob/main/CONTRIBUTING.md).
+Have a pattern to share? See our [Contributing Guide](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/CONTRIBUTING.md).
 
 ## Getting Started
 
@@ -136,4 +136,4 @@ Start exploring:
 ## Resources
 
 - [Soroban Examples](https://github.com/stellar/soroban-examples)
-- [Community Patterns](https://github.com/Soroban-Cookbook/Soroban-Cookbook-)
+- [Community Patterns](https://github.com/Soroban-Cookbook)

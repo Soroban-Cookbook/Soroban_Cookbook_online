@@ -26,9 +26,7 @@ test.describe('Dark mode – theme persistence', () => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
 
-    const theme = await page.evaluate(() =>
-      document.documentElement.getAttribute('data-theme'),
-    );
+    const theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
     expect(theme).toBe('dark');
   });
 
@@ -88,9 +86,7 @@ test.describe('Dark mode – no console errors', () => {
       await page.goto(path, { waitUntil: 'networkidle' });
 
       // Assert theme was actually applied.
-      const theme = await page.evaluate(() =>
-        document.documentElement.getAttribute('data-theme'),
-      );
+      const theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
       expect(theme).toBe('dark');
 
       guard.assertClean(`${name} in dark mode`);

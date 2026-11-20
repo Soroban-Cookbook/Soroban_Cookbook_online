@@ -10,7 +10,14 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['node_modules/', 'build/', '.docusaurus/', '*.config.js', '*.config.ts'],
+    ignores: [
+      'node_modules/',
+      'build/',
+      '.docusaurus/',
+      '*.config.js',
+      // ESLint 10 + eslint-plugin-react crash on mock Link (getFilename).
+      'src/__mocks__/**',
+    ],
   },
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -69,8 +76,66 @@ export default [
     },
     settings: {
       react: {
-        version: 'detect',
+        version: '19.0',
       },
+    },
+  },
+  {
+    files: ['e2e/**/*.{ts,tsx}', 'docusaurus.config.ts', 'playwright.config.ts', 'sidebars.ts'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parser: typescriptParser,
+      globals: {
+        ...globals.browser,
+        ...globals.es2021,
+        ...globals.node,
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescript,
+      prettier,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...typescript.configs.recommended.rules,
+      ...prettierConfig.rules,
+      'no-undef': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
+      'prettier/prettier': 'error',
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+      },
+    },
+    plugins: {
+      prettier,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...prettierConfig.rules,
+      'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
+      'prettier/prettier': 'error',
     },
   },
 ];

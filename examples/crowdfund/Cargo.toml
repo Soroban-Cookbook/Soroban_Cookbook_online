@@ -1,0 +1,16 @@
+[package]
+name = "crowdfund"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Soroban example of a time-bounded crowdfund with a funding goal, contributor refunds and creator success-withdrawal."
+keywords = ["soroban", "example", "crowdfund"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = "28.0.0"
+
+[dev-dependencies]
+soroban-sdk = { version = "28.0.0", features = ["testutils"] }

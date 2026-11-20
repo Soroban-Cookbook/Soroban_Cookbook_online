@@ -1,0 +1,18 @@
+# Standalone package (own workspace) so `cargo test --manifest-path` works
+# without being a member of the shared examples workspace.
+[workspace]
+
+[package]
+name = "storage-kinds"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+
+[dev-dependencies]
+soroban-sdk = { version = "27.0.3", features = ["testutils"] }

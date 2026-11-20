@@ -21,13 +21,29 @@ const DEFAULT_HISTORY: UserHistory = {
   },
 };
 
+/**
+ * Fresh empty history. Never return `DEFAULT_HISTORY` itself: callers may
+ * mutate the result, and sharing the constant would leak state between
+ * callers (and between tests).
+ */
+function freshEmptyHistory(): UserHistory {
+  return {
+    visitedDocs: [],
+    preferences: {
+      categoryPreferences: {},
+      tagPreferences: {},
+      difficultyPreferences: {},
+    },
+  };
+}
+
 export function getHistory(): UserHistory {
   if (typeof window === 'undefined') {
     return DEFAULT_HISTORY;
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_HISTORY;
+    if (!raw) return freshEmptyHistory();
     const parsed = JSON.parse(raw);
     return {
       visitedDocs: Array.isArray(parsed.visitedDocs) ? parsed.visitedDocs : [],
@@ -39,7 +55,7 @@ export function getHistory(): UserHistory {
     };
   } catch (e) {
     console.error('Failed to parse recommendation history from localStorage', e);
-    return DEFAULT_HISTORY;
+    return freshEmptyHistory();
   }
 }
 

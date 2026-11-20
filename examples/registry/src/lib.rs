@@ -1,15 +1,8 @@
-//! Contract registry / name service.
-//!
-//! A minimal registry that maps stable byte names to contract addresses.
-//! Only an authorized administrator can update entries. Clients can resolve
-//! a name to a contract address using `get`.
-//!
-//! This pattern is useful alongside a contract factory: the factory
-//! deploys new contract instances, and the registry provides a stable
-//! name-to-address mapping so clients do not need to track raw contract
-//! addresses.
+// SPDX-License-Identifier: MIT
 
 #![no_std]
+
+// Contract registry / name service — maps stable byte names to contract addresses.
 
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Bytes, Env};
 
@@ -85,7 +78,10 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::{testutils::Address as _, Env};
+    use soroban_sdk::{
+        testutils::{Address as _, MockAuth, MockAuthInvoke},
+        Env, IntoVal,
+    };
 
     struct Fixture {
         env: Env,
@@ -112,11 +108,24 @@ mod tests {
     }
 
     fn name(env: &Env, s: &str) -> Bytes {
-        Bytes::from_array(env, s.as_bytes())
+        Bytes::from_slice(env, s.as_bytes())
     }
 
     fn initialize(fixture: &Fixture) {
         fixture.client.initialize(&fixture.admin);
+    }
+
+    fn mock_set_auth(fixture: &Fixture, signer: &Address, name: &Bytes, addr: &Address) {
+        let contract_id = fixture.client.address.clone();
+        fixture.env.mock_auths(&[MockAuth {
+            address: signer,
+            invoke: &MockAuthInvoke {
+                contract: &contract_id,
+                fn_name: "set",
+                args: (name.clone(), addr.clone()).into_val(&fixture.env),
+                sub_invokes: &[],
+            },
+        }]);
     }
 
     #[test]
@@ -164,18 +173,26 @@ mod tests {
         assert_eq!(fixture.client.get(&n), Some(addr2));
     }
 
+    /// Only the administrator can set a value. A non-admin caller must be
+    /// rejected by the auth check inside `set`, and the entry must remain
+    /// unchanged.
     #[test]
-    #[should_panic]
-    fn unauthorized_set_fails() {
+    fn non_admin_cannot_set() {
         let fixture = setup();
         initialize(&fixture);
 
         let n = name(&fixture.env, "my-contract");
         let addr = Address::generate(&fixture.env);
 
-        // Without mock_all_auths, an unauthorized caller must fail.
-        // The require_auth() call in set() will panic.
-        fixture.client.set(&n, &addr);
+        // Authorize a non-admin signer for the `set` invocation.
+        mock_set_auth(&fixture, &fixture.user, &n, &addr);
+
+        // The contract should return a contract error rather than panicking.
+        let result = fixture.client.try_set(&n, &addr);
+        assert!(result.is_err());
+
+        // The failed call must not have written anything.
+        assert_eq!(fixture.client.get(&n), None);
     }
 
     #[test]
@@ -216,7 +233,10 @@ mod tests {
 
         let n = name(&fixture.env, "");
         let addr = Address::generate(&fixture.env);
-        assert_eq!(fixture.client.try_set(&n, &addr), Err(Ok(Error::NameTooLong)));
+        assert_eq!(
+            fixture.client.try_set(&n, &addr),
+            Err(Ok(Error::NameTooLong))
+        );
     }
 
     #[test]

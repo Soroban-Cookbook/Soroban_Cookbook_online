@@ -1,5 +1,11 @@
 # Constant-Product AMM
 
+## License and origin
+
+This crate is original to the [Soroban Cookbook](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online) repository.
+It was not adapted from any external source.
+Licensed under the [MIT License](../../LICENSE) — Copyright (c) 2026 Soroban Cookbook.
+
 A two-token automated market maker using the `x * y = k` invariant, with liquidity provision, LP share accounting, and swaps in both directions.
 
 ## What it demonstrates
@@ -7,6 +13,21 @@ A two-token automated market maker using the `x * y = k` invariant, with liquidi
 - Constant-product pricing and reserve bookkeeping
 - LP share minting and burning proportional to pooled liquidity
 - Moving real tokens with the SDK `token` client
+- **0.3% trading fee on every swap** that accrues to liquidity providers
+- Fee distribution: trading fees automatically increase the pool's reserve value, benefiting all LP token holders proportionally when they withdraw
+- A rounding policy (floor division, pool-favoring) that keeps the `x * y = k` invariant from ever decreasing across a swap
+- A property test (`test_invariant_never_decreases_across_swaps`) that exercises the invariant over 200 pseudo-randomly generated swaps using a fixed-seed PRNG, so the run is deterministic without an external fuzzing dependency
+- Fee accrual test (`test_fee_accrual_to_lps`) that verifies liquidity providers earn more than they deposit through accumulated trading fees
+
+## Fee Mechanism
+
+The AMM charges a **0.3% fee** on every swap transaction:
+
+- When swapping token A for token B: `amount_in * 997 / 1000` is used in the constant-product formula
+- The remaining 0.3% stays in the pool reserves
+- Fees are not distributed immediately; they increase the reserve ratio
+- When LPs withdraw liquidity, they receive a proportional share of the enlarged reserves (including accumulated fees)
+- The `test_fee_accrual_to_lps` test demonstrates that after multiple swaps, LPs can withdraw more value than they initially deposited
 
 ## Build
 
@@ -40,6 +61,6 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 
 ## Related documentation
 
-- [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — the pattern page this example supports
+- [Gas and Resources](https://soroban-cookbook.dev/docs/concepts/gas-and-resources) — conceptual guide featuring AMM swap execution as an instruction count case study
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured

@@ -79,6 +79,10 @@ An oracle consumer contract:
 
 ## Implementation
 
+<PatternCallout variant="warning" title="Unaudited Educational Example">
+This pattern and contract code are provided for **educational purposes only**. The code is **unaudited** and **not intended for production use**. Before deploying contracts handling real funds on mainnet, conduct thorough security reviews, write extensive tests, and obtain professional security audits.
+</PatternCallout>
+
 ### Consumer Contract
 
 ```rust
@@ -422,6 +426,26 @@ pub fn check_circuit_breaker(
 - Use try/catch for failure scenarios
 - Fall back to cached prices
 
+### Storage TTL and Data Expiry
+
+**Risk**: Storage entry expiration halting contract operations
+
+The consumer contract relies on `env.storage().instance()` to persist the oracle contract address and `max_age` threshold. In Soroban, all ledger entries (including contract instance storage) have a Time-To-Live (TTL) and will eventually expire if not extended. If instance storage expires, calls to `get_price` or `calculate_value` will fail when trying to load uninitialized or expired keys.
+
+**Mitigation**:
+- Extend instance TTL during initialization or key configuration updates (`env.storage().instance().extend_ttl(...)`).
+- Implement automated off-chain monitoring or bump operations using the Soroban CLI / SDK before TTL expiration occurs.
+
+### Reentrancy Considerations
+
+**Risk**: Cross-contract call reentrancy when querying oracle data
+
+The contract executes cross-contract invocations (`env.invoke_contract`) to fetch price data from the configured external oracle contract.
+
+In this specific implementation, `get_price` and `get_price_data` are read-only with respect to the consumer contract's internal state—they fetch external price vectors, validate timestamps, and return values without making prior or subsequent modifications to consumer storage. Because no state transitions occur around the cross-contract invocation in this example flow, classic reentrancy state manipulation does not directly affect this read-only pattern.
+
+However, if you integrate this oracle consumer into a larger contract protocol (such as a lending market or DEX) where oracle price fetches trigger state updates, collateral adjustments, or asset transfers, you must follow the Checks-Effects-Interactions pattern or reentrancy guards to prevent untrusted external contracts from reentering state-modifying functions.
+
 ## Limitations
 
 - **Trust Dependency**: Consumer trusts oracle's data accuracy
@@ -429,6 +453,8 @@ pub fn check_circuit_breaker(
 - **Latency**: Data is never completely real-time
 - **Cost**: Oracle calls consume gas
 - **Manipulation**: Oracles can be attacked or compromised
+- **Storage TTL Expiry**: Instance storage entries expire if not maintained via TTL extension calls
+- **Reentrancy Context**: While the read-only oracle fetch is non-state-modifying, integrating callers must handle cross-contract interaction ordering safely
 
 ## Example Files
 
@@ -438,6 +464,7 @@ pub fn check_circuit_breaker(
 
 ## Related Patterns
 
+- [Oracle Price Source](./oracle-price-source.mdx) — how to publish prices that this consumer reads
 - [Cross-Contract Invocation](../concepts/cross-contract-invocation.md)
 - [Error Handling](./error-handling.mdx)
 - [Authorization](./authorization.mdx)

@@ -630,5 +630,5 @@ If you encounter issues not covered in this guide:
 
 1. Check the [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
 2. Ask in the [Stellar Discord](https://discord.gg/stellardev)
-3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban-Cookbook-/issues)
+3. Search existing [GitHub Issues](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues)
 4. Create a new issue with detailed error messages and your macOS version (run `sw_vers`)

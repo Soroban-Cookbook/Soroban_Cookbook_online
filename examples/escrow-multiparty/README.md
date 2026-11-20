@@ -43,3 +43,6 @@ See [Deploy to Testnet](https://soroban-cookbook.dev/docs/getting-started/deploy
 - [Multi-Party Escrow Pattern](https://soroban-cookbook.dev/docs/patterns/escrow-multiparty) — the pattern page this example supports
 - [Pattern Library](https://soroban-cookbook.dev/docs/patterns/overview) — every documented pattern
 - [Adding a Tested Example](https://soroban-cookbook.dev/docs/contributing/add-tested-example) — how these crates are structured
+## Source origin
+
+This example was developed for the Soroban Cookbook as part of the multi-party escrow implementation (Issue #180 / PR #394). It extends the repository's existing escrow recipe patterns and does not cite an external source.

@@ -110,15 +110,17 @@ let total = balance.checked_add(deposit).expect("Overflow");
 
 Use this checklist before every deployment:
 
-- [ ] **Authorization:** All sensitive functions use `require_auth()`.
-- [ ] **Arithmetic:** All math uses `checked_*` methods; no risk of overflow/underflow.
-- [ ] **State Changes:** Internal state is updated _before_ any external contract calls.
-- [ ] **Input Sanitization:** All user inputs (amounts, addresses, metadata) are validated.
-- [ ] **Storage Limits:** No unbounded loops or storage growth that could cause DoS.
-- [ ] **Events:** Sensitive operations (admin changes, large transfers) emit descriptive events.
-- [ ] **Error Handling:** Errors are explicit (using `Result` and custom error enums).
+- **Authorization:** All sensitive functions use `require_auth()`.
+- **Arithmetic:** All math uses `checked_*` methods; no risk of overflow/underflow.
+- **State Changes:** Internal state is updated _before_ any external contract calls.
+- **Input Sanitization:** All user inputs (amounts, addresses, metadata) are validated.
+- **Storage Limits:** No unbounded loops or storage growth that could cause DoS.
+- **Events:** Sensitive operations (admin changes, large transfers) emit descriptive events.
+- **Error Handling:** Errors are explicit (using `Result` and custom error enums).
 
 For token contracts (mint, transfer, allowances, vaults, wrappers), complete the dedicated [Token Pattern Security Audit](/docs/security/token-audit) checklist before deployment.
+
+For incident response, decide who is authorized to pause and unpause, which state-changing entry points must stop, and how normal operation will be safely restored. See the copy-ready [Emergency Stop (Pause / Unpause) example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/blob/main/examples/emergency-stop/emergency-stop.mdx) and its [role-separated token composition](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/pausable-token).
 
 ---
 
@@ -140,3 +142,9 @@ For token contracts (mint, transfer, allowances, vaults, wrappers), complete the
 - [Governance Security](/docs/security/governance) — voting and timelock risks
 - [Cross-Contract Invocation](/docs/concepts/cross-contract-invocation) — safe external call patterns
 - [Randomness & Entropy](../concepts/randomness) — on-chain randomness limitations and secure patterns
+
+> ## ⚠️ Unaudited — not for production
+>
+> The contracts, snippets, and checklists on this page are teaching material. They have **not** been audited, and they are **not** safe to deploy with real funds without an independent review of your specific deployment, threat model, and storage patterns.
+>
+> Before any mainnet deployment, run the page's checklist against your own contract (not just the example), commission or perform a security review, and confirm the on-chain storage TTL / data-expiry settings match your expected access patterns — Soroban persistent entries can be made temporary via `FootprintVersion`, and a contract that assumes permanent storage will silently break if any key is bumped to a `Temporary` or `Persistent` entry with a TTL.

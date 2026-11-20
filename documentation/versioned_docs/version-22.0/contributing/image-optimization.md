@@ -127,10 +127,10 @@ static/img/
 
 ```tsx
 // Good
-<OptimizedImage src="/img/soroban-logo.svg" alt="Soroban smart contract platform logo" />
+<OptimizedImage src="/img/soroban-logo.png" alt="Soroban smart contract platform logo" />
 
 // Bad
-<OptimizedImage src="/img/soroban-logo.svg" alt="logo" />
+<OptimizedImage src="/img/soroban-logo.png" alt="logo" />
 ```
 
 ## Image Optimization Script

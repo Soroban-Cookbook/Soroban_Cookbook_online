@@ -10,12 +10,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     css: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: [
-      ...configDefaults.exclude,
-      'e2e/**',
-      '**/sanitizeUrl.test.ts',
-      'src/utils/__tests__/**',
-    ],
+    exclude: [...configDefaults.exclude, 'e2e/**', '**/sanitizeUrl.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary', 'json'],
@@ -29,6 +24,17 @@ export default defineConfig({
         'src/theme/**',
       ],
       thresholds: {
+        // Global floor — set from measured baseline (2026-08-31).
+        // These values represent the minimum acceptable coverage across the
+        // whole codebase. They should only move upward as tests are added.
+        // To update: run `bun run test:coverage`, check the summary table,
+        // and raise each value to the new floor (rounded down).
+        lines: 26,
+        statements: 26,
+        functions: 27,
+        branches: 30,
+
+        // Per-file high-water marks for well-tested modules.
         'src/components/SearchFilters/SearchFilters.tsx': {
           lines: 90,
           statements: 90,
@@ -70,6 +76,14 @@ export default defineConfig({
         './src/__mocks__/docusaurus-plugin-content-docs-client.ts',
       ),
       '@theme/Layout': path.resolve(__dirname, './src/__mocks__/@theme/Layout.tsx'),
+      '@theme-original/SearchBar': path.resolve(
+        __dirname,
+        './src/__mocks__/@theme-original/SearchBar.tsx',
+      ),
+      '@theme-original/SearchPage': path.resolve(
+        __dirname,
+        './src/__mocks__/@theme-original/SearchPage.tsx',
+      ),
     },
   },
 });

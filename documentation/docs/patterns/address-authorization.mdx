@@ -1,0 +1,35 @@
+---
+sidebar_position: 7
+title: Account vs Contract Authorization
+description: Understand Address authorization for user accounts and contract callers in Soroban.
+---
+
+## Two kinds of `Address`
+
+Soroban uses the same `Address` type for a user account and a contract. The
+authorization semantics differ by who must provide the authorization entry:
+
+| Caller | Typical check | Meaning |
+| --- | --- | --- |
+| User account | `user.require_auth()` | The transaction must include the user's signature. |
+| Contract | `contract.require_auth()` | The calling contract must authorize the invocation through its own auth context. |
+
+## Minimal example
+
+```rust
+pub fn account_action(env: Env, account: Address) {
+    account.require_auth();
+    // Mutate state only after the account has authorized this call.
+}
+
+pub fn contract_action(env: Env, caller_contract: Address) {
+    caller_contract.require_auth();
+    // A cross-contract caller must authorize the operation explicitly.
+}
+```
+
+Use `env.mock_all_auths()` only in tests that are intentionally exercising
+business logic. Tests for security boundaries should provide explicit auth
+entries and verify that an unauthorized account or contract is rejected.
+See the [cross-contract example](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/cross-contract)
+for a complete two-contract flow.

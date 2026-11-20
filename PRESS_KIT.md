@@ -104,7 +104,7 @@ Three angles that tend to matter to an editor:
 
 | Asset | File | Use for |
 | --- | --- | --- |
-| Primary logo (SVG) | [`documentation/static/img/logo.svg`](./documentation/static/img/logo.svg) | Any size — scales cleanly. Preferred format. |
+| Primary logo (PNG) | [`documentation/static/img/soroban-logo.png`](./documentation/static/img/soroban-logo.png) | Navbar and brand use — optimized wordmark (~900px wide). |
 | Social card (PNG, 1200×630) | [`documentation/static/img/soroban-social-card.png`](./documentation/static/img/soroban-social-card.png) | Open Graph / Twitter cards, article headers |
 | Social card (WebP) | [`documentation/static/img/soroban-social-card.webp`](./documentation/static/img/soroban-social-card.webp) | Web use where WebP is supported |
 | Favicon | [`documentation/static/img/favicon.ico`](./documentation/static/img/favicon.ico) | Browser chrome, link previews |

@@ -54,7 +54,10 @@ test.describe('Newsletter validation errors', () => {
     const section = page.locator('section').filter({ hasText: /stay in the loop/i });
     await expect(section.first()).toBeVisible({ timeout: 15_000 });
 
-    await section.first().getByRole('button', { name: /subscribe/i }).click();
+    await section
+      .first()
+      .getByRole('button', { name: /subscribe/i })
+      .click();
 
     await expect(page.getByRole('alert')).toContainText(/enter an email/i);
   });
@@ -69,7 +72,10 @@ test.describe('Newsletter validation errors', () => {
     await expect(section.first()).toBeVisible({ timeout: 15_000 });
 
     await section.first().locator('input[type="email"]').fill('not-an-email');
-    await section.first().getByRole('button', { name: /subscribe/i }).click();
+    await section
+      .first()
+      .getByRole('button', { name: /subscribe/i })
+      .click();
 
     await expect(page.getByRole('alert')).toContainText(/valid email/i);
   });

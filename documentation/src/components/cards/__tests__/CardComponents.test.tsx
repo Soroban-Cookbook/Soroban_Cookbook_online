@@ -29,7 +29,7 @@ describe('BaseCard', () => {
     render(
       <BaseCard ariaLabel="My card" className="custom-class">
         Content
-      </BaseCard>
+      </BaseCard>,
     );
     const card = screen.getByLabelText('My card');
     expect(card).toHaveClass('custom-class');
@@ -47,10 +47,18 @@ describe('FeatureCard', () => {
   };
 
   it('renders title, description and icon', () => {
-    render(<FeatureCard {...defaultProps} />);
+    const { container } = render(<FeatureCard {...defaultProps} />);
     expect(screen.getByText('Fast Performance')).toBeInTheDocument();
     expect(screen.getByText('Optimized rendering')).toBeInTheDocument();
     expect(screen.getByText('⚡')).toBeInTheDocument();
+    expect(container.firstElementChild?.tagName).toBe('DIV');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('renders as a div when href is empty', () => {
+    const { container } = render(<FeatureCard {...defaultProps} href="" />);
+    expect(container.firstElementChild?.tagName).toBe('DIV');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('renders as a link when href is provided', () => {
@@ -139,7 +147,9 @@ describe('PatternCard', () => {
   it('renders contract name, description and tag', () => {
     render(<PatternCard {...defaultProps} />);
     expect(screen.getByText('hello_world')).toBeInTheDocument();
-    expect(screen.getByText('A minimal contract demonstrating persistent storage.')).toBeInTheDocument();
+    expect(
+      screen.getByText('A minimal contract demonstrating persistent storage.'),
+    ).toBeInTheDocument();
     expect(screen.getByText('#storage')).toBeInTheDocument();
   });
 

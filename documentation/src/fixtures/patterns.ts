@@ -103,6 +103,19 @@ export const samplePatterns: Pattern[] = [
 
 export const defiPatterns: Pattern[] = [
   {
+    id: '5',
+    contractName: 'single_range_clmm',
+    description:
+      'Educational, non-production Soroban example: one fixed concentrated-liquidity range with add/remove liquidity and range-bounded swaps.',
+    tag: '#defi',
+    category: 'defi',
+    difficulty: 'advanced',
+    popularity: 70,
+    code: `pub fn swap_a_for_b(env: Env, trader: Address, amount_in: i128, min_out: i128) -> Result<i128, Error> {\n    // Executes only while price remains inside the configured range.\n}`,
+    href: 'https://github.com/galliogy/Soroban_Cookbook_online/tree/main/examples/single-range-clmm',
+    icon: '⚠️',
+  },
+  {
     id: '1',
     contractName: 'liquidity_pool',
     description: 'Automated market maker with liquidity provision and swap functionality.',

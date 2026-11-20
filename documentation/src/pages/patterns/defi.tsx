@@ -21,6 +21,10 @@ export default function DefiPage() {
             Build decentralized finance applications with liquidity pools, staking, and swap
             mechanisms.
           </p>
+          <p role="note">
+            Educational examples only. The single-range concentrated-liquidity pool is explicitly
+            non-production software and must not be used with real funds.
+          </p>
 
           <div className={styles.buttons}>
             <Link to="/docs/patterns/overview" className={styles.secondaryBtn}>
@@ -34,7 +38,7 @@ export default function DefiPage() {
         <PatternPreview
           patterns={defiPatterns}
           title="DeFi Patterns"
-          subtitle="Explore production-ready DeFi contract implementations"
+          subtitle="Explore DeFi concepts and educational contract examples"
           showViewAll={false}
           maxVisible={6}
           enableCarousel={false}

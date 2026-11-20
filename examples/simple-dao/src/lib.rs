@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #![no_std]
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol, Val, Vec,
@@ -238,10 +240,7 @@ impl SimpleDao {
 
         config.admin.require_auth();
         assert!(!proposal.cancelled, "proposal already cancelled");
-        assert!(
-            proposal.queued_at == 0,
-            "proposal already queued"
-        );
+        assert!(proposal.queued_at == 0, "proposal already queued");
 
         let state = proposal.current_state(&config, env.ledger().timestamp());
         assert_eq!(
@@ -254,8 +253,7 @@ impl SimpleDao {
         env.storage()
             .instance()
             .set(&DataKey::Proposal(proposal_id), &proposal);
-        env.events()
-            .publish((TOPIC_PROPOSAL_QUEUED,), proposal_id);
+        env.events().publish((TOPIC_PROPOSAL_QUEUED,), proposal_id);
     }
 
     /// Execute a proposal whose timelock has elapsed.  Iterates through
@@ -443,6 +441,10 @@ pub struct MockTarget;
 #[contractimpl]
 impl MockTarget {
     pub fn action(env: Env) {
+        let executions: u32 = env.storage().instance().get(&"executions").unwrap_or(0);
+        env.storage()
+            .instance()
+            .set(&"executions", &(executions + 1));
         env.storage().instance().set(&"executed", &true);
     }
 
@@ -452,6 +454,10 @@ impl MockTarget {
 
     pub fn was_executed(env: Env) -> bool {
         env.storage().instance().get(&"executed").unwrap_or(false)
+    }
+
+    pub fn executions(env: Env) -> u32 {
+        env.storage().instance().get(&"executions").unwrap_or(0)
     }
 
     pub fn get_executed_val(env: Env) -> i128 {
@@ -1031,6 +1037,47 @@ mod tests {
 
         let proposal = dao.get_proposal(&id);
         assert!(proposal.executed);
+        assert_eq!(dao.proposal_state(&id), ProposalState::Executed);
+    }
+
+    #[test]
+    fn test_execute_proposal_runs_actions_exactly_once() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let admin = Address::generate(&env);
+        let dao_id = env.register(SimpleDao, ());
+        let dao = SimpleDaoClient::new(&env, &dao_id);
+        let mock_id = register_mock(&env);
+        let mock = MockTargetClient::new(&env, &mock_id);
+
+        dao.initialize(&admin, &3600, &1, &5000, &3600);
+
+        let proposer = Address::generate(&env);
+        let id = dao.submit_proposal(
+            &proposer,
+            &String::from_str(&env, "execute once"),
+            &one_action_vec(&env, &mock_id),
+        );
+        dao.vote(&admin, &id, &true);
+
+        env.ledger().with_mut(|li| {
+            li.timestamp += 7200;
+        });
+        dao.queue_proposal(&id);
+
+        env.ledger().with_mut(|li| {
+            li.timestamp += 3600;
+        });
+
+        assert_eq!(mock.executions(), 0);
+        dao.execute_proposal(&id);
+        assert_eq!(mock.executions(), 1);
+
+        // A second execute must fail and must not call the target again.
+        let second = dao.try_execute_proposal(&id);
+        assert!(second.is_err(), "second execute must fail");
+        assert_eq!(mock.executions(), 1);
         assert_eq!(dao.proposal_state(&id), ProposalState::Executed);
     }
 

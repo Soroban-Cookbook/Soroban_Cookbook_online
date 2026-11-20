@@ -1,13 +1,17 @@
 [package]
+license = "MIT"
 name = "token-vesting"
 version = "0.1.0"
 edition = "2021"
+description = "Soroban example vesting contract that releases a token balance on a schedule."
+keywords = ["soroban", "example", "token-vesting"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-soroban-sdk = "27.0.3"
+soroban-sdk = "28.0.0"
+
 
 [dev-dependencies]
-soroban-sdk = { version = "27.0.3", features = ["testutils"] }
+soroban-sdk = { version = "28.0.0", features = ["testutils"] }

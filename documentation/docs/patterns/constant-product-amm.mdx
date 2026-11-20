@@ -1,0 +1,239 @@
+---
+time: 30
+sidebar_position: 9
+title: Constant-Product AMM
+description: Implement and understand an x·y=k constant-product automated market maker (AMM) on Soroban — covering the invariant, rounding, donation attacks, and LP accounting.
+image: /img/soroban-social-card.png
+keywords:
+  - AMM
+  - constant product
+  - x*y=k
+  - swap
+  - liquidity pool
+  - LP tokens
+  - DeFi
+  - soroban_sdk
+  - token::Client
+  - add_liquidity
+  - remove_liquidity
+  - swap_a_for_b
+  - swap_b_for_a
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PatternMeta
+  slug="constant-product-amm"
+  difficulty="advanced"
+  category="DeFi"
+  status="stable"
+  lastReviewed="August 2026"
+/>
+
+## Overview
+
+This guide explains how the [`examples/constant-product-amm`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/constant-product-amm) crate works, covering:
+
+- The x·y=k invariant and its integer-arithmetic implementation
+- Liquidity provision and proportional LP token minting
+- Swap fee mechanics (0.3 %) with rounding
+- Donation-attack mitigations
+- Future work: fee collection (issue #185)
+
+<PatternSection id="prerequisites" title="Prerequisites">
+
+- Rust and `cargo`
+- Soroban CLI and `soroban_sdk`
+- Familiarity with `token::Client` and `require_auth()`
+- Basic understanding of AMM design
+
+</PatternSection>
+
+<PatternSection id="invariant" title="The x·y=k Invariant">
+
+A constant-product AMM maintains the invariant:
+
+```
+reserve_a × reserve_b = k
+```
+
+where `k` is a constant that increases only when liquidity is added and decreases only when liquidity is removed. Every swap preserves `k` (minus a fee).
+
+### Why integer arithmetic matters
+
+Soroban contracts use `i128` for token amounts. Floating-point division does not exist. All arithmetic uses `checked_mul` / `checked_div` to:
+
+1. Prevent overflow (returns `Error::Overflow` instead of wrapping).
+2. Accept rounding-down in the swapper's favor — the pool always keeps ≥ the theoretical share.
+
+### Swap output formula
+
+For a swap of `amount_in` of token A for token B, the output is:
+
+```
+amount_out = (amount_in_with_fee × reserve_b) / (reserve_a × 1000 + amount_in_with_fee)
+```
+
+where `amount_in_with_fee = amount_in × 997` (applying the 0.3 % fee by working in thousandths). The same formula applies symmetrically for B→A swaps.
+
+</PatternSection>
+
+<PatternSection id="rounding" title="Rounding and Precision">
+
+All division in this crate uses integer truncation (floor division). This means:
+
+- Swappers receive slightly less than the theoretical output — this is intentional and keeps the pool solvent.
+- LP minting (via `sqrt` for the initial deposit) also truncates, slightly under-counting the first LP's share.
+- `amount_a_min` / `amount_b_min` slippage guards protect swappers from unacceptable rounding.
+
+> **Tip:** For production deployments with very small token denominations (e.g., 7-decimal Stellar assets with tiny amounts), verify that rounding does not produce 0-output swaps. The crate returns `Error::InsufficientOutput` if `amount_out ≤ 0`.
+
+</PatternSection>
+
+<PatternSection id="donation-attack" title="Donation-Attack Mitigations">
+
+A donation attack occurs when a malicious actor transfers tokens directly to the contract address (bypassing the pool's swap logic), artificially inflating one reserve relative to the other without updating storage. This can:
+
+- Break the invariant check.
+- Allow the attacker to drain value from LPs by removing liquidity at the inflated ratio.
+
+**How this crate mitigates donations:**
+
+The crate tracks reserves exclusively in `env.storage().persistent()` under `DataKey::Reserves`. Reserve values are only updated through `add_liquidity`, `remove_liquidity`, `swap_a_for_b`, and `swap_b_for_a`. The contract never re-reads reserves from token balances; therefore, direct token transfers to the contract address do not affect the stored invariant.
+
+> **Note:** This is a *storage-based* mitigation. If you add an on-chain balance sync function (e.g., `sync_reserves`), you must ensure it is properly access-controlled to avoid griefing.
+
+</PatternSection>
+
+<Tabs>
+  <TabItem value="liquidity" label="Liquidity" default>
+
+### Adding liquidity
+
+```rust
+// Excerpt from examples/constant-product-amm/src/lib.rs
+pub fn add_liquidity(
+    env: Env,
+    caller: Address,
+    amount_a_desired: i128,
+    amount_b_desired: i128,
+    amount_a_min: i128,
+    amount_b_min: i128,
+) -> Result<(i128, i128, i128), Error> {
+    caller.require_auth();
+    // ...
+    // First deposit: LP tokens = sqrt(amount_a × amount_b)
+    // Subsequent:    LP tokens = min(amount_a/reserve_a, amount_b/reserve_b) × lp_total_supply
+}
+```
+
+The first liquidity provider receives LP tokens equal to the geometric mean of the two token amounts. This sets the initial price and anchors the invariant.
+
+### Removing liquidity
+
+```rust
+pub fn remove_liquidity(
+    env: Env,
+    caller: Address,
+    lp_amount: i128,
+    amount_a_min: i128,
+    amount_b_min: i128,
+) -> Result<(i128, i128), Error> {
+    caller.require_auth();
+    // amount_a = lp_amount × reserve_a / lp_total_supply
+    // amount_b = lp_amount × reserve_b / lp_total_supply
+}
+```
+
+  </TabItem>
+
+  <TabItem value="swap" label="Swap">
+
+### Swap A → B
+
+```rust
+pub fn swap_a_for_b(
+    env: Env,
+    caller: Address,
+    amount_a_in: i128,
+    min_b_out: i128,
+) -> Result<i128, Error> {
+    caller.require_auth();
+
+    let amount_a_in_with_fee = amount_a_in.checked_mul(997).ok_or(Error::Overflow)?;
+    let numerator   = amount_a_in_with_fee.checked_mul(reserves.reserve_b).ok_or(Error::Overflow)?;
+    let denominator = reserves.reserve_a.checked_mul(1000).ok_or(Error::Overflow)?
+                        .checked_add(amount_a_in_with_fee).ok_or(Error::Overflow)?;
+    let amount_b_out = numerator.checked_div(denominator).ok_or(Error::Overflow)?;
+
+    if amount_b_out < min_b_out { return Err(Error::InsufficientOutput); }
+    // Transfer tokens; update stored reserves
+}
+```
+
+The symmetric `swap_b_for_a` applies the same formula with roles reversed.
+
+  </TabItem>
+
+  <TabItem value="test" label="Tests">
+
+```rust
+// From examples/constant-product-amm/test_snapshots/tests
+// Run: cargo test -p constant-product-amm
+
+#[test]
+fn test_swap_a_for_b() {
+    // ... set up env, register tokens, add liquidity, then:
+    let out = client.swap_a_for_b(&caller, &1_000_000i128, &0i128);
+    assert!(out > 0);
+}
+
+#[test]
+fn test_insufficient_output_slippage() {
+    // Expect InsufficientOutput when min_b_out is too high
+}
+
+#[test]
+fn test_add_remove_liquidity_roundtrip() {
+    // LP should receive close to deposited amounts after remove
+}
+```
+
+Run the full suite:
+
+```bash
+cd examples/constant-product-amm
+cargo test
+```
+
+  </TabItem>
+</Tabs>
+
+<PatternSection id="future-work" title="Future work: fees (issue #185)">
+
+The current 0.3 % fee is burned into the swap math but not collected separately. Issue [#185](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/185) tracks adding a **fee collection** mechanism:
+
+- A dedicated `fee_recipient` address accumulates a portion of each swap fee.
+- LP holders receive the remainder as increased reserve value on removal.
+
+Until #185 is resolved, the entire fee accrues proportionally to LP holders through reserve appreciation.
+
+</PatternSection>
+
+<PatternSection id="anti-patterns" title="Anti-patterns">
+
+- **Reading token balances instead of stored reserves** — susceptible to donation attacks; always use `DataKey::Reserves`.
+- **No slippage protection** — always pass non-zero `min_b_out` / `amount_a_min` / `amount_b_min` in production clients.
+- **Unbounded `i128` multiplication** — always use `checked_mul` / `checked_div` and propagate `Error::Overflow`.
+
+</PatternSection>
+
+<PatternSection id="further-reading" title="Further reading">
+
+- [`examples/constant-product-amm`](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/tree/main/examples/constant-product-amm) — full crate source
+- [Uniswap v2 whitepaper](https://uniswap.org/whitepaper.pdf) — the canonical x·y=k reference
+- Issue [#185](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online/issues/185) — fee collection follow-up
+- [Staking pattern](/docs/patterns/staking) — epoch-based reward distribution, a related DeFi primitive
+
+</PatternSection>

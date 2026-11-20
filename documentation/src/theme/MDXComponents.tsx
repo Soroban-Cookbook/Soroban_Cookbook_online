@@ -1,6 +1,7 @@
 import MDXComponents from '@theme-original/MDXComponents';
 import {
   PatternCallout,
+  UnauditedExampleNotice,
   PatternMeta,
   PatternSection,
   EstimatedTime,
@@ -18,6 +19,7 @@ export default {
   PatternMeta,
   PatternSection,
   PatternCallout,
+  UnauditedExampleNotice,
   EstimatedTime,
   CodeSnippet,
   PatternCustomizer,

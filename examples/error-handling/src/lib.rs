@@ -1,5 +1,8 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Soroban Cookbook
+
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracterror, Address, Env};
+use soroban_sdk::{contract, contracterror, contractimpl, Address, Env};
 
 #[contracterror]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -19,12 +22,7 @@ pub struct TokenContract;
 
 #[contractimpl]
 impl TokenContract {
-    pub fn transfer(
-        env: Env,
-        from: Address,
-        to: Address,
-        amount: i128,
-    ) -> Result<(), Error> {
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), Error> {
         from.require_auth();
 
         if amount <= 0 {
@@ -49,23 +47,35 @@ impl TokenContract {
         env.storage().persistent().set(&to, &(balance + amount));
     }
 
-    /// Demonstrates panic for an unrecoverable invariant violation.
-    /// This should never be called with a negative amount in correct usage.
+    /// Return the stored balance of `address`, or 0 when it holds none.
+    pub fn balance(env: Env, address: Address) -> i128 {
+        env.storage().persistent().get(&address).unwrap_or(0)
+    }
+
+    /// Demonstrates checked arithmetic: an insufficient balance is reported as
+    /// the contract error [`Error::InsufficientBalance`] instead of trapping
+    /// on arithmetic underflow.
     pub fn checked_transfer(
         env: Env,
         from: Address,
         to: Address,
         amount: i128,
-    ) {
+    ) -> Result<(), Error> {
         let balance: i128 = env.storage().persistent().get(&from).unwrap_or(0);
-        let new_balance = balance - amount;
+        let new_balance = balance
+            .checked_sub(amount)
+            .ok_or(Error::InsufficientBalance)?;
 
         if new_balance < 0 {
-            panic!("arithmetic underflow in checked_transfer");
+            return Err(Error::InsufficientBalance);
         }
 
         env.storage().persistent().set(&from, &new_balance);
-        env.storage().persistent().set(&to, &(env.storage().persistent().get(&to).unwrap_or(0) + amount));
+        env.storage().persistent().set(
+            &to,
+            &(env.storage().persistent().get(&to).unwrap_or(0) + amount),
+        );
+        Ok(())
     }
 }
 
@@ -114,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    fn test_panic_on_underflow() {
+    fn test_checked_transfer_insufficient_balance_returns_contract_error() {
         let env = Env::default();
         let contract_id = env.register(TokenContract, ());
         let client = TokenContractClient::new(&env, &contract_id);
@@ -124,7 +134,17 @@ mod tests {
 
         client.mint(&alice, &50);
 
+        // An insufficient balance is the contract error, not a host trap.
         let result = client.try_checked_transfer(&alice, &bob, &100);
-        assert!(result.is_err());
+        assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
+
+        // The failed attempt moved nothing.
+        assert_eq!(client.balance(&alice), 50);
+        assert_eq!(client.balance(&bob), 0);
+
+        // Within the balance the same entry point succeeds.
+        client.checked_transfer(&alice, &bob, &30);
+        assert_eq!(client.balance(&alice), 20);
+        assert_eq!(client.balance(&bob), 30);
     }
 }

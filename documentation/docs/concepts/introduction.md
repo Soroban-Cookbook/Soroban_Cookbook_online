@@ -155,11 +155,30 @@ Soroban adds programmability to Stellar without compromising its core strengths:
 | **Fees**     | Very low       | Variable/High   | Varies |
 | **Focus**    | Real-world use | General purpose | Varies |
 
+## Keys, wallets, RPC, and network risk
+
+Before you generate keys, talk to an RPC endpoint, or deploy, treat secrets and networks as production-sensitive—even on pages that are only conceptual.
+
+### Secret key handling
+
+- **Never commit, paste, or share** secret keys, seed phrases, or recovery phrases (not in git, screenshots, tickets, or chat).
+- Prefer **named CLI identities** (for example `stellar keys generate --global <name>`) or a **wallet extension** over copying raw secrets into commands or docs.
+- Use **separate identities** for local/testnet and any mainnet work; do not reuse a mainnet key for tutorials.
+- If a secret may have been exposed, **rotate** it and abandon that key for on-chain use.
+
+### Network and RPC risk
+
+- **Testnet** is for learning and integration only: free test value, reset risk, no real funds.
+- **Mainnet** holds **real value**. Do not treat public mainnet as a playground; fees and failed transactions are real.
+- Confirm **which network** your CLI/RPC URL points at before deploy or invoke (`testnet` vs `mainnet`).
+- Untrusted RPC endpoints can mislead you about state; prefer known public or your own infrastructure for serious work.
+
+For deploy workflows and stronger production controls, see **[Deploy to Testnet](../getting-started/deploy-testnet.md)** and **[Deploy to Mainnet](../getting-started/deploy-mainnet.md)**.
 ## Your Learning Path
 
 Ready to start building? Here's the recommended path:
 
-1. **[Environment Setup](../getting-started/setup.md)** - Get your development tools ready
+1. **[Environment Setup](../getting-started/setup)** - Get your development tools ready
 2. **[Your First Contract](../getting-started/first-contract.md)** - Build and test a simple contract
 3. **[Core Concepts](./overview)** - Understand storage, authorization, and events
 4. **[Deploy to Testnet](../getting-started/deploy-testnet.md)** - Put your contract on the network
@@ -188,7 +207,7 @@ With Soroban, you can create:
 
 ## Next Steps
 
-- **Just starting?** → [Set up your environment](../getting-started/setup.md)
+- **Just starting?** → [Set up your environment](../getting-started/setup)
 - **Want to understand more?** → [Read core concepts](./overview)
 - **Ready to code?** → [Build your first contract](../getting-started/first-contract.md)
 

@@ -31,7 +31,7 @@ describe('cookieConsent', () => {
   });
 });
 
-describe('analytics consent gating', () => {
+describe('analytics event gating', () => {
   afterEach(() => {
     clearConsent();
     // @ts-expect-error test cleanup
@@ -40,13 +40,12 @@ describe('analytics consent gating', () => {
     delete window.dataLayer;
   });
 
-  it('does not call gtag without consent', () => {
-    const calls: unknown[][] = [];
-    window.gtag = (...args: unknown[]) => {
-      calls.push(args);
-    };
+  // Consent gates script *injection* (see CookieConsent), so without consent
+  // GA is never injected, `window.gtag` never exists, and events are dropped.
+  it('does not call gtag when GA is not injected (no consent given)', () => {
     trackEvent('copy_code', { code_language: 'rust' });
-    expect(calls).toHaveLength(0);
+    expect(window.gtag).toBeUndefined();
+    expect(window.dataLayer).toBeUndefined();
   });
 
   it('calls gtag after analytics consent is accepted', () => {

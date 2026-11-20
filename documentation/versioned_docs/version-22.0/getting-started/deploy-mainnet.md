@@ -32,6 +32,7 @@ Work through every item on this checklist before touching mainnet. Do not skip i
 - [ ] No unbounded loops or collections that grow without limit
 - [ ] At least one peer has reviewed the contract logic and the security assumptions
 - [ ] Upgrade authority (if any) is locked to a hardware-wallet-controlled admin address
+- [ ] For upgrades: complete the [WASM Upgrade Verification Checklist](../security/upgrade-checklist.md)
 
 ### Testnet validation
 

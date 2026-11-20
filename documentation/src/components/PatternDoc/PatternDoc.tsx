@@ -148,8 +148,7 @@ export function PatternMeta({
           aria-pressed={bookmarked}
           aria-label={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
           title={bookmarked ? 'Remove bookmark' : 'Add bookmark'}
-          onClick={toggleBookmark}
-        >
+          onClick={toggleBookmark}>
           {bookmarked ? '★' : '☆'}
         </button>
       </div>
@@ -219,5 +218,22 @@ export function PatternCallout({
       {title ? <p className={styles.calloutTitle}>{title}</p> : null}
       <div>{children}</div>
     </aside>
+  );
+}
+
+/**
+ * Shared learner-safety notice for pages that ship copy-paste contract code.
+ * Policy and placement rules: docs/contributing/unaudited-example-notice.md
+ */
+export function UnauditedExampleNotice({ children }: { children?: React.ReactNode }) {
+  return (
+    <PatternCallout variant="warning" title="Unaudited example — not for production">
+      <p>
+        The contract code on this page is unaudited teaching material. Do not deploy it with real
+        funds or privileges without an independent security review, and tests for your own
+        authorization model, reentrancy exposure, and storage TTL plan.
+      </p>
+      {children}
+    </PatternCallout>
   );
 }

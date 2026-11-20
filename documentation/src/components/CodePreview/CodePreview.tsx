@@ -83,9 +83,10 @@ export default function CodePreview({
   const trimmedCode = useMemo(() => code.replace(/\n$/, ''), [code]);
   const lineCount = useMemo(() => trimmedCode.split('\n').length, [trimmedCode]);
   const shouldCollapse = collapseAt > 0 && lineCount > collapseAt;
-  const displayCode = shouldCollapse && !expanded
-    ? trimmedCode.split('\n').slice(0, collapseAt).join('\n')
-    : trimmedCode;
+  const displayCode =
+    shouldCollapse && !expanded
+      ? trimmedCode.split('\n').slice(0, collapseAt).join('\n')
+      : trimmedCode;
 
   const headerLabel = title ?? fileName ?? language;
 
@@ -125,9 +126,7 @@ export default function CodePreview({
                   key={lineNumber}
                   {...lineProps}
                   className={clsx(styles.line, lineProps.className)}>
-                  {showLineNumbers && (
-                    <span className={styles.gutter}>{lineNumber}</span>
-                  )}
+                  {showLineNumbers && <span className={styles.gutter}>{lineNumber}</span>}
                   <span className={styles.content}>
                     {line.map((token, tokenIdx) => (
                       <span key={tokenIdx} {...getTokenProps({ token, key: tokenIdx })} />

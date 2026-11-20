@@ -8,9 +8,13 @@ image: /img/soroban-social-card.png
 
 Test your Soroban contracts in a local sandbox environment before deploying to testnet. This guide covers the complete local development workflow — from unit tests and CLI sandbox invocation to state inspection and debugging loops.
 
+> **Which network?** See the [Stellar Networks](./networks.md) matrix for the
+> RPC URL, passphrase, and friendbot of every network before you switch between
+> local, testnet, futurenet, and mainnet.
+
 ## Prerequisites
 
-- [Soroban CLI installed](./setup.md) (`stellar --version`)
+- [Soroban CLI installed](./setup) (`stellar --version`)
 - [Contract project initialized](./first-contract.md) or use the counter example from this repo
 - Rust toolchain with `wasm32-unknown-unknown` target
 
@@ -91,6 +95,29 @@ fn test_increment_sequence() {
 ```
 
 Each test gets its own isolated `Env` — state from one test never leaks into another.
+
+## Key Handling and Network Safety
+
+`cargo test` and the `--local` sandbox never touch a key or a network, so everything above is safe to run freely. The moment you drop `--local` and pass `--source`, `--network`, or an RPC URL, you are signing real transactions. Read this before running the CLI sections that follow:
+
+- **Never commit or paste a secret key or seed phrase.** That includes `S…` keys and mnemonics in source files, `.env` files, shell history, CI logs, pasted terminal output, screenshots, issue comments, and chat. Add key and mnemonic file patterns to `.gitignore` and keep a scan in CI. If a secret reaches any of those places, treat the account as compromised and rotate the key — deleting the commit is not enough.
+- **Prefer a named identity or a wallet extension over an inline key.** The CLI resolves `--source <alias>` to a key it stores outside the repo, so commands stay shareable and reviewable:
+
+  ```bash
+  # Interactive prompt — never types the secret into the command line
+  stellar keys generate --global <alias>
+
+  # Resolve the alias to a public address only
+  stellar keys public-key <alias>
+  ```
+
+  For a browser dapp, the wallet extension (for example Freighter) holds the key: the dapp builds the transaction, the wallet signs it, and the app only ever sees the signed XDR. See [API Security](./api-security.md).
+
+- **Keep a test identity and a mainnet identity separate.** Generate a throwaway identity for testnet work, fund it from the friendbot, and never reuse it for a mainnet deploy. A key that has touched a public network is no longer a scratch key.
+- **Confirm the network before you sign.** Check the network passphrase and RPC URL in your `~/.config/stellar/` config, and prefer an explicit `--network testnet` over relying on whatever default is set. A mainnet deploy charges real fees and is effectively irreversible.
+- **A public RPC endpoint is not a private channel.** Public endpoints can be rate-limited, logged, or replaced. Do not send secrets, API tokens, or unreleased contract source through an endpoint you do not control, and do not treat a passing testnet transaction as proof that the same command is safe on mainnet.
+
+[API Security](./api-security.md) covers keeping secrets out of the browser bundle and choosing between public and dedicated RPC, and [Deploy to Mainnet](./deploy-mainnet.md) covers the final pre-deploy checklist. The rules above stand on their own; use those pages for the full detail.
 
 ## Soroban CLI Sandbox
 
@@ -298,26 +325,11 @@ fn test_storage_inspection() {
 }
 ```
 
-### Snapshot Testing
+### SDK test snapshots
 
-Create snapshot files to track state changes across test runs. The `test_snapshots` directory stores golden files:
+With the Soroban SDK `testutils` feature enabled, the repository's locked SDK writes meaningful test-environment state under `test_snapshots/` automatically when the final test `Env` reference is dropped. The current SDK does not use `SOROBAN_SNAPSHOT_DIR` or `UPDATE_EXPECT` as an approval gate. Run the relevant Cargo test normally, then inspect the generated-file changes in Git before committing them.
 
-```rust
-#[test]
-fn test_snapshot() {
-    let env = Env::default();
-    let contract_id = env.register(Counter, ());
-    let client = CounterClient::new(&env, &contract_id);
-
-    client.increment();
-
-    // Snapshot the current state
-    let snapshot = env.ledger().get();
-    // Compare against stored snapshot in test_snapshots/
-}
-```
-
-Soroban generates snapshot files under `test_snapshots/` when `SOROBAN_SNAPSHOT_DIR` is set or using the testutils feature. This lets you diff state changes across commits.
+See [Reviewing Soroban Test Snapshots](../contributing/soroban-test-snapshots) for the exact token-transfer workflow and authorization, ledger, and event review checklist.
 
 ### State Table Inspection
 
@@ -646,7 +658,7 @@ stellar contract invoke --wasm ... --local -- increment  # sandbox check
 
 ## Bridging to Testnet
 
-Once local tests pass consistently, the transition to testnet is straightforward. The main differences are:
+Once local tests pass consistently, the transition to testnet is straightforward. It is also the first point on this page where a command needs a funded account, so re-read [Key Handling and Network Safety](#key-handling-and-network-safety) before you add `--source`: reference the account by alias, confirm you are on testnet, and never paste the secret key into the command. The main differences are:
 
 | Local                    | Testnet                                |
 | ------------------------ | -------------------------------------- |
@@ -680,3 +692,5 @@ When you are ready, proceed to:
 - [Rust Testing Documentation](https://doc.rust-lang.org/book/ch11-00-testing.html)
 - [Debugging Guide](./debugging.md)
 - [Testing Error Scenarios](./testing-errors.md)
+- [API Security](./api-security.md) — keeping secrets out of the browser and off public RPC
+- [Deploy to Mainnet](./deploy-mainnet.md) — mainnet pre-deploy checklist

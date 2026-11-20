@@ -4,95 +4,73 @@ title: Privacy Policy
 hide_table_of_contents: true
 ---
 
-This page explains what data the Soroban Cookbook website collects, how it is
-used, and your rights under the General Data Protection Regulation (GDPR) and
-similar privacy frameworks.
+**Last updated:** 21 October 2026
 
-## Data controller
+The [canonical Privacy Policy](/privacy) describes how the Soroban Cookbook site
+handles information, optional analytics, newsletter submissions, browser storage,
+and privacy requests.
 
-The Soroban Cookbook is a community-maintained open-source project. The
-repository maintainers act as the data controller for analytics data collected
-through the website. Contact us by opening an issue on
-[GitHub](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online).
+Please read that policy for the current disclosures about Google Analytics 4,
+optional Microsoft Clarity heatmaps/session replay, consent controls, and
+retention. This docs entry points to the policy used by the site's footer and
+consent banner. The newsletter summary below is repeated here for readers of
+this page; the canonical policy remains the full policy source.
 
-## What we collect
+## Withdraw or change consent
 
-### Optional analytics (consent-gated)
+Use **Cookie settings** in the site footer to reopen the consent banner, then
+choose **Reject analytics** and reload so the loader does not initialize GA4
+or Clarity on subsequent loads. This matches the footer control described in
+the [canonical Privacy Policy](/privacy).
 
-When you accept the consent banner, we load Google Analytics 4 (GA4) and,
-if configured by the operator, Microsoft Clarity. These tools collect:
+The banner persists its choice in `localStorage` under the canonical key
+`soroban-cookie-consent` (see
+`documentation/src/utils/cookieConsent.ts`, `CONSENT_STORAGE_KEY`). Clearing
+that entry, or clearing all site data for `soroban-cookbook.dev` in your
+browser, resets the banner. Clearing all site data also removes local
+preferences; it does not erase data already held by providers.
 
-- **Page views and navigation flow** — which pages you visit and in what order.
-- **Search queries** — terms you search for and how many results are returned.
-- **Feedback votes** — thumbs up/down on docs pages and any detailed comments
-  you choose to submit.
-- **CTA interactions** — clicks on "Get Started" and other call-to-action
-  buttons.
-- **Aggregated technical data** — browser type, device category, approximate
-  geographic region (country/city level), and referral source.
+A separate helper key, `sc-analytics-consent`, gates Web Vitals, search/funnel
+reporting, and experiment exposure. The banner does not set or clear that
+entry, and removing only that entry does not change the banner's saved choice.
+To withdraw both, reject in the banner and also remove `sc-analytics-consent`
+via browser storage settings (or clear all site data).
 
-**IP addresses are anonymised** (`anonymize_ip: true`) before being logged by
-GA4. No personal identifiers (name, email, precise location) are collected.
+## Error monitoring (Sentry, when enabled)
 
-### Newsletter sign-up
+When the deployment configures `SENTRY_DSN`, the site initializes Sentry
+error monitoring independently of the analytics consent banner (see
+`documentation/src/theme/Root.tsx`). Sentry is treated as essential
+error-monitoring traffic under the operator's legitimate interest in operating
+a reliable documentation site — it is **not** consent-gated like GA4 or
+Clarity. When `SENTRY_DSN` is absent (for example local development), Sentry
+is not initialized.
 
-If you submit your email via the newsletter form, it is sent to the
-operator-configured endpoint. The Soroban Cookbook project does not store or
-process this data directly — refer to the newsletter provider's own privacy
-policy. The newsletter form is served through a POST endpoint set at build time
-via the `NEWSLETTER_ENDPOINT` environment variable.
+Error reports may include request URLs, release/environment metadata
+(`SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`), and diagnostic context needed to
+reproduce the failure. The integration strips selected sensitive URL query
+parameters (`token`, `key`, `secret`, `password`, `auth`) before sending
+events; this scrubbing does not guarantee every personal or sensitive value
+is removed, so avoid putting secrets in URLs.
 
-### Embedded content
+Retention and contact details follow the operator's Sentry project settings.
+<!-- PLACEHOLDER: State the operator's Sentry data-retention period and the privacy contact for Sentry-related requests once known. -->
+See the [canonical Privacy Policy](/privacy) (Error monitoring, Third-party
+services, and Data retention rows) for the maintained disclosure.
 
-Pages may embed content from external services (GitHub, Discord, Stack
-Overflow). These services set their own cookies and collect data according to
-their own privacy policies.
+## Newsletter submissions
 
-## Legal basis
+The newsletter form sends your trimmed email address only when the site has a
+valid HTTPS `NEWSLETTER_ENDPOINT` configured. It sends a JSON POST with an
+`X-CSRF-Token` header; the token is kept in browser session storage to help
+protect the request. The endpoint is configured by the site operator, and its
+backend operator is responsible for processing and retaining submitted email
+addresses. The project may not store the address directly. Without a valid
+endpoint, the form displays a demo success message but sends no request and
+does not subscribe you.
 
-Processing is based on your **consent** (Article 6(1)(a) GDPR). Analytics
-scripts do not load until you explicitly click "Accept" on the consent banner.
-You can withdraw consent at any time by clearing the `sc-analytics-consent`
-entry from your browser's local storage.
-
-## Your rights
-
-Under GDPR you have the right to:
-
-- **Access** — request a copy of the data held about you.
-- **Erasure** — request deletion of your data.
-- **Restrict processing** — object to analytics tracking.
-- **Data portability** — request a machine-readable export of your data.
-
-To exercise these rights, open an issue on our
-[GitHub repository](https://github.com/Soroban-Cookbook/Soroban_Cookbook_online)
-or contact the maintainers through the Soroban Cookbook Discord.
-
-Since almost all data is anonymised at collection, we may not be able to
-identify or isolate data related to a specific individual. In such cases we
-will explain the limitation.
-
-## Data retention
-
-GA4 data is retained for the default Google Analytics retention period
-(currently 14 months). Aggregated reports may be kept longer but contain no
-individual-level data. Clarity session recordings, if enabled, are retained per
-the Clarity default (currently 30 days).
-
-## Third-party processors
-
-| Service | Purpose | Privacy policy |
-|---------|---------|----------------|
-| Google Analytics 4 | Page analytics, conversion funnel | https://policies.google.com/privacy |
-| Microsoft Clarity | Heatmaps, session replay (optional) | https://privacy.microsoft.com/en-us/privacy |
-
-Both processors are EU-US Data Privacy Framework certified.
-
-## Changes to this policy
-
-Updates will be documented via the project's commit history. Material changes
-will be announced in the project's release notes or Discord server.
-
----
-
-_Last updated: July 2026_
+To request deletion of an email used for the newsletter, contact the
+maintainers via a GitHub issue or discussion, or via the project Discord listed
+on the site, to arrange a private channel for the email address used to
+subscribe. Do not post it in a public issue. <!-- PLACEHOLDER: Add a dedicated privacy email when available. -->
+<!-- PLACEHOLDER: State the configured newsletter backend's retention period when known. -->

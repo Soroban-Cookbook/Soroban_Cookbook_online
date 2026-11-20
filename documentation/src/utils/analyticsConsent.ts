@@ -1,28 +1,27 @@
 /**
  * Consent state for optional analytics (GA4) and session-replay/heatmap (Clarity)
  * tooling. Nothing in `analytics.ts` loads a third-party script until the visitor
- * has explicitly granted consent here — see ConsentBanner for the UI.
+ * has explicitly granted consent here — see CookieConsent for the UI.
+ *
+ * This is a thin adapter over `cookieConsent.ts`, which owns the single consent
+ * store (`soroban-cookie-consent`) and change event written by the banner, so
+ * every consent-gated tracker reads the same switch.
  */
+
+import { CONSENT_CHANGE_EVENT, readConsent, writeConsent } from './cookieConsent';
+
+export { CONSENT_CHANGE_EVENT };
 
 export type ConsentValue = 'granted' | 'denied';
 
-const STORAGE_KEY = 'sc-analytics-consent';
-export const CONSENT_CHANGE_EVENT = 'sc-consent-change';
-
-function isBrowser(): boolean {
-  return typeof window !== 'undefined';
-}
-
 export function getConsent(): ConsentValue | null {
-  if (!isBrowser()) return null;
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === 'granted' || stored === 'denied' ? stored : null;
+  const record = readConsent();
+  if (!record) return null;
+  return record.analytics === 'accepted' ? 'granted' : 'denied';
 }
 
 export function setConsent(value: ConsentValue): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(STORAGE_KEY, value);
-  window.dispatchEvent(new CustomEvent(CONSENT_CHANGE_EVENT, { detail: value }));
+  writeConsent(value === 'granted' ? 'accepted' : 'rejected');
 }
 
 export function hasConsent(): boolean {
