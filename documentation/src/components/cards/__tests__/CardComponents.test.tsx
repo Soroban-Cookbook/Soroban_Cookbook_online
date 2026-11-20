@@ -162,4 +162,31 @@ describe('PatternCard', () => {
     const link = screen.getByRole('link', { name: 'hello_world' });
     expect(link).toHaveAttribute('href', '/contracts/hello_world');
   });
+
+  it('matches snapshot for default state', () => {
+    const { container } = render(<PatternCard {...defaultProps} />);
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it('matches snapshot when expanded', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<PatternCard {...defaultProps} />);
+    const toggleButton = screen.getByRole('button', { name: /Show example/ });
+    await user.click(toggleButton);
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it('matches snapshot with link href', () => {
+    const { container } = render(
+      <PatternCard {...defaultProps} href="/contracts/hello_world" />
+    );
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it('matches snapshot with icon', () => {
+    const { container } = render(
+      <PatternCard {...defaultProps} icon={<span>📋</span>} />
+    );
+    expect(container.firstChild).toMatchSnapshot();
+  });
 });
