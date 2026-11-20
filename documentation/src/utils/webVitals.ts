@@ -20,6 +20,7 @@ import { hasConsent } from './analyticsConsent';
 
 /** POST target for beacon payloads. Falls through to console-only when blank. */
 const ANALYTICS_ENDPOINT = (typeof process !== 'undefined' && process.env.ANALYTICS_ENDPOINT) || '';
+const sentMetricIds = new Set<string>();
 
 /** Shape of the payload we send to the analytics endpoint. */
 interface VitalPayload {
@@ -59,8 +60,14 @@ function sendToAnalytics(metric: Metric): void {
 
   // Send to custom analytics endpoint via Beacon API (non-blocking).
   if (ANALYTICS_ENDPOINT && typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    if (sentMetricIds.has(metric.id)) {
+      return;
+    }
+
     const body = JSON.stringify(payload);
-    navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body], { type: 'application/json' }));
+    if (navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body], { type: 'application/json' }))) {
+      sentMetricIds.add(metric.id);
+    }
   }
 }
 
