@@ -106,26 +106,28 @@ export function usePatternFilter(
     setFilters({ ...EMPTY_FILTER, ...initial });
   }, [initial]);
 
+  const { category, difficulty, tags, search } = filters;
+
   const applyFilters = useCallback(
     (patterns: Pattern[]): Pattern[] => {
       return patterns.filter((p) => {
         // Category
-        if (filters.category !== 'all' && p.category !== filters.category) return false;
+        if (category !== 'all' && p.category !== category) return false;
 
         // Difficulty
-        if (filters.difficulty !== 'all' && p.difficulty !== filters.difficulty) return false;
+        if (difficulty !== 'all' && p.difficulty !== difficulty) return false;
 
-        // Tags — Pattern.tag is a single string like '#storage'.
+        // Tags �?" Pattern.tag is a single string like '#storage'.
         // We strip the '#' and check against each active tag filter.
-        if (filters.tags.length > 0) {
+        if (tags.length > 0) {
           const patternTag = p.tag.replace(/^#/, '').toLowerCase();
-          const hasTag = filters.tags.some((t) => patternTag === t || patternTag.includes(t));
+          const hasTag = tags.some((t) => patternTag === t || patternTag.includes(t));
           if (!hasTag) return false;
         }
 
         // Free-text search
-        if (filters.search.trim()) {
-          const q = filters.search.toLowerCase();
+        if (search.trim()) {
+          const q = search.toLowerCase();
           const inName = p.contractName.toLowerCase().includes(q);
           const inDesc = p.description.toLowerCase().includes(q);
           if (!inName && !inDesc) return false;
@@ -134,7 +136,7 @@ export function usePatternFilter(
         return true;
       });
     },
-    [filters],
+    [category, difficulty, tags, search],
   );
 
   const activeFilterCount = useMemo(
