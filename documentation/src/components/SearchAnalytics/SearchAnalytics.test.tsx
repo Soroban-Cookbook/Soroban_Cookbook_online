@@ -26,7 +26,6 @@ interface MockObserverInstance {
   callback: MutationCallback;
   observe: ReturnType<typeof vi.fn>;
   disconnect: ReturnType<typeof vi.fn>;
-  takeRecords: ReturnType<typeof vi.fn>;
   trigger: (mutations?: Partial<MutationRecord>[]) => void;
 }
 
@@ -36,7 +35,6 @@ class MockMutationObserver {
   callback: MutationCallback;
   observe = vi.fn();
   disconnect = vi.fn();
-  takeRecords = vi.fn(() => []);
 
   constructor(cb: MutationCallback) {
     this.callback = cb;
@@ -54,15 +52,14 @@ function getLatestObserver(): MockObserverInstance {
   return latest;
 }
 
+let querySelectorAllSpy: ReturnType<typeof vi.spyOn>;
+
 function setArticleCount(count: number) {
-  document.querySelectorAll = vi.fn(
-    () =>
-      ({
-        length: count,
-        item: () => null,
-        [Symbol.iterator]: function* () {},
-      }) as unknown as NodeListOf<Element>,
-  );
+  querySelectorAllSpy.mockReturnValue({
+    length: count,
+    item: () => null,
+    [Symbol.iterator]: function* () {},
+  } as unknown as NodeListOf<Element>);
 }
 
 // ─── Setup / teardown ───────────────────────────────────────────────────────
@@ -74,6 +71,7 @@ beforeEach(() => {
   mockLocation.search = '';
   mockConsented = false;
 
+  querySelectorAllSpy = vi.spyOn(document, 'querySelectorAll');
   setArticleCount(0);
 
   // Install Mock MutationObserver
@@ -199,7 +197,11 @@ describe('SearchAnalytics', () => {
       expect(trackSearch).not.toHaveBeenCalled();
     });
 
-    it('starts observing when on /search with a valid query term', () => {
+    it('observes container element when present in DOM', () => {
+      const container = document.createElement('div');
+      container.className = 'container margin-vert--lg';
+      document.body.appendChild(container);
+
       mockConsented = true;
       mockLocation.pathname = '/search';
       mockLocation.search = '?q=soroban+testing';
@@ -207,7 +209,26 @@ describe('SearchAnalytics', () => {
       render(<SearchAnalytics />);
 
       expect(observerInstances.length).toBe(1);
-      expect(observerInstances[0].observe).toHaveBeenCalled();
+      expect(observerInstances[0].observe).toHaveBeenCalledWith(container, {
+        childList: true,
+        subtree: true,
+      });
+
+      document.body.removeChild(container);
+    });
+
+    it('falls back to observing document.body when container is not present', () => {
+      mockConsented = true;
+      mockLocation.pathname = '/search';
+      mockLocation.search = '?q=soroban+testing';
+
+      render(<SearchAnalytics />);
+
+      expect(observerInstances.length).toBe(1);
+      expect(observerInstances[0].observe).toHaveBeenCalledWith(document.body, {
+        childList: true,
+        subtree: true,
+      });
     });
 
     it('handles /search/ (trailing slash) as search route', () => {
@@ -297,11 +318,54 @@ describe('SearchAnalytics', () => {
       expect(observer.disconnect).toHaveBeenCalled();
     });
 
-    it('does not double-report the same query', () => {
+    it('ignores mutations that do not change the result article count', () => {
+      mockLocation.search = '?q=stellar';
+      setArticleCount(2);
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      // At 100ms, a mutation happens (e.g. tooltip or script) but count remains 2
+      act(() => {
+        vi.advanceTimersByTime(100);
+        observer.trigger();
+      });
+
+      // At 250ms total, initial debounce settles because irrelevant mutation was ignored
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+      expect(trackSearch).toHaveBeenCalledWith('stellar', 2);
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not report again on mutations after settling and disconnecting', () => {
+      mockLocation.search = '?q=stellar';
+      setArticleCount(3);
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+      expect(observer.disconnect).toHaveBeenCalledTimes(1);
+
+      // Subsequent mutation arrives after observer has settled
+      act(() => {
+        setArticleCount(5);
+        observer.trigger();
+        vi.advanceTimersByTime(500);
+      });
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not double-report when consent event re-fires for the same query', () => {
       mockLocation.search = '?q=hello';
       setArticleCount(3);
 
-      const { rerender } = render(<SearchAnalytics />);
+      render(<SearchAnalytics />);
 
       act(() => {
         vi.advanceTimersByTime(250);
@@ -309,12 +373,36 @@ describe('SearchAnalytics', () => {
       expect(trackSearch).toHaveBeenCalledTimes(1);
       expect(trackSearch).toHaveBeenCalledWith('hello', 3);
 
-      // Component re-renders with same query
-      rerender(<SearchAnalytics />);
+      // Re-trigger consent change while still true
       act(() => {
+        window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
         vi.advanceTimersByTime(500);
       });
       expect(trackSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('disconnects observer and cancels reporting if consent is revoked during settling', () => {
+      mockConsented = true;
+      mockLocation.search = '?q=revoketest';
+      setArticleCount(2);
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+      expect(observer.disconnect).not.toHaveBeenCalled();
+
+      // Revoke consent while settling
+      act(() => {
+        vi.advanceTimersByTime(100);
+        mockConsented = false;
+        window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
+      });
+
+      expect(observer.disconnect).toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(trackSearch).not.toHaveBeenCalled();
     });
 
     it('reports after max timeout even if mutations keep occurring', () => {
