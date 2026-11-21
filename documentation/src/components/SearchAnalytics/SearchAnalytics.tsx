@@ -18,7 +18,6 @@ const SETTLE_DEBOUNCE_MS = 250;
 const SETTLE_MAX_MS = 6000;
 
 function countResults(): number {
-  if (typeof document === 'undefined') return 0;
   // The plugin renders one <article> per hit inside the search page container.
   return document.querySelectorAll('.container.margin-vert--lg article').length;
 }
@@ -47,7 +46,7 @@ export default function SearchAnalytics(): null {
     const term = new URLSearchParams(search).get('q')?.trim();
     if (!term) return;
 
-    const key = `${term}`;
+    const key = term;
     if (reportedRef.current === key) return;
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -85,7 +84,11 @@ export default function SearchAnalytics(): null {
       };
     }
 
+    let lastCount = countResults();
     observer = new MutationObserver(() => {
+      const next = countResults();
+      if (next === lastCount) return;
+      lastCount = next;
       scheduleDebounce();
     });
 
