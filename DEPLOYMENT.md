@@ -216,6 +216,26 @@ bun start
 
 This starts a live-reload development server at `http://localhost:3000`.
 
+### Local Newsletter Mock Server
+
+When `NEWSLETTER_ENDPOINT` is unset, `NewsletterSignup` (`documentation/src/components/NewsletterSignup/NewsletterSignup.tsx`) runs in demo mode and simulates a successful submission locally. To test real `POST` requests against a local stub without configuring a production email service, run the included mock server:
+
+```bash
+node scripts/local-newsletter-mock.mjs
+# or with Bun:
+bun scripts/local-newsletter-mock.mjs
+```
+
+The mock server listens on `http://127.0.0.1:8787` (override with `PORT=<port>`), accepts `POST` requests with a JSON `{ "email": "..." }` body and optional `X-CSRF-Token` header, logs the payload, and returns `200 OK`:
+
+```bash
+curl -X POST http://127.0.0.1:8787/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"dev@example.com"}'
+```
+
+> **Note:** `NewsletterSignup` validates that `NEWSLETTER_ENDPOINT` is an `https://` URL (and the site's CSP sets `connect-src 'self' https:`). To test the browser form directly against the local mock, expose `http://127.0.0.1:8787` over HTTPS using a local proxy or tunnel (for example, Caddy or ngrok) and pass that `https://` URL as `NEWSLETTER_ENDPOINT` when starting Docusaurus.
+
 ## Environment Variables
 
 Deployment does not require any environment variables to succeed — the build falls back to safe defaults (an inert newsletter form, a hidden Discord link) if none are set. Two optional variables enable real integrations:

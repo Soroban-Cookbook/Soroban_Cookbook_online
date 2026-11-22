@@ -203,6 +203,18 @@ describe('ScrollSpyActivator', () => {
     expect(activeLinkHrefs()).toEqual([]);
   });
 
+  it('clears stale active classes left by a previous page on mount', () => {
+    renderPage();
+    const staleLink = sidebarLink('setup');
+    staleLink.classList.add('scroll-spy-active');
+    staleLink.closest('li')!.classList.add('scroll-spy-active-parent');
+
+    render(<ScrollSpyActivator />);
+
+    expect(activeLinkHrefs()).toEqual([]);
+    expect(document.querySelectorAll('.scroll-spy-active-parent')).toHaveLength(0);
+  });
+
   it('disconnects the observer and clears classes on unmount', () => {
     renderPage();
     const { unmount } = render(<ScrollSpyActivator />);

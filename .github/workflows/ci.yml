@@ -193,7 +193,47 @@ jobs:
         with:
           name: documentation-build
           path: documentation/build
-          retention-days: 5
+          retention-days: ${{ github.event_name == 'pull_request' && 1 || 5 }}
+
+  lighthouse-ci:
+    name: Lighthouse CI (Core Web Vitals)
+    runs-on: ubuntu-latest
+    needs: [build-docs]
+    defaults:
+      run:
+        working-directory: ./documentation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: documentation-build
+          path: documentation/build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Audit Core Web Vitals with Lighthouse CI
+        # lighthouserc.json uses staticDistDir (no separate server needed).
+        # FCP/LCP/CLS assertions use "error", so budget breaches fail this job.
+        run: lhci autorun --config=lighthouserc.json
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report
+          path: documentation/.lighthouseci/
+          retention-days: 7
 
   validate-deployment:
     name: Validate Deployment Setup
@@ -480,7 +520,7 @@ jobs:
           path: documentation/build
 
       - name: Install Playwright browsers + OS deps
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Serve built site in background
         run: |
@@ -488,9 +528,17 @@ jobs:
           npx wait-on http://localhost:3000 --timeout 60000
 
       - name: Run core tests (Chromium)
-        # Keep this job scoped to smoke.spec.ts, accessibility.spec.ts, and navigation.spec.ts
+        # Keep this job scoped to smoke.spec.ts, accessibility.spec.ts, navigation.spec.ts, and playground.spec.ts
         # Other suites are run nightly/on main to reduce PR CI times.
-        run: npx playwright test e2e/smoke.spec.ts e2e/accessibility.spec.ts e2e/navigation.spec.ts --project=chromium
+        run: npx playwright test e2e/smoke.spec.ts e2e/accessibility.spec.ts e2e/navigation.spec.ts e2e/playground.spec.ts --project=chromium
+        env:
+          E2E_BASE_URL: http://localhost:3000
+          CI: "true"
+
+      - name: Run core smoke tests (WebKit)
+        # Catch Safari-specific regressions on every PR; the full Firefox/WebKit
+        # matrix stays in cross-browser.yml.
+        run: npx playwright test e2e/smoke.spec.ts e2e/accessibility.spec.ts --project=webkit
         env:
           E2E_BASE_URL: http://localhost:3000
           CI: "true"
@@ -574,17 +622,17 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Metric | Coverage | Threshold |" >> "$GITHUB_STEP_SUMMARY"
           echo "|--------|----------|-----------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Lines | $LINES | 26% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Statements | $STMTS | 26% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Functions | $FUNCS | 27% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Branches | $BRNCH | 30% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Lines | $LINES | 40% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Statements | $STMTS | 40% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Functions | $FUNCS | 40% |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Branches | $BRNCH | 40% |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "_Full HTML report available in the \`coverage-report\` artifact._" >> "$GITHUB_STEP_SUMMARY"
 
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [lint-format, spellcheck, typecheck, build-docs, validate-deployment, test-examples, lint-contracts, rustfmt, wasm-build-examples, check-wasm-budgets, check-snippet-drift, e2e-console, e2e-smoke, coverage]
+    needs: [lint-format, spellcheck, typecheck, build-docs, lighthouse-ci, validate-deployment, test-examples, lint-contracts, rustfmt, wasm-build-examples, check-wasm-budgets, check-snippet-drift, e2e-console, e2e-smoke, coverage]
     if: always()
     steps:
       - name: Check job statuses
@@ -603,6 +651,10 @@ jobs:
           fi
           if [ "${{ needs.build-docs.result }}" != "success" ]; then
             echo "❌ Documentation build failed"
+            exit 1
+          fi
+          if [ "${{ needs.lighthouse-ci.result }}" != "success" ]; then
+            echo "❌ Lighthouse CI Core Web Vitals budget check failed"
             exit 1
           fi
           if [ "${{ needs.validate-deployment.result }}" != "success" ]; then
