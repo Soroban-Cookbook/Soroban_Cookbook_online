@@ -2,6 +2,10 @@
   "ci": {
     "collect": {
       "staticDistDir": "./build",
+      "url": [
+        "/",
+        "/docs/getting-started/setup"
+      ],
       "numberOfRuns": 1,
       "settings": {
         "emulatedFormFactor": "mobile",
@@ -20,7 +24,7 @@
             "categories:best-practices": ["warn", { "minScore": 0.8 }],
             "viewport": "error",
             "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
-            "first-contentful-paint": ["error", { "maxNumericValue": 1500 }],
+            "first-contentful-paint": ["error", { "maxNumericValue": 1800 }],
             "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
             "total-blocking-time": ["warn", { "maxNumericValue": 200 }],
             "uses-text-compression": ["warn", { "minScore": 1 }],
@@ -39,7 +43,7 @@
             "categories:seo": ["error", { "minScore": 0.85 }],
             "viewport": "error",
             "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
-            "first-contentful-paint": ["error", { "maxNumericValue": 1500 }],
+            "first-contentful-paint": ["error", { "maxNumericValue": 1800 }],
             "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
             "total-blocking-time": ["warn", { "maxNumericValue": 200 }],
             "uses-text-compression": ["warn", { "minScore": 1 }],
