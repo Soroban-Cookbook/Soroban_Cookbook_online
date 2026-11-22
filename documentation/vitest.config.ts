@@ -24,15 +24,13 @@ export default defineConfig({
         'src/theme/**',
       ],
       thresholds: {
-        // Global floor — set from measured baseline (2026-08-31).
-        // These values represent the minimum acceptable coverage across the
-        // whole codebase. They should only move upward as tests are added.
-        // To update: run `bun run test:coverage`, check the summary table,
-        // and raise each value to the new floor (rounded down).
-        lines: 26,
-        statements: 26,
-        functions: 27,
-        branches: 30,
+        // Global floor — 40% for the 2026 Q4 release cycle (issue #1532).
+        // See `docs/contributing.md` for the quarterly coverage roadmap.
+        // These values should only move upward as tests are added.
+        lines: 40,
+        statements: 40,
+        functions: 40,
+        branches: 40,
 
         // Per-file high-water marks for well-tested modules.
         'src/components/SearchFilters/SearchFilters.tsx': {
