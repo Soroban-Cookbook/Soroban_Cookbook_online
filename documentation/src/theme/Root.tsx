@@ -44,6 +44,7 @@ import KeyboardShortcuts from '@site/src/components/KeyboardShortcuts';
 import OfflineNotice from '@site/src/components/OfflineNotice';
 import SearchAnalytics from '@site/src/components/SearchAnalytics';
 import SearchLoading from '@site/src/components/SearchLoading';
+import AnalyticsErrorBoundary from '@site/src/components/AnalyticsErrorBoundary';
 import { ProgressProvider } from '@site/src/contexts/ProgressContext';
 import { hasConsent } from '@site/src/utils/analyticsConsent';
 import useRecommendationTracker from '../hooks/useRecommendationTracker';
@@ -147,12 +148,28 @@ export default function Root({ children }: RootProps): React.JSX.Element {
   return (
     <ProgressProvider>
       {children}
-      <OfflineNotice />
-      <FunnelTracker />
-      <SearchAnalytics />
-      <SearchLoading />
-      <CookieConsent />
-      <BrowserOnly>{() => <KeyboardShortcuts />}</BrowserOnly>
+      <AnalyticsErrorBoundary componentName="OfflineNotice">
+        <OfflineNotice />
+      </AnalyticsErrorBoundary>
+      <AnalyticsErrorBoundary componentName="FunnelTracker">
+        <FunnelTracker />
+      </AnalyticsErrorBoundary>
+      <AnalyticsErrorBoundary componentName="SearchAnalytics">
+        <SearchAnalytics />
+      </AnalyticsErrorBoundary>
+      <AnalyticsErrorBoundary componentName="SearchLoading">
+        <SearchLoading />
+      </AnalyticsErrorBoundary>
+      <AnalyticsErrorBoundary componentName="CookieConsent">
+        <CookieConsent />
+      </AnalyticsErrorBoundary>
+      <BrowserOnly>
+        {() => (
+          <AnalyticsErrorBoundary componentName="KeyboardShortcuts">
+            <KeyboardShortcuts />
+          </AnalyticsErrorBoundary>
+        )}
+      </BrowserOnly>
     </ProgressProvider>
   );
 }
