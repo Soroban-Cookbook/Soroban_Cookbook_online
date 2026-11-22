@@ -10,6 +10,16 @@ const read = (): string[] => {
   }
 };
 
+/** Best-effort persist — ignores write failures (e.g. quota exceeded) so the
+ * in-memory bookmark state stays usable even when storage isn't. */
+const write = (next: string[]): void => {
+  try {
+    localStorage.setItem(K, JSON.stringify(next));
+  } catch {
+    // Swallow storage errors — the caller already has the optimistic state.
+  }
+};
+
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
 
@@ -20,20 +30,20 @@ export function useBookmarks() {
   const toggleBookmark = (path: string) =>
     setBookmarks((prev) => {
       const next = prev.includes(path) ? prev.filter((x) => x !== path) : [...prev, path];
-      localStorage.setItem(K, JSON.stringify(next));
+      write(next);
       return next;
     });
 
   const removeBookmark = (path: string) =>
     setBookmarks((prev) => {
       const next = prev.filter((x) => x !== path);
-      localStorage.setItem(K, JSON.stringify(next));
+      write(next);
       return next;
     });
 
   const clearBookmarks = () =>
     setBookmarks(() => {
-      localStorage.setItem(K, '[]');
+      write([]);
       return [];
     });
 
