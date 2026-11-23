@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+# Only the registry inputs, output, or package command can affect this check.
+set -- documentation/docs/ documentation/package.json \
+  documentation/scripts/generate-content-registry.mjs \
+  documentation/src/components/recommendations/contentRegistry.json
+if git diff --cached --quiet -- "$@"; then
+  exit 0
+else
+  status=$?
+  [ "$status" -eq 1 ] || exit "$status"
+fi
+
+if ! command -v bun >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1; then
+  printf '%s\n' 'The content registry check requires Bun and Node.js. See CONTRIBUTING.md.' >&2
+  exit 1
+fi
+
+snapshot=$(mktemp -d "${TMPDIR:-/tmp}/soroban-registry.XXXXXX")
+trap 'rm -rf "$snapshot"' EXIT
+trap 'exit 1' HUP INT TERM
+
+# Honor the index selected by Git, including a temporary index for a partial commit.
+# Export only the check's inputs; do not change the worktree or the index.
+git ls-files -z --cached -- "$@" > "$snapshot/paths"
+git checkout-index --ignore-skip-worktree-bits --prefix="$snapshot/" -z --stdin < "$snapshot/paths"
+
+if ! (cd "$snapshot/documentation" && TMPDIR="$snapshot" bun run check:content-registry); then
+  printf '%s\n' 'Content registry check failed for the staged files.' \
+    'Run (cd documentation && bun run prestart), then stage the matching contentRegistry.json.' >&2
+  exit 1
+fi
