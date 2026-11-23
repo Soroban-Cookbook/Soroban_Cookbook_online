@@ -69,17 +69,15 @@ function extractInternalLinks(content, sourceId) {
 }
 
 function resolveDocFile(docPath) {
-  const candidates = [
-    path.join(docsRoot, `${docPath}.md`),
-    path.join(docsRoot, `${docPath}.mdx`),
-    path.join(docsRoot, docPath, 'index.md'),
-  ];
+  // Handle special cases: registry 'index' ID and already-prefixed /docs/ paths
   if (docPath === 'index' || docPath === '/docs' || docPath === '/docs/') {
-    return path.join(docsRoot, 'index.md');
+    return resolveConfigDocFile('/docs', docsRoot);
   }
-  const slug = docPath.replace(/^\/docs\//, '');
-  candidates.unshift(path.join(docsRoot, `${slug}.md`), path.join(docsRoot, `${slug}.mdx`));
-  return candidates.find((p) => fs.existsSync(p)) ?? null;
+  // Convert a bare registry ID (e.g. "design-system/buttons") to a /docs/ path
+  const normalized = docPath.startsWith('/docs/')
+    ? docPath
+    : `/docs/${docPath}`;
+  return resolveConfigDocFile(normalized, docsRoot);
 }
 
 const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));

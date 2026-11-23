@@ -54,18 +54,18 @@ export function resolveDocFilePath(docPath, docsRoot) {
 /**
  * Extracts internal `/docs/...` links from a Docusaurus config file's
  * themeConfig.navbar and themeConfig.footer sections using text regex.
- * Only matches single-quoted string values for `to:` and `href:` keys.
+ * Matches single- or double-quoted string values for `to:` and `href:` keys.
  * External hrefs and non-doc paths are excluded automatically.
  * @param {string} configText  raw text of docusaurus.config.ts
  * @returns {string[]}  deduplicated array of canonical /docs/... paths
  */
 export function extractConfigLinks(configText) {
   const raw = [];
-  // Match: to: '/docs/...' or href: '/docs/...'
-  const re = /(?:to|href)\s*:\s*'(\/[^']*)'/g;
+  // Match: to: '/docs/...' or to: "/docs/..." (and href: equivalents)
+  const re = /(?:to|href)\s*:\s*(['"])(\/[^'"]*)\1/g;
   let m;
   while ((m = re.exec(configText)) !== null) {
-    raw.push(m[1]);
+    raw.push(m[2]);
   }
   const normalized = raw
     .map(normalizeConfigLink)

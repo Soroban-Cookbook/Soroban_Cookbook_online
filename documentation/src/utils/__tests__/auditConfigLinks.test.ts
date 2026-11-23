@@ -131,4 +131,14 @@ describe('extractConfigLinks', () => {
     const text = `{ to: '#section' }`;
     expect(extractConfigLinks(text)).toHaveLength(0);
   });
+
+  it('extracts to: values written with double quotes', () => {
+    const text = `items: [{ to: "/docs/getting-started/setup" }]`;
+    expect(extractConfigLinks(text)).toContain('/docs/getting-started/setup');
+  });
+
+  it('extracts href: /docs/... values written with double quotes', () => {
+    const text = `{ href: "/docs/patterns/overview" }`;
+    expect(extractConfigLinks(text)).toContain('/docs/patterns/overview');
+  });
 });
