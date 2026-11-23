@@ -24,6 +24,7 @@ const config: Config = {
         ? `https://${process.env.VERCEL_URL}`
         : 'https://soroban-cookbook.dev'),
   baseUrl: process.env.BASE_URL || '/',
+  baseUrlIssueBanner: false,
 
   organizationName: 'Soroban-Cookbook',
   projectName: 'Soroban_Cookbook_online',
@@ -87,26 +88,6 @@ const config: Config = {
 
   // Meta tags for theme color + social previews (see CONTRIBUTING — SEO & social metadata)
   headTags: [
-    // Content Security Policy
-    {
-      tagName: 'meta',
-      attributes: {
-        'http-equiv': 'Content-Security-Policy',
-        content: [
-          "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
-          "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: https:",
-          "font-src 'self' data:",
-          "connect-src 'self' https:",
-          "frame-src 'none'",
-          "object-src 'none'",
-          "base-uri 'self'",
-          "form-action 'self' https:",
-          "worker-src 'self'",
-        ].join('; '),
-      },
-    },
     {
       tagName: 'meta',
       attributes: {
@@ -124,8 +105,28 @@ const config: Config = {
       tagName: 'meta',
       attributes: {
         'http-equiv': 'Content-Security-Policy',
-        content:
-          "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com; font-src 'self' data:; connect-src 'self' https:; form-action 'self' https:; object-src 'none'; base-uri 'self'; worker-src 'self'",
+        content: [
+          "default-src 'self'",
+          "script-src 'self' 'sha256-O8zYuOjyuzUZDv3fub7DKfAs5TEd1dG+fz+hCSCFmQA=' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: https://api.dicebear.com https://www.googletagmanager.com https://www.google-analytics.com https://c.clarity.ms https://c.bing.com",
+          "font-src 'self' data:",
+          "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com https://*.algolia.net https://*.algolianet.com https://api.sorobancookbook.org" +
+            (() => {
+              if (process.env.NEWSLETTER_ENDPOINT) {
+                try {
+                  return ` ${new URL(process.env.NEWSLETTER_ENDPOINT).origin}`;
+                } catch {
+                  return '';
+                }
+              }
+              return '';
+            })(),
+          "form-action 'self'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "worker-src 'self'",
+        ].join('; '),
       },
     },
     // Preload the Inter variable font (latin woff2) — critical for above-the-fold text.

@@ -44,7 +44,7 @@ These must be set at the HTTP server or CDN layer.
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https:; frame-ancestors 'none'" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-O8zYuOjyuzUZDv3fub7DKfAs5TEd1dG+fz+hCSCFmQA=' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com https://www.googletagmanager.com https://www.google-analytics.com https://c.clarity.ms https://c.bing.com; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com https://*.algolia.net https://*.algolianet.com https://api.sorobancookbook.org; form-action 'self'; object-src 'none'; base-uri 'self'; worker-src 'self'; frame-ancestors 'none'" }
       ]
     }
   ]
@@ -60,7 +60,7 @@ X-Content-Type-Options: nosniff
 
 Referrer-Policy: strict-origin-when-cross-origin
 
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https:; frame-ancestors 'none
+Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-O8zYuOjyuzUZDv3fub7DKfAs5TEd1dG+fz+hCSCFmQA=' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com https://www.googletagmanager.com https://www.google-analytics.com https://c.clarity.ms https://c.bing.com; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com https://*.algolia.net https://*.algolianet.com https://api.sorobancookbook.org; form-action 'self'; object-src 'none'; base-uri 'self'; worker-src 'self'; frame-ancestors 'none'
 ## Newsletter endpoint
 
 The `NEWSLETTER_ENDPOINT` env var must be an `https://` URL. Set it at build time:
