@@ -141,7 +141,7 @@ UAT should involve at least one participant from each profile:
 ### S-19 — PR template
 **Goal:** The PR template populates correctly on GitHub.  
 **Steps:** Open a new PR on GitHub against the main branch.  
-**Pass criteria:** All sections of `pull_request_template.md` appear in the PR body.
+**Pass criteria:** All sections of `PULL_REQUEST_TEMPLATE.md` appear in the PR body.
 
 ---
 

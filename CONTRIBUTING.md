@@ -93,7 +93,7 @@ All example crates in [`examples/`](examples/) are licensed under the repository
   declares `MIT` in line with this policy.
 
 New example PRs should confirm the crate's `license` field follows this policy
-(see the checklist in the [pull request template](.github/pull_request_template.md)).
+(see the checklist in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)).
 
 Adapted or third-party material must also be recorded in the root
 [NOTICE](NOTICE) file and in [examples/ORIGIN.md](examples/ORIGIN.md), following

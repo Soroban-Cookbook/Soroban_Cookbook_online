@@ -192,7 +192,7 @@ To get started, please read our **[Contributing Guide](https://soroban-cookbook.
 - Branching and pull request conventions.
 - Pre-submission validation steps.
 
-We also have a [Pull Request Template](.github/pull_request_template.md) to help you structure your submissions.
+We also have a [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md) to help you structure your submissions.
 
 ## 🎨 Design System
 
