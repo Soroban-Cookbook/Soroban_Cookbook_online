@@ -2,10 +2,12 @@
 /**
  * Audits documentation internal links against link-registry.json.
  * Validates required cross-links, minimum internal link counts, and orphans.
+ * Also validates internal links in docusaurus.config.ts navbar and footer.
  */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { extractConfigLinks, resolveDocFilePath as resolveConfigDocFile } from '../src/utils/auditConfigLinks.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const docsRoot = path.join(__dirname, '../docs');
@@ -132,6 +134,22 @@ for (const [id] of Object.entries(registry.pages)) {
   if ((inbound.get(key) ?? 0) === 0 && id !== 'index') {
     // Advisory only — sidebar navigation also provides discoverability
     console.warn(`[advisory] ${id}: no inbound markdown links`);
+  }
+}
+
+// ── Config link audit: navbar + footer ────────────────────────────────────
+const configPath = path.join(__dirname, '../docusaurus.config.ts');
+const configText = fs.readFileSync(configPath, 'utf8');
+const configLinks = extractConfigLinks(configText);
+
+for (const link of configLinks) {
+  const resolved = resolveConfigDocFile(link, docsRoot);
+  if (!resolved) {
+    issues.push({
+      id: 'docusaurus.config.ts',
+      type: 'broken-config-link',
+      detail: `Config link "${link}" does not resolve to a doc file`,
+    });
   }
 }
 
