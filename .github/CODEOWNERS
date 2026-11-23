@@ -19,5 +19,11 @@ examples/                           @Goodnessukaigwe
 # Security documentation — must stay accurate
 documentation/docs/security/        @Goodnessukaigwe
 
+# Security policy — must stay accurate
+SECURITY.md                         @Goodnessukaigwe
+
+# Frontend application code — site UI, components, and utilities
+documentation/src/                  @Goodnessukaigwe
+
 # Docusaurus config — controls site-wide behaviour, SEO, redirects
 documentation/docusaurus.config.ts  @Goodnessukaigwe
