@@ -53,6 +53,9 @@ jobs:
           # Analytics stays disabled until these are set — see DEPLOYMENT.md → Analytics.
           GA_MEASUREMENT_ID: ${{ secrets.GA_MEASUREMENT_ID }}
           CLARITY_PROJECT_ID: ${{ secrets.CLARITY_PROJECT_ID }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ENVIRONMENT: ${{ vars.SENTRY_ENVIRONMENT || 'production' }}
+          SENTRY_RELEASE: ${{ vars.SENTRY_RELEASE }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
