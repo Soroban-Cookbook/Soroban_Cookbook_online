@@ -1,3 +1,5 @@
+import { safeLocalStorage } from '../../src/utils/safeLocalStorage';
+
 export interface UserPreferences {
   categoryPreferences: Record<string, number>;
   tagPreferences: Record<string, number>;
@@ -41,9 +43,9 @@ export function getHistory(): UserHistory {
   if (typeof window === 'undefined') {
     return DEFAULT_HISTORY;
   }
+  const raw = safeLocalStorage.getItem(STORAGE_KEY);
+  if (!raw) return freshEmptyHistory();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return freshEmptyHistory();
     const parsed = JSON.parse(raw);
     return {
       visitedDocs: Array.isArray(parsed.visitedDocs) ? parsed.visitedDocs : [],
@@ -54,18 +56,16 @@ export function getHistory(): UserHistory {
       },
     };
   } catch (e) {
-    console.error('Failed to parse recommendation history from localStorage', e);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Failed to parse recommendation history from localStorage', e);
+    }
     return freshEmptyHistory();
   }
 }
 
 export function saveHistory(history: UserHistory): void {
   if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  } catch (e) {
-    console.error('Failed to save recommendation history to localStorage', e);
-  }
+  safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 }
 
 export function trackDocVisit(
@@ -108,9 +108,5 @@ export function trackDocVisit(
 
 export function clearHistory(): void {
   if (typeof window === 'undefined') return;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (e) {
-    console.error('Failed to clear recommendation history from localStorage', e);
-  }
+  safeLocalStorage.removeItem(STORAGE_KEY);
 }

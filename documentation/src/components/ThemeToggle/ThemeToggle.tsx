@@ -12,6 +12,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import styles from './ThemeToggle.module.css';
+import { safeLocalStorage } from '../../utils/safeLocalStorage';
 
 /* ── Types ──────────────────────────────────────────────────────────────────── */
 
@@ -75,13 +76,13 @@ export function ThemeToggle({
     const newTheme: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
     applyTheme(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    safeLocalStorage.setItem(THEME_STORAGE_KEY, newTheme);
     onThemeChange?.(newTheme);
   }, [theme, applyTheme, onThemeChange]);
 
   // Initialize theme on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    const savedTheme = safeLocalStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
     const initialTheme = savedTheme || getSystemTheme();
 
     applyTheme(initialTheme);
@@ -96,7 +97,7 @@ export function ThemeToggle({
 
     const handleChange = (e: MediaQueryListEvent) => {
       // Only update if no saved preference
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      const savedTheme = safeLocalStorage.getItem(THEME_STORAGE_KEY);
       if (!savedTheme) {
         const newTheme: Theme = e.matches ? 'dark' : 'light';
         setTheme(newTheme);
@@ -176,7 +177,7 @@ export function ThemeToggle({
  */
 export function getStoredTheme(): Theme | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+  return safeLocalStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
 }
 
 /**
@@ -184,7 +185,7 @@ export function getStoredTheme(): Theme | null {
  */
 export function setStoredTheme(theme: Theme): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(THEME_STORAGE_KEY, theme);
+  safeLocalStorage.setItem(THEME_STORAGE_KEY, theme);
   document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
 }
 
@@ -194,7 +195,7 @@ export function setStoredTheme(theme: Theme): void {
 export function initializeTheme(): void {
   if (typeof window === 'undefined') return;
 
-  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+  const savedTheme = safeLocalStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
   const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   const theme = savedTheme || systemTheme;
 
