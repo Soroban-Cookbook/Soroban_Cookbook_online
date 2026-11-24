@@ -84,5 +84,5 @@ pnpm-lock.yaml
 issue.md
 skills-lock.json
 
-# Local Cursor merge-gate rule (not committed)
-.cursor/rules/merge-gate.mdc
+# Cursor IDE configuration (local only, do not commit)
+.cursor/
