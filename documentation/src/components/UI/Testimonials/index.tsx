@@ -25,14 +25,24 @@ export interface TestimonialsProps {
 }
 
 export function getInitials(name: string): string {
-  return name
+  const parts = name
     .split(' ')
-    .filter((part) => part.trim().length > 0)
-    .map((part) => part.trim()[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  if (parts.length === 0) return '';
+
+  // Single-word names have no second initial, so fall back to the first two
+  // letters ("Prince" -> "PR") instead of a single lonely character.
+  const initials =
+    parts.length === 1
+      ? parts[0].slice(0, 2)
+      : parts
+          .slice(0, 2)
+          .map((part) => part[0])
+          .join('');
+
+  return initials.toUpperCase();
 }
 
 function DiscordIcon() {

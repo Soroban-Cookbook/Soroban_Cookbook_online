@@ -78,7 +78,10 @@ describe('Homepage Integration Test', () => {
 
     // 10. Verify footer is rendered
     expect(screen.getByTestId('mock-footer')).toBeInTheDocument();
-  });
+    // Renders the whole homepage including a lazy-loaded chunk that is awaited
+    // with an 8s timeout below, so the default 5s test timeout is too tight
+    // when the full suite runs in parallel.
+  }, 20000);
 
   it('allows interaction with CTA buttons', () => {
     render(<Home />);

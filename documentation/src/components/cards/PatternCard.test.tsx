@@ -16,13 +16,17 @@ describe('PatternCard', () => {
     );
 
     const encodedId = encodeURIComponent(contractName);
+    const codeBlockId = `https://example.com/code-${encodedId}`;
     const toggle = screen.getByRole('button', { name: /show example/i });
-    expect(toggle.getAttribute('aria-controls')).toBe(`https://example.com/code-${encodedId}`);
+    expect(toggle.getAttribute('aria-controls')).toBe(codeBlockId);
 
     fireEvent.click(toggle);
 
-    const codeBlock = screen.getByTestId(`https://example.com/code-${encodedId}`);
+    // The <pre> is identified by its `id` attribute (which mirrors aria-controls);
+    // query it directly because ids here contain URL characters that are awkward
+    // to use in CSS selectors.
+    const codeBlock = document.getElementById(codeBlockId);
     expect(codeBlock).toBeInTheDocument();
-    expect(codeBlock.tagName).toBe('PRE');
+    expect(codeBlock?.tagName).toBe('PRE');
   });
 });
