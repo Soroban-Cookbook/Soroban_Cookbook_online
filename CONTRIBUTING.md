@@ -20,6 +20,18 @@ Run the idempotent setup script from the repository root to install Rust, add th
 ./scripts/setup.sh
 ```
 
+### Commit Messages and Releases
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and pull request titles. The format is:
+
+```text
+<type>(optional-scope): <short description>
+```
+
+Common types include `feat` for a feature, `fix` for a bug fix, `docs` for documentation, and `chore` for maintenance. For example: `feat(examples): add escrow pattern`. Mark a breaking change with `!` (for example, `feat!: change the contract API`) or a `BREAKING CHANGE:` footer.
+
+Release-please monitors `main`, opens a release pull request when Conventional Commits warrant a release, and updates `CHANGELOG.md` and the release version. Merging that pull request publishes the corresponding GitHub release and tag. Use Conventional Commit pull request titles, especially when squash-merging, so the change is included in release notes.
+
 ---
 
 ### 📊 For Docs Maintainers
