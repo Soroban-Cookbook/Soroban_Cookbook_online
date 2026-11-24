@@ -14,9 +14,12 @@ const StatItem: React.FC<StatItemProps> = ({ end, label, suffix = '', duration =
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let hasTriggered = false;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+      (entries) => {
+        if (!hasTriggered && entries.some((entry) => entry.isIntersecting)) {
+          hasTriggered = true;
+          observer.disconnect();
           setIsVisible(true);
         }
       },
