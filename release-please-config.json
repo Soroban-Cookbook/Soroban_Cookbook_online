@@ -1,0 +1,9 @@
+{
+  "bootstrap-sha": "e938a60306f729e18d29ed02969b1c839d66a5c1",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "soroban-cookbook"
+    }
+  }
+}

@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react';
+import { safeLocalStorage } from '../utils/safeLocalStorage';
 
 const K = 'bookmarks';
 
 const read = (): string[] => {
   try {
-    return JSON.parse(localStorage.getItem(K) || '[]');
+    return JSON.parse(safeLocalStorage.getItem(K) || '[]');
   } catch {
     return [];
   }
+};
+
+/** Best-effort persist — `safeLocalStorage.setItem` reports failure instead of
+ * throwing, and the caller already has the optimistic state, so the bookmark
+ * list stays usable even when storage isn't. */
+const write = (next: string[]): void => {
+  safeLocalStorage.setItem(K, JSON.stringify(next));
 };
 
 export function useBookmarks() {
@@ -20,20 +28,20 @@ export function useBookmarks() {
   const toggleBookmark = (path: string) =>
     setBookmarks((prev) => {
       const next = prev.includes(path) ? prev.filter((x) => x !== path) : [...prev, path];
-      localStorage.setItem(K, JSON.stringify(next));
+      write(next);
       return next;
     });
 
   const removeBookmark = (path: string) =>
     setBookmarks((prev) => {
       const next = prev.filter((x) => x !== path);
-      localStorage.setItem(K, JSON.stringify(next));
+      write(next);
       return next;
     });
 
   const clearBookmarks = () =>
     setBookmarks(() => {
-      localStorage.setItem(K, '[]');
+      write([]);
       return [];
     });
 

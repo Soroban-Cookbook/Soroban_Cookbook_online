@@ -284,8 +284,9 @@ export default function PlaygroundPage(): React.ReactElement {
             <button
               className={`${styles.button} ${styles.buttonPrimary}`}
               disabled={isTesting || status !== 'Ready'}
-              onClick={runMockTests}>
-              {isTesting ? 'Running...' : 'Run Tests'}
+              onClick={runMockTests}
+              title="This is a simulated validation demo. It checks for the #[contractimpl] substring only.">
+              {isTesting ? 'Running...' : 'Validate Syntax (Demo)'}
             </button>
           </div>
         </div>

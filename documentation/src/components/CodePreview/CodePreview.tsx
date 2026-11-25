@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
 import clsx from 'clsx';
 import styles from './CodePreview.module.css';
@@ -60,12 +60,27 @@ export default function CodePreview({
 }: CodePreviewProps): React.ReactElement {
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleCopy = useCallback(async () => {
+    // Clear any existing timeout
+    if (copiedTimeoutRef.current) {
+      clearTimeout(copiedTimeoutRef.current);
+    }
+
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1500);
     } catch {
       const textarea = document.createElement('textarea');
       textarea.value = code;
@@ -76,7 +91,7 @@ export default function CodePreview({
       document.execCommand('copy');
       document.body.removeChild(textarea);
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      copiedTimeoutRef.current = setTimeout(() => setCopied(false), 1500);
     }
   }, [code]);
 

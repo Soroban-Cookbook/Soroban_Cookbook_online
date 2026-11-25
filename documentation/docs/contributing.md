@@ -78,11 +78,26 @@ Keep your branches scoped to a single concern. Use the following naming conventi
 
 ### Commit Messages
 
-We follow a lightweight conventional commit style:
+Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and pull request titles. Use this format:
 
-- `feat: add liquidity pool pattern`
-- `fix: correct typo in storage docs`
-- `docs: update contributing guide`
+```text
+<type>(optional-scope): <short description>
+```
+
+Common types include:
+
+- `feat`: a new feature or example (`feat(examples): add escrow pattern`)
+- `fix`: a bug fix (`fix: correct typo in storage docs`)
+- `docs`: documentation changes (`docs: update contributing guide`)
+- `chore`: maintenance (`chore: update CI dependencies`)
+
+Use `!` after the type or scope to mark a breaking change (for example, `feat!: change the contract API`), or add a `BREAKING CHANGE:` footer to the commit body. Keep descriptions short and imperative. When squash-merging, use a Conventional Commit pull request title so the merged commit can be included in release notes.
+
+### Automated Releases
+
+Release-please monitors commits on `main`. When Conventional Commits indicate a release, it opens a release pull request that updates the version and `CHANGELOG.md`. Merging that pull request creates the version tag and GitHub release. `feat` commits trigger a minor release, `fix` commits trigger a patch release, and breaking changes trigger the appropriate breaking-change version bump. Types such as `docs` and `chore` do not trigger a release on their own.
+
+For the workflow to open release pull requests, repository settings must allow GitHub Actions to create pull requests using `GITHUB_TOKEN`.
 
 ### Pull Requests
 
@@ -155,20 +170,43 @@ The CI enforces a minimum coverage floor to prevent regressions. These values ar
 
 | Metric     | Minimum |
 | ---------- | ------- |
-| Lines      | 26%     |
-| Statements | 26%     |
-| Functions  | 27%     |
-| Branches   | 30%     |
+| Lines      | 40%     |
+| Statements | 40%     |
+| Functions  | 40%     |
+| Branches   | 40%     |
 
-**These thresholds represent the current baseline** (measured 2026-08-31). They are a floor — PRs must not drop below them.
+**These thresholds are the 2026 Q4 floor.** They are a floor — PRs must not drop below them.
 
 **How to update thresholds:** If you've added tests and want to raise the bar:
 
 1. Run `bun run test:coverage` locally and note the new totals.
 2. Update the global values in `vitest.config.ts` → `coverage.thresholds` (round down to the nearest integer).
-3. Add a brief comment with the date you updated them.
+3. Update the table above and the current row of the roadmap below.
 
-> **Note:** The project currently has many untested components. Adding tests to any of them directly improves these numbers and raises the floor for everyone.
+> **Note:** The project still has untested components. Adding tests to any of them directly improves these numbers and raises the floor for everyone.
+
+### Coverage roadmap and tracking
+
+Issue #1532 is the tracking issue for this roadmap. The floor increases by 10 percentage points each quarter until it reaches 70%.
+
+| Target  | Lines | Statements | Functions | Branches | Status      |
+| ------- | ----- | ---------- | --------- | -------- | ----------- |
+| 2026 Q4 | 40%   | 40%        | 40%       | 40%      | In progress |
+| 2027 Q1 | 50%   | 50%        | 50%       | 50%      | Planned     |
+| 2027 Q2 | 60%   | 60%        | 60%       | 60%      | Planned     |
+| 2027 Q3 | 70%   | 70%        | 70%       | 70%      | Planned     |
+
+Work is tracked by priority area:
+
+| Priority | Area                 | Target quarter | Status      |
+| -------- | -------------------- | -------------- | ----------- |
+| P1       | Security utilities   | 2026 Q4        | In progress |
+| P1       | Hooks                | 2026 Q4        | In progress |
+| P2       | Uncovered components | 2027 Q1        | Planned     |
+
+- **Security utilities:** `sanitizeUrl`, `csrf`, and `cookieConsent`.
+- **Hooks:** `useBookmarks`, `usePatternFilter`, `useScrollSpy`, and the remaining hooks.
+- **Uncovered components:** `BookmarkButton`, `KeyboardShortcuts`, and similar components.
 
 ### Coverage in CI
 

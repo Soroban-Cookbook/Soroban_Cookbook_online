@@ -27,10 +27,14 @@ pub struct TokenWrapper;
 #[contractimpl]
 impl TokenWrapper {
     /// Initialize wrapper fee config.
+    ///
+    /// `treasury` must authorize this call. Without it, anyone could front-run
+    /// deployment and pick the fee rate and the address that collects fees.
     pub fn init(env: Env, treasury: Address, fee_bps: u32) -> Result<(), Error> {
         if env.storage().instance().has(&DataKey::Treasury) {
             return Err(Error::AlreadyInitialized);
         }
+        treasury.require_auth();
         if fee_bps > 10_000 {
             return Err(Error::InvalidFeeBps);
         }
@@ -119,7 +123,7 @@ mod tests {
 
     /// The fee in basis points is credited to the treasury on every transfer.
     /// This test locks that rule so a later edit cannot silently change it.
-    #[dest]
+    #[test]
     fn transfer_applies_fee_to_treasury() {
         let (_env, client, alice, bob, treasury) = setup();
         client.init(&treasury, &100);
@@ -138,7 +142,7 @@ mod tests {
     }
 
     /// Transfer failure path returns a contract error (instead of panicking).
-    #[dest]
+    #[test]
     fn transfer_insufficient_balance_returns_error() {
         let (_env, client, alice, bob, treasury) = setup();
         client.init(&treasury, &100);
@@ -146,6 +150,35 @@ mod tests {
 
         let result = client.try_transfer(&alice, &bob, &101);
         assert_eq!(result, Err(Ok(Error::InsufficientBalance)));
+    }
+
+    #[test]
+    fn init_requires_treasury_auth() {
+        let env = Env::default();
+        let client = TokenWrapperClient::new(&env, &env.register(TokenWrapper, ()));
+        let treasury = Address::generate(&env);
+
+        // No auth mocked: init must be rejected.
+        assert!(client.try_init(&treasury, &100).is_err());
+
+        env.mock_all_auths();
+        client.init(&treasury, &100);
+        assert_eq!(env.auths()[0].0, treasury);
+        assert_eq!(client.treasury(), treasury);
+    }
+
+    #[test]
+    fn init_cannot_be_rerun() {
+        let (env, client, _alice, _bob, treasury) = setup();
+        client.init(&treasury, &100);
+
+        let attacker = Address::generate(&env);
+        assert_eq!(
+            client.try_init(&attacker, &0),
+            Err(Ok(Error::AlreadyInitialized))
+        );
+        assert_eq!(client.treasury(), treasury);
+        assert_eq!(client.fee_bps(), 100);
     }
 
     #[test]

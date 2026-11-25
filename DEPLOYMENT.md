@@ -186,6 +186,37 @@ To test and release a new feature:
 
 **Note:** This repository uses GitHub Pages for hosting, which tracks deployments. Each successful workflow run creates a deployment artifact that can be restored if needed.
 
+## Vercel Deployment
+
+### Overview
+
+The project is configured for deployment on [Vercel](https://vercel.com) using a single canonical configuration file (`vercel.json`) at the repository root and orchestration scripts in `scripts/`.
+
+### Vercel Root Directory Setting
+
+> [!IMPORTANT]
+> When importing this project into Vercel, ensure the **Root Directory** setting is left as `./` (the repository root / default).
+>
+> **Do NOT set the Root Directory to `documentation/`.**
+
+#### Why the Root Directory must be the repository root:
+1. **Single Source of Truth (`vercel.json`)**: All Vercel configuration—build commands, install commands, output directory, and edge security headers (CSP, HSTS, X-Frame-Options)—lives in the single root `vercel.json`. There is no secondary `documentation/vercel.json`, preventing configuration drift and duplicated header definitions.
+2. **Build Pipeline**: The root `vercel.json` executes `bash scripts/vercel-install.sh` (`bun install --frozen-lockfile` inside `documentation/`) and `bash scripts/vercel-build.sh` (`bun run build` inside `documentation/`), emitting output to `documentation/build`.
+3. **Security Headers Enforcement**: Vercel evaluates `vercel.json` at the configured project root directory. Keeping the root directory at `./` ensures that Vercel's edge network applies all security headers defined in `vercel.json`.
+
+### Project Configuration in Vercel
+
+When importing or configuring the project in the Vercel dashboard:
+
+| Setting | Recommended Value | Notes |
+|---|---|---|
+| **Root Directory** | `./` (default repository root) | **Must not** be set to `documentation` |
+| **Framework Preset** | Other | Vercel reads configuration from `vercel.json` |
+| **Build Command** | Left default (or `bash scripts/vercel-build.sh`) | Defined in `vercel.json` |
+| **Output Directory** | Left default (or `documentation/build`) | Defined in `vercel.json` |
+| **Install Command** | Left default (or `bash scripts/vercel-install.sh`) | Defined in `vercel.json` |
+| **Development Command** | Left default (or `bash scripts/vercel-dev.sh`) | Defined in `vercel.json` |
+
 ## Local Development
 
 ### Building Locally
@@ -215,6 +246,26 @@ bun start
 ```
 
 This starts a live-reload development server at `http://localhost:3000`.
+
+### Local Newsletter Mock Server
+
+When `NEWSLETTER_ENDPOINT` is unset, `NewsletterSignup` (`documentation/src/components/NewsletterSignup/NewsletterSignup.tsx`) runs in demo mode and simulates a successful submission locally. To test real `POST` requests against a local stub without configuring a production email service, run the included mock server:
+
+```bash
+node scripts/local-newsletter-mock.mjs
+# or with Bun:
+bun scripts/local-newsletter-mock.mjs
+```
+
+The mock server listens on `http://127.0.0.1:8787` (override with `PORT=<port>`), accepts `POST` requests with a JSON `{ "email": "..." }` body and optional `X-CSRF-Token` header, logs the payload, and returns `200 OK`:
+
+```bash
+curl -X POST http://127.0.0.1:8787/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"dev@example.com"}'
+```
+
+> **Note:** `NewsletterSignup` validates that `NEWSLETTER_ENDPOINT` is an `https://` URL (and the site's CSP sets `connect-src 'self' https:`). To test the browser form directly against the local mock, expose `http://127.0.0.1:8787` over HTTPS using a local proxy or tunnel (for example, Caddy or ngrok) and pass that `https://` URL as `NEWSLETTER_ENDPOINT` when starting Docusaurus.
 
 ## Environment Variables
 
@@ -412,22 +463,23 @@ The site ships a production-grade HTTP security baseline:
 
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms;
+script-src 'self' 'sha256-O8zYuOjyuzUZDv3fub7DKfAs5TEd1dG+fz+hCSCFmQA=' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms;
 style-src 'self' 'unsafe-inline';
-img-src 'self' data: https://api.dicebear.com;
+img-src 'self' data: https://api.dicebear.com https://www.googletagmanager.com https://www.google-analytics.com https://c.clarity.ms https://c.bing.com;
 font-src 'self' data:;
-connect-src 'self' https:;
-form-action 'self' https:;
+connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com https://*.algolia.net https://*.algolianet.com https://api.sorobancookbook.org;
+form-action 'self';
 object-src 'none';
 base-uri 'self';
+worker-src 'self';
 frame-ancestors 'none';
 ```
 
-`script-src`/`style-src` need `'unsafe-inline'` because Docusaurus emits a few inline boilerplate scripts (theme detection, base-URL warning banner) and inline `style="..."` attributes that vary per build and can't be pinned to a static hash. `script-src` also allowlists `www.googletagmanager.com` and `www.clarity.ms` for the optional, consent-gated analytics described under [Analytics](#analytics) — neither host is contacted unless an operator configures the IDs *and* the visitor accepts the consent banner. `img-src` allowlists `api.dicebear.com`, which generates the testimonial avatar images on the homepage. `connect-src`/`form-action` allow `https:` generally because the newsletter form posts to an operator-configured endpoint (`NEWSLETTER_ENDPOINT`, see [Environment Variables](#environment-variables)) that isn't known at policy-authoring time.
+`script-src` avoids `'unsafe-inline'` to provide robust XSS mitigation; inline scripts required by Docusaurus (such as theme color mode initialization) are allowlisted via cryptographic SHA-256 hashes (`'sha256-O8zYuOjyuzUZDv3fub7DKfAs5TEd1dG+fz+hCSCFmQA='`), and Docusaurus's `baseUrlIssueBanner` is disabled (`baseUrlIssueBanner: false`) to avoid unhashed inline scripts. `script-src` also allowlists `www.googletagmanager.com`, `www.google-analytics.com`, and `www.clarity.ms` for optional consent-gated analytics. `style-src` retains `'unsafe-inline'` because Docusaurus injects dynamic inline CSS styles for theming. `img-src` allowlists `api.dicebear.com` (homepage testimonial avatars) and analytics endpoints. `connect-src` is strictly scoped to `'self'`, analytics endpoints (`google-analytics.com`, `googletagmanager.com`, `clarity.ms`, `c.bing.com`), Algolia search (`*.algolia.net`, `*.algolianet.com`), remote compilation (`api.sorobancookbook.org`), and the operator's configured `NEWSLETTER_ENDPOINT` origin (if set). `form-action` is restricted to `'self'` rather than wildcard `https:`, preventing form hijacking and data exfiltration.
 
 **Where this is defined (three places, kept in sync):**
 
-1. **`vercel.json`** (repo root) — a `headers` block. This is the only mechanism that's actually enforced when this project is deployed via Vercel, because Vercel's edge network honors custom response headers.
+1. **`vercel.json`** (repo root) — a `headers` block. This is the single canonical Vercel configuration file and the only mechanism enforced when deployed via Vercel (Vercel edge network honors custom response headers). Vercel's project Root Directory must be left as `./` (repository root) so this configuration is applied.
 2. **`documentation/static/_headers`** — the Netlify/Cloudflare Pages `_headers` file convention. Docusaurus copies everything under `static/` into the build root, so this lands at `build/_headers`. Honored automatically if this site is ever hosted on Netlify or Cloudflare Pages; harmless (ignored) elsewhere.
 3. **`documentation/docusaurus.config.ts`** → `headTags` — a `<meta http-equiv="Content-Security-Policy">` tag baked into every page's `<head>`. This is the **only** mechanism that works on plain GitHub Pages, because GitHub Pages serves static files with no way to attach custom HTTP response headers (no edge functions, no header config). A caveat: the `<meta>` form of CSP cannot carry `frame-ancestors` — browsers silently ignore that directive outside a real HTTP header — and meta tags cannot express `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security`, or `X-XSS-Protection` at all (these are HTTP-header-only). **If you need those four headers enforced on a custom domain backed by GitHub Pages, put a CDN in front of it** (e.g. a Cloudflare proxy with a Transform Rule / Response Header Rule adding them) — there is no static-file-only way to add them on GitHub Pages itself.
 

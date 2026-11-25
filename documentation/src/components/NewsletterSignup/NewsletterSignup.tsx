@@ -1,4 +1,4 @@
-import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import clsx from 'clsx';
 import {
@@ -38,6 +38,7 @@ export default function NewsletterSignup({ className }: NewsletterSignupProps) {
     if (typeof raw !== 'string' || raw.length === 0) return undefined;
     if (!isHttpsUrl(raw)) {
       if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console -- dev-only warning, stripped in production
         console.warn(
           '[NewsletterSignup] newsletterEndpoint must be an https:// URL. Endpoint ignored.',
         );
@@ -55,6 +56,13 @@ export default function NewsletterSignup({ className }: NewsletterSignupProps) {
   const errorId = `${formId}-error`;
   const lastSubmitAtRef = useRef(0);
   const inFlightRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   const validate = useCallback((value: string) => {
     const trimmed = value.trim();
@@ -104,27 +112,30 @@ export default function NewsletterSignup({ className }: NewsletterSignupProps) {
       }
 
       try {
-        if (!endpoint) {
-          await new Promise((r) => setTimeout(r, 600));
-          setStatus('success');
-          setMessage('Thanks — you are on the list. We will share Soroban Cookbook updates here.');
-          setEmail('');
-          return;
-        }
-
         // Get CSRF token for protection against CSRF attacks
         const csrfToken = getOrCreateCSRFToken();
 
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-          },
-          body: JSON.stringify({ email: email.trim() }),
-          // SameSite cookie protection (enforced by browser)
-          credentials: 'same-origin',
-        });
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
+        let res: Response;
+        try {
+          res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken,
+            },
+            body: JSON.stringify({ email: email.trim() }),
+            // SameSite cookie protection (enforced by browser)
+            credentials: 'same-origin',
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+          abortControllerRef.current = null;
+        }
 
         // Update CSRF token if backend rotates it
         updateCSRFTokenFromResponse(res);
@@ -139,9 +150,13 @@ export default function NewsletterSignup({ className }: NewsletterSignupProps) {
         setEmail('');
         clearCSRFToken();
         trackNewsletterSubmit({ method: 'endpoint' });
-      } catch {
+      } catch (err) {
         setStatus('error');
-        setMessage('Something went wrong. Try again in a moment.');
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          setMessage('The request timed out. Please try again.');
+        } else {
+          setMessage('Something went wrong. Try again in a moment.');
+        }
       } finally {
         inFlightRef.current = false;
       }

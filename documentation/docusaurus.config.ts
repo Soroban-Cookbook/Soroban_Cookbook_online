@@ -7,6 +7,10 @@ import accessibleGithubPrismTheme from './src/theme/prismAccessibleGithub';
 /** Optional GA4 measurement ID — enables page views + custom events when set. */
 const gtagMeasurementId = process.env.GTAG_MEASUREMENT_ID || process.env.GOOGLE_ANALYTICS_ID || '';
 
+/** Fallback Discord invite URL used when DISCORD_INVITE_URL is not set. */
+const DEFAULT_DISCORD_INVITE_URL = 'https://discord.gg/YNBu3jKEF';
+const discordInviteUrl = process.env.DISCORD_INVITE_URL ?? DEFAULT_DISCORD_INVITE_URL;
+
 const config: Config = {
   title: 'Soroban Cookbook',
   tagline: 'A comprehensive guide to building smart contracts on Stellar with Soroban',
@@ -20,6 +24,7 @@ const config: Config = {
         ? `https://${process.env.VERCEL_URL}`
         : 'https://soroban-cookbook.dev'),
   baseUrl: process.env.BASE_URL || '/',
+  baseUrlIssueBanner: false,
 
   organizationName: 'Soroban-Cookbook',
   projectName: 'Soroban_Cookbook_online',
@@ -124,6 +129,28 @@ const config: Config = {
         content:
           // Known limitation (security review): 'unsafe-inline' is required for Docusaurus inline scripts/styles until nonce/hash support is added.
           "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://api.dicebear.com; font-src 'self' data:; connect-src 'self' https:; form-action 'self' https:; object-src 'none'; base-uri 'self'; worker-src 'self'",
+        content: [
+          "default-src 'self'",
+          "script-src 'self' 'sha256-O8zYuOjyuzUZDv3fub7DKfAs5TEd1dG+fz+hCSCFmQA=' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: https://api.dicebear.com https://www.googletagmanager.com https://www.google-analytics.com https://c.clarity.ms https://c.bing.com",
+          "font-src 'self' data:",
+          "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://c.bing.com https://*.algolia.net https://*.algolianet.com https://api.sorobancookbook.org" +
+            (() => {
+              if (process.env.NEWSLETTER_ENDPOINT) {
+                try {
+                  return ` ${new URL(process.env.NEWSLETTER_ENDPOINT).origin}`;
+                } catch {
+                  return '';
+                }
+              }
+              return '';
+            })(),
+          "form-action 'self'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "worker-src 'self'",
+        ].join('; '),
       },
     },
     // Preload the Inter variable font (latin woff2) — critical for above-the-fold text.
@@ -508,7 +535,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: process.env.DISCORD_INVITE_URL ?? 'https://discord.gg/YNBu3jKEF',
+          href: discordInviteUrl,
           label: 'Discord',
           position: 'right',
         },
@@ -540,7 +567,7 @@ const config: Config = {
           items: [
             {
               label: 'Soroban Cookbook Discord',
-              href: process.env.DISCORD_INVITE_URL ?? 'https://discord.gg/YNBu3jKEF',
+              href: discordInviteUrl,
             },
             {
               label: 'Stellar Discord',

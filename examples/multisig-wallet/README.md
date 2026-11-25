@@ -7,6 +7,7 @@ A wallet where any signer can propose a transfer and it executes only once a thr
 - Threshold approval tracked per proposal
 - Rejecting duplicate approvals and non-signer approvals
 - Executing the transfer exactly once, when the threshold is reached
+- The first configured signer must authorize initialization of the signer set and threshold
 
 ## Build
 

@@ -7,10 +7,14 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   mobile-seo-audit:
     name: Mobile SEO & Lighthouse Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./documentation
@@ -55,6 +59,7 @@ jobs:
   mobile-friendly-check:
     name: Mobile-Friendly Verification
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: mobile-seo-audit
     defaults:
       run:

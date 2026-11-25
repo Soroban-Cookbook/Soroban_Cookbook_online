@@ -12,6 +12,26 @@ Thank you for your interest in contributing! To ensure a smooth experience for b
 - **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community standards and behavioral expectations.
 - **[Community Moderation Plan](COMMUNITY.md)** - Moderator guidelines, reporting, and escalation path.
 
+### ⚡ Automated Local Setup
+
+Run the idempotent setup script from the repository root to install Rust, add the `wasm32v1-none` target, install Bun, and install documentation dependencies (`bun install --frozen-lockfile` in `documentation/`):
+
+```bash
+./scripts/setup.sh
+```
+
+### Commit Messages and Releases
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and pull request titles. The format is:
+
+```text
+<type>(optional-scope): <short description>
+```
+
+Common types include `feat` for a feature, `fix` for a bug fix, `docs` for documentation, and `chore` for maintenance. For example: `feat(examples): add escrow pattern`. Mark a breaking change with `!` (for example, `feat!: change the contract API`) or a `BREAKING CHANGE:` footer.
+
+Release-please monitors `main`, opens a release pull request when Conventional Commits warrant a release, and updates `CHANGELOG.md` and the release version. Merging that pull request publishes the corresponding GitHub release and tag. Use Conventional Commit pull request titles, especially when squash-merging, so the change is included in release notes.
+
 ---
 
 ### 📊 For Docs Maintainers
@@ -85,7 +105,7 @@ All example crates in [`examples/`](examples/) are licensed under the repository
   declares `MIT` in line with this policy.
 
 New example PRs should confirm the crate's `license` field follows this policy
-(see the checklist in the [pull request template](.github/pull_request_template.md)).
+(see the checklist in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md)).
 
 Adapted or third-party material must also be recorded in the root
 [NOTICE](NOTICE) file and in [examples/ORIGIN.md](examples/ORIGIN.md), following

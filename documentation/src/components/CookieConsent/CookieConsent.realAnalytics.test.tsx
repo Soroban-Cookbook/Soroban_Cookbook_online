@@ -84,5 +84,10 @@ describe('CookieConsent — real analytics gating (issue #615)', () => {
     expect(hasInjectedScript('ms-clarity-src')).toBe(true);
     // @ts-expect-error window.gtag is optional
     expect(typeof window.gtag).toBe('function');
+    // `gtag` pushes its call arguments onto `dataLayer` (issue #1541) —
+    // assert the GA4 config call fired with the measurement ID and the
+    // anonymize_ip flag, confirming the full consent → analytics chain ran.
+    // @ts-expect-error window.dataLayer is optional
+    expect(window.dataLayer).toContainEqual(['config', GA_ID, { anonymize_ip: true }]);
   });
 });

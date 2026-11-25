@@ -57,6 +57,8 @@ impl MultisigWallet {
         if threshold == 0 || threshold > signers.len() {
             return Err(WalletError::InvalidThreshold);
         }
+        let initializer = signers.get(0).ok_or(WalletError::InvalidThreshold)?;
+        initializer.require_auth();
         env.storage().instance().set(&DataKey::Signers, &signers);
         env.storage()
             .instance()
