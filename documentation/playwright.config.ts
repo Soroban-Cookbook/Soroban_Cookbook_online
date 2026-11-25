@@ -35,17 +35,9 @@ export default defineConfig({
     : [['list'], ['html', { open: 'on-failure', outputFolder: 'playwright-report' }]],
 
   webServer: {
-    command: 'bun run serve -- --port 3000 --host 127.0.0.1',
-    url: 'http://127.0.0.1:3000',
-    // CI workflows pre-start `docusaurus serve` on :3000; reuse it when present.
-    // When that server is gone, Playwright starts its own — and that copy must
-    // not inherit a BASE_URL meant for the browser. docusaurus.config.ts reads
-    // BASE_URL as the *site's* baseUrl, so a value like "http://localhost:3000"
-    // serves the whole site under /http://localhost:3000/ and every asset 404s
-    // back to index.html. Pin it to the site root here.
-    env: { ...stringEnv(), BASE_URL: '/' },
-    reuseExistingServer: true,
-    timeout: 120_000,
+    command: 'bun run serve --port 3000',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
   },
 
   use: {
