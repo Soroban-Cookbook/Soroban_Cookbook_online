@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react';
+import { safeLocalStorage } from '../utils/safeLocalStorage';
 
 const K = 'bookmarks';
 
 const read = (): string[] => {
   try {
-    return JSON.parse(localStorage.getItem(K) || '[]');
+    return JSON.parse(safeLocalStorage.getItem(K) || '[]');
   } catch {
     return [];
   }
 };
 
-/** Best-effort persist — ignores write failures (e.g. quota exceeded) so the
- * in-memory bookmark state stays usable even when storage isn't. */
+/** Best-effort persist — `safeLocalStorage.setItem` reports failure instead of
+ * throwing, and the caller already has the optimistic state, so the bookmark
+ * list stays usable even when storage isn't. */
 const write = (next: string[]): void => {
-  try {
-    localStorage.setItem(K, JSON.stringify(next));
-  } catch {
-    // Swallow storage errors — the caller already has the optimistic state.
-  }
+  safeLocalStorage.setItem(K, JSON.stringify(next));
 };
 
 export function useBookmarks() {

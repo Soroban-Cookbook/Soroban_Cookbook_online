@@ -152,4 +152,31 @@ describe('Quiz component', () => {
     render(<Quiz questions={singleChoiceQuestions} />);
     expect(screen.getByRole('radiogroup', { name: /Options for question 1/ })).toBeInTheDocument();
   });
+
+  it('multi-select: selecting all correct options increments the score (issue #1539)', () => {
+    const onComplete = vi.fn();
+    render(<Quiz questions={multipleChoiceQuestions} onComplete={onComplete} />);
+    fireEvent.click(screen.getByLabelText('2'));
+    fireEvent.click(screen.getByLabelText('4'));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(onComplete).toHaveBeenCalledWith(1, 1);
+  });
+
+  it('multi-select: selecting only some correct options does not increment the score (issue #1539)', () => {
+    const onComplete = vi.fn();
+    render(<Quiz questions={multipleChoiceQuestions} onComplete={onComplete} />);
+    fireEvent.click(screen.getByLabelText('2'));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(onComplete).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('multi-select: selecting an incorrect option does not increment the score (issue #1539)', () => {
+    const onComplete = vi.fn();
+    render(<Quiz questions={multipleChoiceQuestions} onComplete={onComplete} />);
+    fireEvent.click(screen.getByLabelText('2'));
+    fireEvent.click(screen.getByLabelText('4'));
+    fireEvent.click(screen.getByLabelText('1'));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(onComplete).toHaveBeenCalledWith(0, 1);
+  });
 });

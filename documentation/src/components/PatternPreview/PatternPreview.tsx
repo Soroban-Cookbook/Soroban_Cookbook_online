@@ -46,6 +46,16 @@ export default function PatternPreview({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const filteredPatterns = applyFilters(patterns);
 
@@ -64,14 +74,14 @@ export default function PatternPreview({
     if (!canGoNext || isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prev) => prev + 1);
-    setTimeout(() => setIsAnimating(false), 300);
+    animationTimeoutRef.current = setTimeout(() => setIsAnimating(false), 300);
   };
 
   const handlePrev = () => {
     if (!canGoPrev || isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prev) => prev - 1);
-    setTimeout(() => setIsAnimating(false), 300);
+    animationTimeoutRef.current = setTimeout(() => setIsAnimating(false), 300);
   };
 
   const _handlePatternClick = (pattern: Pattern) => {

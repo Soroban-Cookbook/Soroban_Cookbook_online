@@ -1,7 +1,11 @@
 # Pull Request Template
 
-## Description
-Provide a clear description of the changes you've made. Explain why you're proposing these changes and link to any relevant issues.
+## Summary of Changes
+Provide a clear summary of the changes you've made. Explain why you're proposing these changes.
+
+## Related Issue
+Link to the related issue. Use `Closes #<number>` so GitHub auto-closes the issue when the PR merges.
+- Closes #
 
 ## Type of Change
 Select the appropriate type of change:
@@ -23,6 +27,10 @@ Add any screenshots or recordings of UI changes here.
 
 ## Checklist
 Before submitting, please ensure you've checked these off:
+- [ ] Tests added or updated, and `bun run test` passes locally
+- [ ] Documentation updated (or the change needs no documentation, noted below)
+- [ ] Accessibility checked (complete the Accessibility (a11y) Checklist below for UI changes)
+- [ ] `bun run lint` passes in `documentation/` (no lint errors or warnings)
 - [ ] My code follows the project's code style.
 - [ ] I have performed a self-review of my code.
 - [ ] I have commented my code where necessary.

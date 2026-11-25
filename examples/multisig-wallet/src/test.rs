@@ -4,9 +4,9 @@
 
 use soroban_sdk::{
     contract, contractimpl, contracttype,
-    testutils::Address as _,
+    testutils::{Address as _, MockAuth, MockAuthInvoke},
     token::{StellarAssetClient, TokenClient},
-    Address, Env, Vec,
+    Address, Env, IntoVal, Vec,
 };
 
 use crate::{MultisigWallet, MultisigWalletClient, TransferProposal, WalletError};
@@ -107,22 +107,48 @@ fn setup_2of3() -> Fixture {
 #[test]
 fn test_initialize() {
     let env = Env::default();
-    env.mock_all_auths();
 
     let contract_id = env.register(MultisigWallet, ());
     let client = MultisigWalletClient::new(&env, &contract_id);
 
     let signer1 = Address::generate(&env);
     let signer2 = Address::generate(&env);
-    let signers = Vec::from_array(&env, [signer1, signer2]);
+    let signers = Vec::from_array(&env, [signer1.clone(), signer2]);
+    env.mock_auths(&[MockAuth {
+        address: &signer1,
+        invoke: &MockAuthInvoke {
+            contract: &contract_id,
+            fn_name: "initialize",
+            args: (signers.clone(), 1u32).into_val(&env),
+            sub_invokes: &[],
+        },
+    }]);
 
     client.initialize(&signers, &1u32);
 
     assert_eq!(client.get_threshold(), Some(1));
     assert_eq!(client.get_proposal_count(), 0);
 
-    let result = client.try_initialize(&signers, &1u32);
+    let replacement_signer = Address::generate(&env);
+    let replacement_signers = Vec::from_array(&env, [replacement_signer]);
+    let result = client.try_initialize(&replacement_signers, &2u32);
     assert_eq!(result, Err(Ok(WalletError::AlreadyInitialized)));
+    assert_eq!(client.get_signers(), Some(signers));
+    assert_eq!(client.get_threshold(), Some(1));
+}
+
+#[test]
+fn test_initialize_requires_first_signer_auth() {
+    let env = Env::default();
+    let contract_id = env.register(MultisigWallet, ());
+    let client = MultisigWalletClient::new(&env, &contract_id);
+
+    let signer = Address::generate(&env);
+    let signers = Vec::from_array(&env, [signer]);
+
+    assert!(client.try_initialize(&signers, &1u32).is_err());
+    assert_eq!(client.get_signers(), None);
+    assert_eq!(client.get_threshold(), None);
 }
 
 #[test]

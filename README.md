@@ -144,7 +144,8 @@ npm install && npm run format:check && npm run lint && npm run typecheck && npm 
 
 1. Push to GitHub
 2. Import project in Vercel
-3. Deploy automatically
+3. **Root Directory**: Ensure the **Root Directory** setting is left as `./` (default repository root). Do **not** set it to `documentation/` (the root `vercel.json` manages the build pipeline and security headers).
+4. Deploy automatically
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Soroban-Cookbook/Soroban_Cookbook_online)
 
@@ -192,7 +193,7 @@ To get started, please read our **[Contributing Guide](https://soroban-cookbook.
 - Branching and pull request conventions.
 - Pre-submission validation steps.
 
-We also have a [Pull Request Template](.github/pull_request_template.md) to help you structure your submissions.
+We also have a [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md) to help you structure your submissions.
 
 ## 🎨 Design System
 

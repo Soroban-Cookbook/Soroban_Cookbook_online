@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vercel install when project root is the repository root (not documentation/).
+# Vercel install script for Soroban Cookbook documentation (executed from repo root).
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${root}/documentation"

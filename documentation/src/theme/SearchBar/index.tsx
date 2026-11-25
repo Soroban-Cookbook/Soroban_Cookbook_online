@@ -3,6 +3,7 @@ import OriginalSearchBar from '@theme-original/SearchBar';
 import type SearchBarType from '@theme/SearchBar';
 import type { WrapperProps } from '@docusaurus/types';
 import styles from './styles.module.css';
+import { safeLocalStorage } from '../../utils/safeLocalStorage';
 
 type Props = WrapperProps<typeof SearchBarType>;
 
@@ -19,22 +20,20 @@ export default function SearchBarWrapper(props: Props): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Load history from localStorage
+  // Load history from localStorage (safe: storage failures or corrupt JSON
+  // simply start with an empty history)
   useEffect(() => {
+    const stored = safeLocalStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: unknown = JSON.parse(stored);
-        if (isStringArray(parsed)) {
-          setHistory(parsed);
-        }
-      }
+      setHistory(JSON.parse(stored));
     } catch {
-      // Keep the initial empty history when stored data cannot be parsed.
+      // Corrupt history payload — ignore and start fresh.
     }
   }, []);
 
-  // Save history to localStorage
+  // Save history to localStorage (best-effort: the in-memory history stays
+  // usable even when the write fails)
   const saveQuery = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed || trimmed.length < 2) return;
@@ -42,11 +41,7 @@ export default function SearchBarWrapper(props: Props): React.ReactElement {
     setHistory((prev) => {
       const filtered = prev.filter((item) => item !== trimmed);
       const updated = [trimmed, ...filtered].slice(0, MAX_HISTORY);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.error('Failed to save search history', e);
-      }
+      safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   };
@@ -127,12 +122,8 @@ export default function SearchBarWrapper(props: Props): React.ReactElement {
 
   const handleClearHistory = (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      setHistory([]);
-    } catch (err) {
-      console.error('Failed to clear search history', err);
-    }
+    safeLocalStorage.removeItem(STORAGE_KEY);
+    setHistory([]);
   };
 
   return (

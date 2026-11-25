@@ -2,10 +2,12 @@
 /**
  * Audits documentation internal links against link-registry.json.
  * Validates required cross-links, minimum internal link counts, and orphans.
+ * Also validates internal links in docusaurus.config.ts navbar and footer.
  */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { extractConfigLinks, resolveDocFilePath as resolveConfigDocFile } from '../src/utils/auditConfigLinks.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const docsRoot = path.join(__dirname, '../docs');
@@ -67,17 +69,15 @@ function extractInternalLinks(content, sourceId) {
 }
 
 function resolveDocFile(docPath) {
-  const candidates = [
-    path.join(docsRoot, `${docPath}.md`),
-    path.join(docsRoot, `${docPath}.mdx`),
-    path.join(docsRoot, docPath, 'index.md'),
-  ];
+  // Handle special cases: registry 'index' ID and already-prefixed /docs/ paths
   if (docPath === 'index' || docPath === '/docs' || docPath === '/docs/') {
-    return path.join(docsRoot, 'index.md');
+    return resolveConfigDocFile('/docs', docsRoot);
   }
-  const slug = docPath.replace(/^\/docs\//, '');
-  candidates.unshift(path.join(docsRoot, `${slug}.md`), path.join(docsRoot, `${slug}.mdx`));
-  return candidates.find((p) => fs.existsSync(p)) ?? null;
+  // Convert a bare registry ID (e.g. "design-system/buttons") to a /docs/ path
+  const normalized = docPath.startsWith('/docs/')
+    ? docPath
+    : `/docs/${docPath}`;
+  return resolveConfigDocFile(normalized, docsRoot);
 }
 
 const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
@@ -132,6 +132,22 @@ for (const [id] of Object.entries(registry.pages)) {
   if ((inbound.get(key) ?? 0) === 0 && id !== 'index') {
     // Advisory only — sidebar navigation also provides discoverability
     console.warn(`[advisory] ${id}: no inbound markdown links`);
+  }
+}
+
+// ── Config link audit: navbar + footer ────────────────────────────────────
+const configPath = path.join(__dirname, '../docusaurus.config.ts');
+const configText = fs.readFileSync(configPath, 'utf8');
+const configLinks = extractConfigLinks(configText);
+
+for (const link of configLinks) {
+  const resolved = resolveConfigDocFile(link, docsRoot);
+  if (!resolved) {
+    issues.push({
+      id: 'docusaurus.config.ts',
+      type: 'broken-config-link',
+      detail: `Config link "${link}" does not resolve to a doc file`,
+    });
   }
 }
 
