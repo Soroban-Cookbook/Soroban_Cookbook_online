@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import clsx from 'clsx';
 import styles from './PrerequisitesChecker.module.css';
 
@@ -69,6 +69,16 @@ export function PrerequisitesChecker({
 }: PrerequisitesCheckerProps) {
   const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -97,7 +107,10 @@ export function PrerequisitesChecker({
     if (!command) return;
     navigator.clipboard.writeText(command).then(() => {
       setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+      copiedTimeoutRef.current = setTimeout(() => setCopiedId(null), 2000);
     });
   };
 
