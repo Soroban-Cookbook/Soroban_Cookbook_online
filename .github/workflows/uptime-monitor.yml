@@ -21,6 +21,7 @@ jobs:
   check-endpoints:
     name: Check endpoints
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       all_up: ${{ steps.aggregate.outputs.all_up }}
       uptime_pct: ${{ steps.aggregate.outputs.uptime_pct }}
@@ -95,6 +96,7 @@ jobs:
     needs: check-endpoints
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Collect matrix results
         id: aggregate

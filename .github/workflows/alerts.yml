@@ -32,6 +32,7 @@ jobs:
   notify-failure:
     name: Notify on CI/CD failure
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # Only run when triggered by a workflow_run event AND that run failed
     if: >
       github.event_name == 'workflow_run' &&
@@ -91,6 +92,7 @@ jobs:
   notify-recovery:
     name: Notify on CI/CD recovery
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # Only run when triggered by a workflow_run event AND that run succeeded
     if: >
       github.event_name == 'workflow_run' &&
@@ -123,6 +125,7 @@ jobs:
   uptime-check:
     name: Uptime probe
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     outputs:
       site_up: ${{ steps.probe.outputs.site_up }}
@@ -186,6 +189,7 @@ jobs:
   test-alert:
     name: Send test alert
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: >
       github.event_name == 'workflow_dispatch' &&
       github.event.inputs.test_alert == 'true'

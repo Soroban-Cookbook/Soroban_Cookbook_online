@@ -39,6 +39,7 @@ jobs:
   aggregate:
     name: Archive and forward run logs
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # The `secrets` context is unavailable in step-level `if:`, so resolve
     # "is forwarding configured?" into a job-level env value once.
     env:
