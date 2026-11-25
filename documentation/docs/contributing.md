@@ -78,11 +78,26 @@ Keep your branches scoped to a single concern. Use the following naming conventi
 
 ### Commit Messages
 
-We follow a lightweight conventional commit style:
+Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages and pull request titles. Use this format:
 
-- `feat: add liquidity pool pattern`
-- `fix: correct typo in storage docs`
-- `docs: update contributing guide`
+```text
+<type>(optional-scope): <short description>
+```
+
+Common types include:
+
+- `feat`: a new feature or example (`feat(examples): add escrow pattern`)
+- `fix`: a bug fix (`fix: correct typo in storage docs`)
+- `docs`: documentation changes (`docs: update contributing guide`)
+- `chore`: maintenance (`chore: update CI dependencies`)
+
+Use `!` after the type or scope to mark a breaking change (for example, `feat!: change the contract API`), or add a `BREAKING CHANGE:` footer to the commit body. Keep descriptions short and imperative. When squash-merging, use a Conventional Commit pull request title so the merged commit can be included in release notes.
+
+### Automated Releases
+
+Release-please monitors commits on `main`. When Conventional Commits indicate a release, it opens a release pull request that updates the version and `CHANGELOG.md`. Merging that pull request creates the version tag and GitHub release. `feat` commits trigger a minor release, `fix` commits trigger a patch release, and breaking changes trigger the appropriate breaking-change version bump. Types such as `docs` and `chore` do not trigger a release on their own.
+
+For the workflow to open release pull requests, repository settings must allow GitHub Actions to create pull requests using `GITHUB_TOKEN`.
 
 ### Pull Requests
 
