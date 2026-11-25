@@ -50,8 +50,7 @@ function CommentCodeSnippet({
         : formatFilename(`code-${Date.now()}`, language);
       downloadFile(code ?? '', finalFilename);
       setTimeout(() => setDownloadStatus('idle'), 500);
-    } catch (error) {
-      console.error('Download failed:', error);
+    } catch {
       setDownloadStatus('idle');
     }
   }, [code, filename, language]);

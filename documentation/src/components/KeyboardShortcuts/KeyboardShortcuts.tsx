@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './KeyboardShortcuts.module.css';
+import { safeLocalStorage } from '../../utils/safeLocalStorage';
 
 /**
  * Site-wide keyboard shortcuts: navigation, search focus, and theme toggle.
@@ -48,11 +49,7 @@ function toggleTheme(): void {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
-  try {
-    localStorage.setItem('theme', next);
-  } catch {
-    // Ignore storage quota or disabled errors
-  }
+  safeLocalStorage.setItem('theme', next);
 }
 
 export default function KeyboardShortcuts(): React.JSX.Element | null {

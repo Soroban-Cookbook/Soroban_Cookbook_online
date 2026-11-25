@@ -106,7 +106,6 @@ export function downloadFile(content: string, filename: string): void {
     // Clean up the object URL
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Failed to download file:', error);
     throw new Error(`Failed to download file: ${filename}`, { cause: error });
   }
 }
@@ -132,8 +131,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
       document.body.removeChild(textarea);
       return success;
     }
-  } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
+  } catch {
     return false;
   }
 }

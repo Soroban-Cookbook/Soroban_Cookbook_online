@@ -22,6 +22,7 @@ export function sanitizeUrl(url: string | null | undefined): string {
 
   if (DANGEROUS_SCHEMES.some((scheme) => normalised.startsWith(scheme))) {
     if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console -- dev-only warning, stripped in production
       console.warn(
         `[sanitizeUrl] Blocked potentially dangerous URL: "${url}". Replaced with an empty string.`,
       );
@@ -38,6 +39,7 @@ export function sanitizeUrl(url: string | null | undefined): string {
   }
 
   if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console -- dev-only warning, stripped in production
     console.warn(`[sanitizeUrl] Unknown URL scheme in "${url}". Replaced with '#'.`);
   }
   return '#';
