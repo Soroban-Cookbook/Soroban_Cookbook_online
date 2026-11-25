@@ -267,10 +267,37 @@ function ensureOutputDir() {
   }
 }
 
+const FIX_INSTRUCTION = 'Run `bun run prestart` to regenerate it, then commit the updated file.';
+
+/** Diffs two registry arrays (keyed by `id`) into added/removed/changed entries. */
+function diffRegistries(expected, actual) {
+  const expectedById = new Map(expected.map((entry) => [entry.id, entry]));
+  const actualById = new Map(actual.map((entry) => [entry.id, entry]));
+
+  const added = [];
+  const removed = [];
+  const changed = [];
+
+  for (const [id, expectedEntry] of expectedById) {
+    if (!actualById.has(id)) {
+      added.push(id);
+    } else if (JSON.stringify(actualById.get(id)) !== JSON.stringify(expectedEntry)) {
+      changed.push(id);
+    }
+  }
+  for (const id of actualById.keys()) {
+    if (!expectedById.has(id)) {
+      removed.push(id);
+    }
+  }
+
+  return { added, removed, changed };
+}
+
 function checkRegistryOutput(registry) {
   if (!fs.existsSync(outputPath)) {
     console.error(`contentRegistry.json is missing at ${outputPath}`);
-    console.error('Run `node scripts/generate-content-registry.mjs` to regenerate it.');
+    console.error(FIX_INSTRUCTION);
     process.exit(1);
   }
 
@@ -283,9 +310,22 @@ function checkRegistryOutput(registry) {
 
     if (actual !== expected) {
       console.error(`contentRegistry.json is stale at ${outputPath}`);
-      console.error(
-        'Run `node scripts/generate-content-registry.mjs` and commit the updated file.',
+
+      const { added, removed, changed } = diffRegistries(
+        JSON.parse(expected),
+        JSON.parse(actual),
       );
+      if (added.length > 0) {
+        console.error(`  Missing entries (new docs not yet registered): ${added.join(', ')}`);
+      }
+      if (removed.length > 0) {
+        console.error(`  Stale entries (registered docs no longer present): ${removed.join(', ')}`);
+      }
+      if (changed.length > 0) {
+        console.error(`  Out-of-date entries (doc content/frontmatter changed): ${changed.join(', ')}`);
+      }
+
+      console.error(FIX_INSTRUCTION);
       process.exit(1);
     }
   } finally {
