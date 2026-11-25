@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     css: true,
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: [...configDefaults.exclude, 'e2e/**', '**/sanitizeUrl.test.ts'],
+    exclude: [...configDefaults.exclude, 'e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary', 'json'],
