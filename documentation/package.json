@@ -32,6 +32,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "check:bundle-budget": "node scripts/check-performance-budget.mjs",
+    "check:csp": "node scripts/check-csp-hashes.mjs",
+    "sync:csp": "node scripts/sync-csp.mjs",
     "test:coverage:check": "vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary",
     "audit:headings": "node scripts/audit-heading-hierarchy.mjs",
     "press:screenshots": "node scripts/capture-press-screenshots.mjs",
