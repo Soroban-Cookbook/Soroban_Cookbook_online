@@ -1,0 +1,86 @@
+name: Documentation Improvement
+description: Suggest a fix or improvement to the Soroban Cookbook documentation.
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the Soroban Cookbook! Please describe what needs to change and why.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the documentation does this relate to?
+      options:
+        - Getting Started / Setup
+        - Core Concepts
+        - Contract Patterns
+        - Security
+        - Design System / Components
+        - Code Examples
+        - Navigation / Site Structure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: page
+    attributes:
+      label: Documentation Page or Section Affected
+      description: Link to or describe the specific page or section that needs improvement.
+      placeholder: |
+        e.g. /docs/getting-started/setup — "Deploy to Testnet" section
+        or https://soroban-cookbook.example.com/docs/concepts/introduction
+    validations:
+      required: true
+
+  - type: textarea
+    id: gap
+    attributes:
+      label: Current Issue or Gap
+      description: What is missing, incorrect, outdated, or unclear?
+      placeholder: |
+        The example command uses a deprecated flag (`--source`) that was removed in CLI v21. The page does not mention the replacement flag.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Improvement
+      description: Describe the change or addition you would like to see.
+      placeholder: |
+        Replace `--source` with `--source-account` throughout the example, and add a note linking to the CLI migration guide.
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefit
+    attributes:
+      label: Why This Change Helps
+      description: How will this improvement benefit contributors or readers of the cookbook?
+      placeholder: |
+        Developers following this guide currently hit an error immediately. Fixing the command means they can complete the tutorial without needing to look up the migration guide separately.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: Additional Context or References
+      description: Any related issues, links, screenshots, or other supporting material.
+      placeholder: |
+        - Related issue: #123
+        - CLI migration guide: https://...
+      render: markdown
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verification
+      options:
+        - label: I have searched existing issues to confirm this is not a duplicate.
+          required: true
+        - label: I have identified the specific page or section that needs to change.
+          required: true
