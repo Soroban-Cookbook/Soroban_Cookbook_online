@@ -9,6 +9,10 @@ type Props = WrapperProps<typeof SearchBarType>;
 const STORAGE_KEY = 'soroban_search_history';
 const MAX_HISTORY = 5;
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item: unknown) => typeof item === 'string');
+}
+
 export default function SearchBarWrapper(props: Props): React.ReactElement {
   const [history, setHistory] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -20,10 +24,13 @@ export default function SearchBarWrapper(props: Props): React.ReactElement {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setHistory(JSON.parse(stored));
+        const parsed: unknown = JSON.parse(stored);
+        if (isStringArray(parsed)) {
+          setHistory(parsed);
+        }
       }
-    } catch (e) {
-      console.error('Failed to load search history', e);
+    } catch {
+      // Keep the initial empty history when stored data cannot be parsed.
     }
   }, []);
 

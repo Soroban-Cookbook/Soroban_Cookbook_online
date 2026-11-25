@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SearchBar from '../index'; // Component is index.tsx
@@ -24,9 +24,39 @@ vi.mock('@docusaurus/router', () => ({
 }));
 
 describe('SearchBar', () => {
+  beforeEach(() => {
+    localStorage.removeItem('soroban_search_history');
+  });
+
   it('renders the search input', () => {
     render(<SearchBar />);
     expect(screen.getByPlaceholderText(/Search/i)).toBeInTheDocument();
+  });
+
+  it.each([
+    ['malformed JSON', '{invalid json'],
+    ['an object', '{"query":"auth"}'],
+    ['a non-string array', '["auth", 42]'],
+    ['a JSON string', '"auth"'],
+    ['null', 'null'],
+  ])('ignores %s stored as search history', (_description, stored) => {
+    localStorage.setItem('soroban_search_history', stored);
+    render(<SearchBar />);
+
+    fireEvent.focus(screen.getByPlaceholderText(/Search/i));
+
+    expect(screen.queryByText('Recent Searches')).not.toBeInTheDocument();
+  });
+
+  it('displays stored search history when it is an array of strings', () => {
+    localStorage.setItem('soroban_search_history', '["auth", "tokens"]');
+    render(<SearchBar />);
+
+    fireEvent.focus(screen.getByPlaceholderText(/Search/i));
+
+    expect(screen.getByText('Recent Searches')).toBeInTheDocument();
+    expect(screen.getByText('auth')).toBeInTheDocument();
+    expect(screen.getByText('tokens')).toBeInTheDocument();
   });
 
   it('shows no results when input is empty', async () => {
