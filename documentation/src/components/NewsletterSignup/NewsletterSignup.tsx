@@ -104,14 +104,6 @@ export default function NewsletterSignup({ className }: NewsletterSignupProps) {
       }
 
       try {
-        if (!endpoint) {
-          await new Promise((r) => setTimeout(r, 600));
-          setStatus('success');
-          setMessage('Thanks — you are on the list. We will share Soroban Cookbook updates here.');
-          setEmail('');
-          return;
-        }
-
         // Get CSRF token for protection against CSRF attacks
         const csrfToken = getOrCreateCSRFToken();
 
