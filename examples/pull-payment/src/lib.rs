@@ -44,10 +44,14 @@ pub struct PullPayment;
 #[contractimpl]
 impl PullPayment {
     /// Initialise the contract with a payout `owner` and the `token` used for payouts.
+    ///
+    /// `owner` must authorize this call, so nobody can front-run deployment
+    /// and install themselves (or an arbitrary address) as the owner.
     pub fn init(env: Env, owner: Address, token: Address) {
         if env.storage().instance().has(&DataKey::Owner) {
             panic!("already initialized");
         }
+        owner.require_auth();
         env.storage().instance().set(&DataKey::Owner, &owner);
         env.storage()
             .instance()
@@ -159,9 +163,11 @@ impl PullPayment {
 #[cfg(test)]
 mod tests {
     use super::*;
+    extern crate std;
+
     use soroban_sdk::{
-        testutils::Address as _,
-        token,
+        testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation},
+        token, IntoVal,
     };
 
     fn setup<'a>() -> (Env, Address, Address, Address, PullPaymentClient<'a>) {
@@ -247,6 +253,43 @@ mod tests {
 
         let res = contract.try_withdraw(&beneficiary, &0);
         assert_eq!(res.unwrap_err().unwrap(), Error::InvalidAmount);
+    }
+
+    #[test]
+    fn test_init_requires_owner_auth() {
+        let env = Env::default();
+        let owner = Address::generate(&env);
+        let token = Address::generate(&env);
+        let contract = PullPaymentClient::new(&env, &env.register(PullPayment, ()));
+
+        // No auth mocked: init must be rejected.
+        assert!(contract.try_init(&owner, &token).is_err());
+
+        env.mock_all_auths();
+        contract.init(&owner, &token);
+        assert_eq!(
+            env.auths(),
+            std::vec![(
+                owner.clone(),
+                AuthorizedInvocation {
+                    function: AuthorizedFunction::Contract((
+                        contract.address.clone(),
+                        Symbol::new(&env, "init"),
+                        (owner.clone(), token.clone()).into_val(&env),
+                    )),
+                    sub_invocations: std::vec![],
+                }
+            )]
+        );
+        assert_eq!(contract.owner(), owner);
+    }
+
+    #[test]
+    #[should_panic(expected = "already initialized")]
+    fn test_init_cannot_be_rerun() {
+        let (env, _owner, _beneficiary, token_id, contract) = setup();
+        let attacker = Address::generate(&env);
+        contract.init(&attacker, &token_id);
     }
 
     #[test]

@@ -22,6 +22,7 @@ jobs:
   lint-format:
     name: Lint & Format
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./documentation
@@ -59,6 +60,7 @@ jobs:
   spellcheck:
     name: Spell Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./documentation
@@ -93,6 +95,7 @@ jobs:
   typecheck:
     name: TypeScript Check
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./documentation
@@ -130,6 +133,7 @@ jobs:
   build-docs:
     name: Build Documentation
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./documentation
@@ -198,6 +202,7 @@ jobs:
   lighthouse-ci:
     name: Lighthouse CI (Core Web Vitals)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [build-docs]
     defaults:
       run:
@@ -238,6 +243,7 @@ jobs:
   validate-deployment:
     name: Validate Deployment Setup
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: ./documentation
@@ -289,6 +295,7 @@ jobs:
   test-examples:
     name: Test Code Examples
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -333,6 +340,7 @@ jobs:
   wasm-build-examples:
     name: Wasm Build Code Examples
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -368,6 +376,7 @@ jobs:
   rustfmt:
     name: Rust Format Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -384,6 +393,7 @@ jobs:
   check-wasm-budgets:
     name: Check Wasm Size Budgets
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -410,6 +420,7 @@ jobs:
   lint-contracts:
     name: Lint Contract Code
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -441,6 +452,7 @@ jobs:
   e2e-console:
     name: Browser Console Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [build-docs]
     defaults:
       run:
@@ -484,6 +496,7 @@ jobs:
   e2e-smoke:
     name: Playwright Core Tests (Chromium)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [build-docs]
     defaults:
       run:
@@ -554,6 +567,7 @@ jobs:
   check-snippet-drift:
     name: Snippet Drift Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -563,6 +577,7 @@ jobs:
   coverage:
     name: Unit Test Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ./documentation
@@ -632,6 +647,7 @@ jobs:
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [lint-format, spellcheck, typecheck, build-docs, lighthouse-ci, validate-deployment, test-examples, lint-contracts, rustfmt, wasm-build-examples, check-wasm-budgets, check-snippet-drift, e2e-console, e2e-smoke, coverage]
     if: always()
     steps:
