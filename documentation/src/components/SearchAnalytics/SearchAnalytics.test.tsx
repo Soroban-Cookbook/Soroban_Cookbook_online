@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, act, waitFor } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 
 // ─── Control values for the @docusaurus/router mock ─────────────────────────
 
@@ -20,82 +20,77 @@ vi.mock('@site/src/utils/analyticsConsent', () => ({
   hasConsent: () => mockConsented,
 }));
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── MutationObserver Mock ──────────────────────────────────────────────────
 
-let setIntervalSpy: ReturnType<typeof vi.spyOn>;
-
-/**
- * Interval delay used by SearchAnalytics' settle poll (SETTLE_INTERVAL_MS).
- * Test-runner timers (waitFor's own polling) call setInterval with other
- * delays, so we filter on this to pick the component's callback.
- */
-const POLL_INTERVAL_MS = 250;
-
-function pollingCalls(): [() => void, number][] {
-  return setIntervalSpy.mock.calls.filter(
-    (call): call is [() => void, number] => call[1] === POLL_INTERVAL_MS,
-  ) as [() => void, number][];
+interface MockObserverInstance {
+  callback: MutationCallback;
+  observe: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+  trigger: (mutations?: Partial<MutationRecord>[]) => void;
 }
 
-/** Extract the polling callback captured by the setInterval spy. */
-function getPollingCallback(): () => void {
-  const calls = pollingCalls();
-  if (calls.length === 0) throw new Error('setInterval was never called');
-  return calls[0][0];
-}
+let observerInstances: MockObserverInstance[] = [];
 
-/** Fire the polling callback N times inside act(). */
-async function tickPolling(times: number) {
-  const cb = getPollingCallback();
-  for (let i = 0; i < times; i++) {
-    await act(async () => {
-      cb();
-    });
+class MockMutationObserver {
+  callback: MutationCallback;
+  observe = vi.fn();
+  disconnect = vi.fn();
+
+  constructor(cb: MutationCallback) {
+    this.callback = cb;
+    observerInstances.push(this);
+  }
+
+  trigger(mutations: Partial<MutationRecord>[] = []) {
+    this.callback(mutations as MutationRecord[], this as unknown as MutationObserver);
   }
 }
 
+function getLatestObserver(): MockObserverInstance {
+  const latest = observerInstances[observerInstances.length - 1];
+  if (!latest) throw new Error('MutationObserver was never instantiated');
+  return latest;
+}
+
+let querySelectorAllSpy: ReturnType<typeof vi.spyOn>;
+
 function setArticleCount(count: number) {
-  document.querySelectorAll = vi.fn(
-    () =>
-      ({
-        length: count,
-        item: () => null,
-        [Symbol.iterator]: function* () {},
-      }) as unknown as NodeListOf<Element>,
-  );
+  querySelectorAllSpy.mockReturnValue({
+    length: count,
+    item: () => null,
+    [Symbol.iterator]: function* () {},
+  } as unknown as NodeListOf<Element>);
 }
 
 // ─── Setup / teardown ───────────────────────────────────────────────────────
 
 beforeEach(() => {
+  vi.useFakeTimers();
+  observerInstances = [];
   mockLocation.pathname = '/';
   mockLocation.search = '';
   mockConsented = false;
 
-  document.querySelectorAll = vi.fn(
-    () =>
-      ({
-        length: 0,
-        item: () => null,
-        [Symbol.iterator]: function* () {},
-      }) as unknown as NodeListOf<Element>,
-  );
+  querySelectorAllSpy = vi.spyOn(document, 'querySelectorAll');
+  setArticleCount(0);
 
-  setIntervalSpy = vi.spyOn(window, 'setInterval');
-  vi.spyOn(window, 'clearInterval');
-
-  window.addEventListener = vi.fn();
-  window.removeEventListener = vi.fn();
-  window.dispatchEvent = vi.fn();
+  // Install Mock MutationObserver
+  window.MutationObserver = MockMutationObserver as unknown as typeof MutationObserver;
+  globalThis.MutationObserver = MockMutationObserver as unknown as typeof MutationObserver;
 });
 
 afterEach(() => {
+  act(() => {
+    vi.runOnlyPendingTimers();
+  });
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
 // Import after mocks are set up.
 import SearchAnalytics from './SearchAnalytics';
 import { trackSearch } from '@site/src/utils/analytics';
+import { CONSENT_CHANGE_EVENT } from '@site/src/utils/analyticsConsent';
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
@@ -108,217 +103,398 @@ describe('SearchAnalytics', () => {
   });
 
   describe('consent change listener', () => {
-    it('registers a consent change listener on mount', () => {
+    it('registers a consent change listener on mount and updates on event', async () => {
+      let listener: (() => void) | null = null;
+      const originalAddEventListener = window.addEventListener;
+      window.addEventListener = vi.fn((event, cb) => {
+        if (event === CONSENT_CHANGE_EVENT) {
+          listener = cb as () => void;
+        }
+        originalAddEventListener.call(window, event, cb);
+      });
+
+      mockLocation.pathname = '/search';
+      mockLocation.search = '?q=stellar';
+      setArticleCount(4);
+
       render(<SearchAnalytics />);
       expect(window.addEventListener).toHaveBeenCalledWith(
-        'sc-consent-change',
+        CONSENT_CHANGE_EVENT,
         expect.any(Function),
       );
+
+      // Initially not consented -> no trackSearch
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(trackSearch).not.toHaveBeenCalled();
+
+      // Consent event occurs
+      mockConsented = true;
+      act(() => {
+        if (listener) listener();
+      });
+
+      // Now observer is active, debounce settles
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(trackSearch).toHaveBeenCalledWith('stellar', 4);
+
+      window.addEventListener = originalAddEventListener;
     });
 
     it('removes listener on unmount', () => {
+      const removeSpy = vi.spyOn(window, 'removeEventListener');
       const { unmount } = render(<SearchAnalytics />);
       unmount();
-      expect(window.removeEventListener).toHaveBeenCalledWith(
-        'sc-consent-change',
-        expect.any(Function),
-      );
+      expect(removeSpy).toHaveBeenCalledWith(CONSENT_CHANGE_EVENT, expect.any(Function));
     });
   });
 
   describe('route handling', () => {
-    it('does not start polling when not consented', () => {
+    it('does not start observing when not consented', () => {
       mockConsented = false;
       mockLocation.pathname = '/search';
       mockLocation.search = '?q=hello';
 
       render(<SearchAnalytics />);
 
-      expect(setIntervalSpy).not.toHaveBeenCalled();
+      expect(observerInstances.length).toBe(0);
       expect(trackSearch).not.toHaveBeenCalled();
     });
 
-    it('does not poll when consented but not on /search', async () => {
+    it('does not observe when consented but not on /search', () => {
       mockConsented = true;
       mockLocation.pathname = '/docs/getting-started/setup';
       mockLocation.search = '';
 
       render(<SearchAnalytics />);
 
-      await waitFor(() => {
-        // setInterval may or may not fire depending on consent state timing,
-        // but trackSearch should never be called for non-search routes
-        expect(trackSearch).not.toHaveBeenCalled();
-      });
+      expect(observerInstances.length).toBe(0);
+      expect(trackSearch).not.toHaveBeenCalled();
     });
 
-    it('does not poll when on /search with no query param', () => {
+    it('does not observe when on /search with no query param', () => {
       mockConsented = true;
       mockLocation.pathname = '/search';
       mockLocation.search = '';
 
       render(<SearchAnalytics />);
 
+      expect(observerInstances.length).toBe(0);
       expect(trackSearch).not.toHaveBeenCalled();
     });
 
-    it('does not poll when query param is whitespace only', () => {
+    it('does not observe when query param is whitespace only', () => {
       mockConsented = true;
       mockLocation.pathname = '/search';
       mockLocation.search = '?q=   ';
 
       render(<SearchAnalytics />);
 
+      expect(observerInstances.length).toBe(0);
       expect(trackSearch).not.toHaveBeenCalled();
     });
 
-    it('starts polling when on /search with a valid query term', async () => {
+    it('observes container element when present in DOM', () => {
+      const container = document.createElement('div');
+      container.className = 'container margin-vert--lg';
+      document.body.appendChild(container);
+
       mockConsented = true;
       mockLocation.pathname = '/search';
       mockLocation.search = '?q=soroban+testing';
 
       render(<SearchAnalytics />);
 
-      // React 18 may batch state updates; waitFor tolerates async propagation
-      await waitFor(() => {
-        expect(setIntervalSpy).toHaveBeenCalled();
+      expect(observerInstances.length).toBe(1);
+      expect(observerInstances[0].observe).toHaveBeenCalledWith(container, {
+        childList: true,
+        subtree: true,
+      });
+
+      document.body.removeChild(container);
+    });
+
+    it('falls back to observing document.body when container is not present', () => {
+      mockConsented = true;
+      mockLocation.pathname = '/search';
+      mockLocation.search = '?q=soroban+testing';
+
+      render(<SearchAnalytics />);
+
+      expect(observerInstances.length).toBe(1);
+      expect(observerInstances[0].observe).toHaveBeenCalledWith(document.body, {
+        childList: true,
+        subtree: true,
       });
     });
 
-    it('handles /search/ (trailing slash) as search route', async () => {
+    it('handles /search/ (trailing slash) as search route', () => {
       mockConsented = true;
       mockLocation.pathname = '/search/';
       mockLocation.search = '?q=trailing';
 
       render(<SearchAnalytics />);
 
-      await waitFor(() => {
-        expect(setIntervalSpy).toHaveBeenCalled();
-      });
+      expect(observerInstances.length).toBe(1);
+      expect(observerInstances[0].observe).toHaveBeenCalled();
     });
   });
 
-  describe('polling behavior', () => {
+  describe('observation and debounce behavior', () => {
     beforeEach(() => {
       mockConsented = true;
       mockLocation.pathname = '/search';
     });
 
-    it('tracks search after two stable ticks with same result count', async () => {
+    it('tracks search after debounce settling with same result count', () => {
       mockLocation.search = '?q=soroban+testing';
       setArticleCount(5);
 
       render(<SearchAnalytics />);
-      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalled());
+      const observer = getLatestObserver();
+      expect(observer.observe).toHaveBeenCalled();
 
-      // Fire one tick — not yet settled
-      await tickPolling(1);
+      // Before debounce settles
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
       expect(trackSearch).not.toHaveBeenCalled();
 
-      // Second tick with same count → settled → reports
-      await tickPolling(1);
+      // Settle after 250ms
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
       expect(trackSearch).toHaveBeenCalledWith('soroban testing', 5);
+      expect(observer.disconnect).toHaveBeenCalled();
     });
 
-    it('tracks zero results for a term with no hits', async () => {
+    it('resets debounce timer when mutations occur', () => {
+      mockLocation.search = '?q=soroban+contracts';
+      setArticleCount(2);
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      // Advance 200ms (not yet settled)
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(trackSearch).not.toHaveBeenCalled();
+
+      // Mutation arrives, updating result count
+      setArticleCount(6);
+      act(() => {
+        observer.trigger();
+      });
+
+      // Advance another 200ms (total 400ms from start, but only 200ms from mutation -> still waiting)
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(trackSearch).not.toHaveBeenCalled();
+
+      // Complete 250ms debounce from mutation
+      act(() => {
+        vi.advanceTimersByTime(50);
+      });
+      expect(trackSearch).toHaveBeenCalledWith('soroban contracts', 6);
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks zero results for a term with no hits', () => {
       mockLocation.search = '?q=missingpage';
       setArticleCount(0);
 
       render(<SearchAnalytics />);
-      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalled());
+      const observer = getLatestObserver();
 
-      await tickPolling(2);
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
       expect(trackSearch).toHaveBeenCalledWith('missingpage', 0);
+      expect(observer.disconnect).toHaveBeenCalled();
     });
 
-    it('does not double-report the same query', async () => {
+    it('ignores mutations that do not change the result article count', () => {
+      mockLocation.search = '?q=stellar';
+      setArticleCount(2);
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      // At 100ms, a mutation happens (e.g. tooltip or script) but count remains 2
+      act(() => {
+        vi.advanceTimersByTime(100);
+        observer.trigger();
+      });
+
+      // At 250ms total, initial debounce settles because irrelevant mutation was ignored
+      act(() => {
+        vi.advanceTimersByTime(150);
+      });
+      expect(trackSearch).toHaveBeenCalledWith('stellar', 2);
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not report again on mutations after settling and disconnecting', () => {
+      mockLocation.search = '?q=stellar';
+      setArticleCount(3);
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+      expect(observer.disconnect).toHaveBeenCalledTimes(1);
+
+      // Subsequent mutation arrives after observer has settled
+      act(() => {
+        setArticleCount(5);
+        observer.trigger();
+        vi.advanceTimersByTime(500);
+      });
+      expect(trackSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not double-report when consent event re-fires for the same query', () => {
       mockLocation.search = '?q=hello';
       setArticleCount(3);
 
       render(<SearchAnalytics />);
-      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalled());
 
-      await tickPolling(2); // settle → first report
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
       expect(trackSearch).toHaveBeenCalledTimes(1);
+      expect(trackSearch).toHaveBeenCalledWith('hello', 3);
 
-      // Additional ticks should not trigger another report
-      await tickPolling(3);
+      // Re-trigger consent change while still true
+      act(() => {
+        window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
+        vi.advanceTimersByTime(500);
+      });
       expect(trackSearch).toHaveBeenCalledTimes(1);
     });
 
-    it('reports after max elapsed even if results keep changing', async () => {
-      mockLocation.search = '?q=flaky';
-
-      let callCount = 0;
-      document.querySelectorAll = vi.fn(() => {
-        callCount += 1;
-        return {
-          length: callCount,
-          item: () => null,
-          [Symbol.iterator]: function* () {},
-        } as unknown as NodeListOf<Element>;
-      });
+    it('disconnects observer and cancels reporting if consent is revoked during settling', () => {
+      mockConsented = true;
+      mockLocation.search = '?q=revoketest';
+      setArticleCount(2);
 
       render(<SearchAnalytics />);
-      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalled());
+      const observer = getLatestObserver();
+      expect(observer.disconnect).not.toHaveBeenCalled();
 
-      // Fire 24 ticks (SETTLE_MAX_MS 6000 / SETTLE_INTERVAL_MS 250).
-      // Each tick changes the result count, so it never settles,
-      // but the max-timeout fallback should trigger on the 24th tick.
-      await tickPolling(24);
-      expect(trackSearch).toHaveBeenCalledWith('flaky', expect.any(Number));
+      // Revoke consent while settling
+      act(() => {
+        vi.advanceTimersByTime(100);
+        mockConsented = false;
+        window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
+      });
+
+      expect(observer.disconnect).toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(trackSearch).not.toHaveBeenCalled();
     });
 
-    it('re-tracks after navigating away and back to /search', async () => {
+    it('reports after max timeout even if mutations keep occurring', () => {
+      mockLocation.search = '?q=flaky';
+      let count = 0;
+
+      render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      // Continuous mutations every 150ms prevent debounce from ever finishing normally
+      for (let time = 0; time < 5850; time += 150) {
+        act(() => {
+          vi.advanceTimersByTime(150);
+          count++;
+          setArticleCount(count);
+          observer.trigger();
+        });
+        expect(trackSearch).not.toHaveBeenCalled();
+      }
+
+      // Advance past max timeout (6000ms)
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(trackSearch).toHaveBeenCalledWith('flaky', expect.any(Number));
+      expect(observer.disconnect).toHaveBeenCalled();
+    });
+
+    it('re-tracks after navigating away and back to /search', () => {
       mockLocation.search = '?q=hello';
       setArticleCount(2);
 
       const { rerender } = render(<SearchAnalytics />);
-      await waitFor(() => expect(setIntervalSpy).toHaveBeenCalled());
-
-      await tickPolling(2);
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
       expect(trackSearch).toHaveBeenCalledTimes(1);
 
       // Navigate away
       mockLocation.pathname = '/docs';
       mockLocation.search = '';
       rerender(<SearchAnalytics />);
-      await act(async () => {
-        await Promise.resolve();
-      });
 
-      // Navigate back — a new setInterval call should happen
+      // Navigate back
       mockLocation.pathname = '/search';
       mockLocation.search = '?q=hello';
       rerender(<SearchAnalytics />);
 
-      await waitFor(() => {
-        // Should register another setInterval call
-        expect(setIntervalSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
-      });
+      expect(observerInstances.length).toBeGreaterThanOrEqual(2);
 
-      // The latest callback is the one for the re-entry
-      await tickPollingFromLatest(2);
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
       expect(trackSearch).toHaveBeenCalledTimes(2);
+    });
+
+    it('falls back gracefully when MutationObserver is not defined', () => {
+      // Temporarily remove MutationObserver
+      const originalMO = window.MutationObserver;
+      // @ts-expect-error testing undefined environment
+      delete window.MutationObserver;
+      // @ts-expect-error testing undefined environment
+      delete globalThis.MutationObserver;
+
+      mockLocation.search = '?q=noobserver';
+      setArticleCount(3);
+
+      render(<SearchAnalytics />);
+
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(trackSearch).toHaveBeenCalledWith('noobserver', 3);
+
+      window.MutationObserver = originalMO;
+      globalThis.MutationObserver = originalMO;
+    });
+
+    it('cleans up observer and timers on unmount before debounce', () => {
+      mockLocation.search = '?q=cleanup';
+      setArticleCount(2);
+
+      const { unmount } = render(<SearchAnalytics />);
+      const observer = getLatestObserver();
+
+      unmount();
+      expect(observer.disconnect).toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(trackSearch).not.toHaveBeenCalled();
     });
   });
 });
-
-/**
- * Fire the LATEST polling callback (for re-tracking after navigation).
- */
-function getLatestPollingCallback(): () => void {
-  const calls = pollingCalls();
-  const latest = calls[calls.length - 1];
-  if (!latest) throw new Error('setInterval was never called');
-  return latest[0];
-}
-
-async function tickPollingFromLatest(times: number) {
-  for (let i = 0; i < times; i++) {
-    const cb = getLatestPollingCallback();
-    await act(async () => {
-      cb();
-    });
-  }
-}
