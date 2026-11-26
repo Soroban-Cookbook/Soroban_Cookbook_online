@@ -277,6 +277,9 @@ Deployment does not require any environment variables to succeed — the build f
 | `DISCORD_INVITE_URL` | `documentation/docusaurus.config.ts` → `customFields.discordInviteUrl` | Discord invite link surfaced in the UI once the server exists. |
 | `GA_MEASUREMENT_ID` | `documentation/docusaurus.config.ts` → `customFields.gaMeasurementId` | GA4 measurement ID (`G-XXXXXXX`) for conversion funnel tracking. See [Analytics](#analytics). |
 | `CLARITY_PROJECT_ID` | `documentation/docusaurus.config.ts` → `customFields.clarityProjectId` | Microsoft Clarity project ID for heatmaps. See [Analytics](#analytics). |
+| `SENTRY_DSN` | `documentation/src/theme/Root.tsx` | Public Sentry project DSN used only to submit client-side error events. |
+| `SENTRY_ENVIRONMENT` | `documentation/src/theme/Root.tsx` | Optional Sentry environment name (for example `production`). |
+| `SENTRY_RELEASE` | `documentation/src/theme/Root.tsx` | Optional Sentry release identifier. |
 
 **These values are never hardcoded in source.** They are read from `process.env` at build time (see the `customFields` block in `docusaurus.config.ts`) and are wired into the production build via `.github/workflows/deploy.yml`, which sources them from **GitHub Repository Secrets**:
 
@@ -605,3 +608,19 @@ For issues or questions:
 2. Review workflow logs in the Actions tab
 3. Open an issue on GitHub with workflow logs attached
 4. Join the [Stellar Discord](https://discord.gg/stellardev) for community support
+
+### Sentry error monitoring
+
+The `SENTRY_DSN` is intentionally public: every browser that can run the documentation site must receive the DSN to submit error events. It is therefore expected to appear in network requests and the JavaScript bundle. Treat the DSN as a public project identifier, not as an authentication secret. Never place Sentry authentication tokens, internal credentials, or API keys in `SENTRY_DSN` or other browser-bundled values.
+
+Configure `SENTRY_DSN` as a repository secret and add `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, and `SENTRY_RELEASE` to the deployment build environment. These are build-time configuration and remain readable by site visitors.
+
+A public DSN permits event submission but does not authorize reading project data. To prevent fabricated-event flooding:
+
+1. Open the Sentry project dashboard and enable **Spike Protection** under **Settings**.
+2. Configure project rate limits appropriate for expected browser error volume.
+3. Follow Sentry's current [data volume and rate-limit documentation](https://docs.sentry.io/product/quotas/) and [spike protection documentation](https://docs.sentry.io/product/alerts/).
+4. Review inbound data filters and discard recurring noise or invalid events.
+5. Verify quotas and alert destinations periodically.
+
+Project-side limits and filtering are required controls; changing the browser sample rate alone does not prevent abuse of a public DSN. Production builds must not expose debug event helpers such as `window.__sentryTest`.

@@ -27,13 +27,6 @@
  *
  * When SENTRY_DSN is absent (local dev without a configured project), Sentry
  * is NOT initialised — the page behaves exactly as before this change.
- *
- * ## Testing that errors reach Sentry
- *
- * In a browser console on a Sentry-connected build:
- *   window.__sentryTest()
- *
- * See: https://docusaurus.io/docs/swizzling#wrapper-your-site-with-root
  */
 
 import React, { useEffect, type ReactNode } from 'react';
@@ -114,17 +107,6 @@ export default function Root({ children }: RootProps): React.JSX.Element {
               return event;
             },
           });
-
-          // Expose a test helper on window so the Sentry integration can be
-          // verified without a real user-facing error:
-          //   window.__sentryTest()
-          if (typeof window !== 'undefined') {
-            (window as Window & { __sentryTest?: () => void }).__sentryTest = () => {
-              Sentry.captureException(
-                new Error('[Sentry test] Manual verification — safe to ignore in production.'),
-              );
-            };
-          }
         })
         .catch(() => {
           // Sentry failed to load (network issue, ad-blocker, etc.).
