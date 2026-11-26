@@ -34,6 +34,43 @@ Release-please monitors `main`, opens a release pull request when Conventional C
 
 ---
 
+### Content registry pre-commit check (optional)
+
+The tracked hook runs the same content registry check as CI when a commit changes
+the documentation inputs or registry. It checks the files Git is about to
+commit, not unstaged edits, and does not regenerate or stage anything.
+
+From the repository root, check whether you already have a hook configuration:
+
+```sh
+git config --show-origin --get core.hooksPath
+ls -a "$(git rev-parse --git-path hooks)"
+```
+
+If there is no configured hooks path and no custom hooks in that directory
+(the stock `.sample` files don't count), enable the project hook for this clone:
+
+```sh
+git config --local core.hooksPath .githooks
+```
+
+If you already use hooks, keep your setup and call `.githooks/pre-commit` from
+your existing pre-commit hook instead. To remove the opt-in configuration above,
+run `git config --local --unset core.hooksPath`.
+
+If the check fails after a docs change, run these commands from the repository
+root:
+
+```sh
+(cd documentation && bun run prestart)
+git add documentation/src/components/recommendations/contentRegistry.json
+```
+
+Verify that the generated file matches the docs changes staged for this commit,
+especially if you have other unstaged edits.
+
+---
+
 ### 📊 For Docs Maintainers
 - **[Analytics Dashboard](ANALYTICS_DASHBOARD.md)** - Key metrics, the weekly popular-pages report, and how to turn zero-result searches into documentation issues.
 - **[A/B Testing Plan](documentation/docs/planning/ab-testing.md)** - Required process and plan template before enabling any experiment.
