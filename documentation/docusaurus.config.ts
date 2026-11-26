@@ -43,8 +43,9 @@ const config: Config = {
     sentryDsn: process.env.SENTRY_DSN ?? '',
     // Both are consent-gated — see ConsentBanner / src/utils/analytics.ts.
     // Unset by default, so no analytics script ever loads until an operator
-    // opts in by setting the secret. See DEPLOYMENT.md → Analytics.
-    /** GA4 measurement ID (e.g. "G-XXXXXXX") for conversion funnel tracking. */
+    // opts in by setting the build-time configuration. The GA4 measurement ID
+    // is a public client-side identifier, not a secret or credential.
+    /** Public GA4 measurement ID (e.g. "G-XXXXXXX") for conversion tracking. */
     gaMeasurementId:
       process.env.GA_MEASUREMENT_ID ??
       process.env.GTAG_MEASUREMENT_ID ??
