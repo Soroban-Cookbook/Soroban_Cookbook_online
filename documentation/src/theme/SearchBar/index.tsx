@@ -10,6 +10,10 @@ type Props = WrapperProps<typeof SearchBarType>;
 const STORAGE_KEY = 'soroban_search_history';
 const MAX_HISTORY = 5;
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item: unknown) => typeof item === 'string');
+}
+
 export default function SearchBarWrapper(props: Props): React.ReactElement {
   const [history, setHistory] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false);
