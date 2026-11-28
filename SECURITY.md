@@ -30,9 +30,9 @@ A `<meta http-equiv="Content-Security-Policy">` tag cannot enforce:
 
 These must be set at the HTTP server or CDN layer.
 
-### Known limitation: 'unsafe-inline' in script-src / style-src
+### Known limitation: 'unsafe-inline' in style-src
 
-Security review note: the site currently allows 'unsafe-inline' for scripts and styles because Docusaurus emits inline theme/bootstrap scripts and dynamic inline styles that are not yet nonce- or hash-pinned. This is documented inline in documentation/docusaurus.config.ts and reflected in deployment headers/config (documentation/vercel.json, DEPLOYMENT.md). Until nonce/hash hardening is implemented end-to-end, treat the CSP as partially hardened and avoid introducing additional inline or injection sinks.
+Security review note: inline scripts are hash-pinned in `script-src`, but the site still allows 'unsafe-inline' in `style-src` because Docusaurus emits dynamic inline styles that are not yet nonce- or hash-pinned. This is reflected in `documentation/docusaurus.config.ts`, `vercel.json`, and `documentation/static/_headers`. Until style-src hardening is implemented, treat the CSP as partially hardened and avoid introducing additional inline style or injection sinks.
 
 ## Required server-level HTTP headers
 
