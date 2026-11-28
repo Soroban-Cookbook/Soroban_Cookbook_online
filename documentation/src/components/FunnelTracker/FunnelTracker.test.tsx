@@ -209,6 +209,17 @@ describe('FunnelTracker', () => {
       });
     });
 
+    it('records the landing view only once when consent is granted on the homepage', () => {
+      mockLocation.pathname = '/';
+      render(<FunnelTracker />);
+      expect(trackEventMock).not.toHaveBeenCalled();
+
+      grantConsent();
+
+      expect(trackEventMock).toHaveBeenCalledTimes(1);
+      expect(trackEventMock).toHaveBeenCalledWith(FUNNEL_STEPS.landingView, { page_path: '/' });
+    });
+
     it('starts recording outbound GitHub clicks', () => {
       mockLocation.pathname = '/';
       render(<FunnelTracker />);

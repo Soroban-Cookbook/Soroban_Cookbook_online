@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from '@docusaurus/router';
 import { FUNNEL_STEPS, trackEvent } from '@site/src/utils/analytics';
 import { CONSENT_CHANGE_EVENT, hasConsent } from '@site/src/utils/analyticsConsent';
@@ -15,6 +15,7 @@ export default function FunnelTracker(): null {
   // Consent may be granted after the first render (visitor clicks Accept on the
   // banner), so this re-runs the step for the page they are already on.
   const [consented, setConsented] = useState(false);
+  const lastLandingPath = useRef<string | null>(null);
 
   useEffect(() => {
     setConsented(hasConsent());
@@ -26,9 +27,15 @@ export default function FunnelTracker(): null {
   useEffect(() => {
     if (!consented) return;
     if (pathname === '/') {
-      trackEvent(FUNNEL_STEPS.landingView, { page_path: pathname });
-    } else if (pathname.startsWith('/docs')) {
-      trackEvent(FUNNEL_STEPS.docsView, { page_path: pathname });
+      if (lastLandingPath.current !== pathname) {
+        trackEvent(FUNNEL_STEPS.landingView, { page_path: pathname });
+        lastLandingPath.current = pathname;
+      }
+    } else {
+      lastLandingPath.current = null;
+      if (pathname.startsWith('/docs')) {
+        trackEvent(FUNNEL_STEPS.docsView, { page_path: pathname });
+      }
     }
   }, [consented, pathname]);
 
